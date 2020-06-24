@@ -1,0 +1,65 @@
+// vertex shader
+#version 300 es
+
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColor;
+layout (location = 2) in vec2 tPos;
+out vec2 TexCoord;
+out vec3 TexColor;
+
+void main()
+{
+    gl_Position = vec4(aPos, 1.0);
+    TexCoord = tPos;
+    TexColor = aColor;
+}
+
+// fragment shader
+#version 300 es
+precision mediump float;
+
+out vec4 FragColor;
+in vec2 TexCoord;
+in vec3 TexColor;
+uniform sampler2D texture1;
+
+void main()
+{
+    FragColor = texture (texture1, TexCoord) * vec4 (TexColor, 1.0);
+}
+
+///----------------------------------------------------------------------------------------------///
+//FBO
+
+#version 300 es
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec2 aTexCoords;
+out vec2 TexCoords;
+void main()
+{
+    gl_Position = vec4(aPos, 1.0);
+    TexCoords = aTexCoords;
+}
+
+#version 300 es
+precision mediump float;
+out vec4 FragColor;
+in vec2 TexCoords;
+uniform sampler2D screenTexture;
+void main()
+{
+    vec4 tempColor = texture (screenTexture, TexCoords);
+    float grayValue = tempColor.r * 0.299 + tempColor.g * 0.587 + tempColor.b * 0.114;
+    FragColor = vec4 (vec3(grayValue), tempColor.a);
+}
+
+// fragment shader
+#version 300 es
+precision mediump float;
+out vec4 FragColor;
+in vec2 TexCoord;
+uniform sampler2D texture1;
+void main()
+{
+    FragColor = texture (texture1, TexCoord) * vec4 (1.0);
+}
