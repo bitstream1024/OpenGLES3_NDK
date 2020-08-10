@@ -90,7 +90,7 @@ if (IF_USE_STATIC_PNG_LIB EQUAL 0)
     add_custom_command(
             TARGET ${PROCESSOR_SO_NAME}
             PRE_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../OpenGLESCommon/libpng/${TARGET_ABI}/lib${LIB_PNG_NAME}.so ${CMAKE_CURRENT_SOURCE_DIR}/../../../libs/${TARGET_ABI}/lib${LIB_PNG_NAME}.so
+            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../OpenGLESCommon/libpng/lib/${TARGET_ABI}/lib${LIB_PNG_NAME}.so ${CMAKE_CURRENT_SOURCE_DIR}/../../../libs/${TARGET_ABI}/lib${LIB_PNG_NAME}.so
     )
 endif ()
 
