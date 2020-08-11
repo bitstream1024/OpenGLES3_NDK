@@ -224,7 +224,7 @@ public:
 		image.colormap_entries = 256;
 		png_bytep buffer = lpMyImageInfo->buffer[0];
 		int png_ret = png_image_write_to_file(&image, sPath, 0, buffer, 0, NULL);
-		LOGD("SaveImageToPng png_image_write_to_file ret = %d", ret);
+		LOGD("SaveImageToPng png_image_write_to_file ret = %d", png_ret);
 		if (0 == png_ret)
 		{
 			LOGE("SaveImageToPng png_image_write_to_file warning_or_error = %d message = %s",
