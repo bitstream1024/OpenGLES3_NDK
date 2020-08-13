@@ -188,6 +188,8 @@ int EGLHelper::CreateEGLEnv()
 				EGL_HEIGHT,1,
 				EGL_NONE
 		};
+		// 这里也可以使用eglCreateWindowSurface传入一个native window用于绘制，这个window可以是java层
+		// 的GLSurfaceView，TextureView或者SurfaceView
 		m_EGLSurface = eglCreatePbufferSurface(m_EGLDisplay, m_EGLConfig, surfaceAttr);
 		if(m_EGLSurface == EGL_NO_SURFACE)
 		{
