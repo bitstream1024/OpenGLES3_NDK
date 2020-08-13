@@ -21,7 +21,9 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".GLProcessorActivity" />
+        <activity android:name=".GLProcessorActivity" >
+
+        </activity>
 
     </application>
 

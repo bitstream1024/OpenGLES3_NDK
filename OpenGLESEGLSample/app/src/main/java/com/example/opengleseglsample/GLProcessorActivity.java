@@ -2,15 +2,10 @@ package com.example.opengleseglsample;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.Manifest;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
-
-import com.example.permission.PermissionHelper;
-import com.example.permission.PermissionInterface;
 
 public class GLProcessorActivity extends AppCompatActivity {
 
@@ -21,13 +16,16 @@ public class GLProcessorActivity extends AppCompatActivity {
 
     private final static String TAG = "MainActivity";
 
-    NativeEGLHelper mNativeEGLHelper = new NativeEGLHelper();
+    NativeEGLHelper mNativeEGLHelper = null;
     private boolean bRenderResume = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_gl_processor);
+        if (mNativeEGLHelper == null) {
+            mNativeEGLHelper = new NativeEGLHelper(this);
+        }
     }
 
     @Override
@@ -38,6 +36,15 @@ public class GLProcessorActivity extends AppCompatActivity {
             public void run() {
                 Log.d(TAG, "run");
                 int retCode = 0;
+
+                while (!mNativeEGLHelper.isbSetSurface()) {
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                };
+
                 retCode = mNativeEGLHelper.Init();
                 Log.d(TAG, "mNativeEGLHelper.Init retCode = " + retCode);
 
@@ -47,13 +54,13 @@ public class GLProcessorActivity extends AppCompatActivity {
                     if (retCode2 != 0)
                         break;
 
-                    Bitmap bitmap = mNativeEGLHelper.CreateBitmapFromGLSurface (0, 0, 1080, 1920);
+                    /*Bitmap bitmap = mNativeEGLHelper.CreateBitmapFromGLSurface (0, 0, 1080, 1920);
                     GLProcessorActivity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             findViewById(R.id.image_view).setBackground(new BitmapDrawable(getResources(), bitmap));
                         }
-                    });
+                    });*/
 
                     try {
                         Thread.sleep(50);

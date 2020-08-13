@@ -4,6 +4,7 @@
 #include <common.h>
 #include <MyDefineUtils.h>
 #include "EGLHelper.h"
+#include <android/native_window_jni.h>
 
 int m_ImgBufferLength = 0;
 unsigned char* m_pImgData = nullptr;
@@ -86,4 +87,16 @@ Java_com_example_opengleseglsample_NativeEGLHelper_SetImageData(JNIEnv *env, job
         LOGD ("Java_com_example_opengleseglsample_NativeEGLHelper_SetImageData Draw ret = %d", retCode);
     }
     return retCode;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_example_opengleseglsample_NativeEGLHelper_SetWindow(JNIEnv *env, jobject thiz, jobject surface, jint width, jint height)
+{
+    // TODO: implement SetWindow()
+
+    ANativeWindow *pNativeWindow = ANativeWindow_fromSurface (env, surface);
+    EGLHelper::CreateInstance()->SetWindow(pNativeWindow);
+
+    return 0;
 }

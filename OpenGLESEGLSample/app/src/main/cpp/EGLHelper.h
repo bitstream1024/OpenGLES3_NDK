@@ -20,6 +20,7 @@ public:
 	// 单例
 	static EGLHelper* CreateInstance ();
 	int Init ();
+	int SetWindow (ANativeWindow * const pNativeWindow);
 	int UnInit ();
 	int Draw ();
 	int SetImageData (const int imgWidth, const int imgHeight, const unsigned char* pImgData);
@@ -41,6 +42,8 @@ private:
 	EGLSurface m_EGLSurface;
 	EGLContext m_EGLContext;
 	bool m_bEGLEnvReady;
+
+	ANativeWindow *m_pANativeWindow;
 
 	GLuint m_VAO;
 	GLuint m_VBO;

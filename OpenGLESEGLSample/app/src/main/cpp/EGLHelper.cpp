@@ -116,7 +116,8 @@ EGLHelper::EGLHelper():
 	m_EGLSurface(nullptr),
 	m_EGLContext(nullptr),
 	m_pShaderHelperNormal (nullptr),
-	m_pShaderHelperFBO (nullptr)
+	m_pShaderHelperFBO (nullptr),
+	m_pANativeWindow(nullptr)
 {
 	m_VAO = GL_NONE;
 	/*for (auto val : m_VBO)
@@ -190,10 +191,13 @@ int EGLHelper::CreateEGLEnv()
 		};
 		// 这里也可以使用eglCreateWindowSurface传入一个native window用于绘制，这个window可以是java层
 		// 的GLSurfaceView，TextureView或者SurfaceView
-		m_EGLSurface = eglCreatePbufferSurface(m_EGLDisplay, m_EGLConfig, surfaceAttr);
+		//m_EGLSurface = eglCreatePbufferSurface(m_EGLDisplay, m_EGLConfig, surfaceAttr);
+		m_EGLSurface = eglCreateWindowSurface(m_EGLDisplay, m_EGLConfig, m_pANativeWindow, nullptr);
 		if(m_EGLSurface == EGL_NO_SURFACE)
 		{
-			switch(eglGetError())
+			GLint error = eglGetError ();
+			LOGE("EGLHelper::CreateEGLEnv eglCreateWindowSurface error = %d", error);
+			switch(error)
 			{
 				case EGL_BAD_ALLOC:
 					// Not enough resources available. Handle and recover
@@ -258,10 +262,6 @@ int EGLHelper::Draw()
 	if (!m_bEGLEnvReady)
 		return 0;
 
-	/*glm::mat4 modelView = glm::mat4(1.0f);
-	glm::mat4 projection = glm::perspective (glm::radians(45.f), 1.f, 0.1f, 1000.f);
-	LOGOUT_MAT4 (projection, "onDrawFrame projection")*/
-
 	// draw FBO
 	m_pShaderHelperNormal->use();
 	DrawHelper::CheckGLError("OnDrawFrame use");
@@ -273,19 +273,19 @@ int EGLHelper::Draw()
 	glBindVertexArray(GL_NONE);
 	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
 
-	/*GLint viewport[4]{0};
+	GLint viewport[4]{0};
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	SRECT sRect {0};
 	sRect.left = viewport[0];sRect.top = viewport[1];sRect.right = viewport[2];sRect.bottom = viewport[3];
 	char sPath[MAX_PATH]{0};
 	sprintf(sPath, "/sdcard/OpenGLESTest/testDrawFBO_%04d_%dx%d.png", m_FrameID, sRect.right - sRect.left,
 			sRect.bottom - sRect.top);
-	DrawHelper::SaveRenderImage(sRect, GL_RGBA, sPath);*/
+	DrawHelper::SaveRenderImage(sRect, GL_RGBA, sPath);
 
-	//glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
 
 	// draw FBO texture to screen
-	/*m_pShaderHelperFBO->use();
+	m_pShaderHelperFBO->use();
 	glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
 	DrawHelper::CheckGLError("OnDrawFrame glBindFramebuffer");
 	glClear (GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
@@ -296,7 +296,10 @@ int EGLHelper::Draw()
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
 	DrawHelper::CheckGLError("OnDrawFrame glDrawElements");
 	glBindVertexArray(GL_NONE);
-	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");*/
+	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
+
+	// 交换display和surface，很重要，如果没有就无法绘制出画面
+	eglSwapBuffers(m_EGLDisplay, m_EGLSurface);
 
 	++m_FrameID;
 	return ERROR_OK;
@@ -375,7 +378,7 @@ RESULT EGLHelper::creteGLBuffer ()
 	LOGD("creteGLBuffer maxRenderBufferSize (%d, %d, %d, %d)", maxRenderBufferSize[0], maxRenderBufferSize[1],
 		 maxRenderBufferSize[2], maxRenderBufferSize[3]);
 
-	glViewport(0, 0, 1080, 1920);
+	//glViewport(0, 0, 1080, 1920);
 	int viewportSize[4]{0};
 	glGetIntegerv(GL_VIEWPORT, viewportSize);
 	LOGD("creteGLBuffer viewportSize (%d, %d, %d, %d)", viewportSize[0], viewportSize[1],
@@ -465,4 +468,10 @@ void EGLHelper::destroyGLBuffer ()
 	SafeDeleteGLBuffer (1, &m_VBO);
 	SafeDeleteGLBuffer (1, &m_EBO);
 	m_VAO = m_VBO = m_EBO = GL_NONE;
+}
+
+int EGLHelper::SetWindow(ANativeWindow *const pNativeWindow)
+{
+	m_pANativeWindow = pNativeWindow;
+	return 0;
 }

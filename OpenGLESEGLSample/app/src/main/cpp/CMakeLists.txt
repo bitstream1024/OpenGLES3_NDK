@@ -38,6 +38,7 @@ target_link_libraries( ${TARGET_LIB_NAME}
         GLESv3
         png16
         log
+        android
         )
 
 add_custom_command(

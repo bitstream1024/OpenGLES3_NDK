@@ -1,14 +1,71 @@
 package com.example.opengleseglsample;
 
+import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
 import android.opengl.GLException;
+import android.view.Surface;
+import android.view.TextureView;
+import android.view.Window;
+import android.view.WindowManager;
+
+import com.example.utils.MyLog;
 
 import java.nio.IntBuffer;
 
 public class NativeEGLHelper {
 
+    private final String TAG = this.getClass().getName();
+
+    private TextureView mTextureView = null;
+    private Surface mWindowSurface = null;
+    private boolean bSetSurface = false;
+
+    NativeEGLHelper () {}
+
+    NativeEGLHelper (Activity activity) {
+        activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
+        if (null == mTextureView) {
+            mTextureView = activity.findViewById(R.id.texture_view);
+            mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+        }
+    }
+
+    private TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
+        @Override
+        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+            MyLog.d(TAG, "onSurfaceTextureAvailable width = " + width + " height = " + height);
+            mWindowSurface = new Surface(surface);
+            SetWindow(mWindowSurface, width, height);
+            bSetSurface = true;
+        }
+
+        @Override
+        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+
+        }
+
+        @Override
+        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+            return false;
+        }
+
+        @Override
+        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+
+        }
+    };
+
+    public boolean isbSetSurface() {
+        return bSetSurface;
+    }
+
     public native int Init ();
+
+    public native int SetWindow (Surface surface, int width, int height);
 
     public native int UnInit ();
 
