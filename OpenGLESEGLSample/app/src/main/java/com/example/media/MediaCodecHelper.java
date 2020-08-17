@@ -144,18 +144,12 @@ public class MediaCodecHelper {
     public void ReleaseEncoder() {
         MyLog.d(TAG, "releasing encoder objects");
         if (mVideoEncoder != null) {
-            mVideoEncoder.stop();
             mVideoEncoder.release();
             mVideoEncoder = null;
         }
         if (mEncodeSurface != null) {
             mEncodeSurface.release();
             mEncodeSurface = null;
-        }
-        if (mVideoMuxer != null) {
-            mVideoMuxer.stop();
-            mVideoMuxer.release();
-            mVideoMuxer = null;
         }
     }
 
@@ -176,6 +170,18 @@ public class MediaCodecHelper {
         }
         mTrackIndex = -1;
         mMuxerStarted = false;
+    }
+
+    public void StopEncode () {
+        MyLog.d(TAG, "StopEncode");
+        if (mVideoMuxer != null) {
+            mVideoMuxer.stop();
+            mVideoMuxer.release();
+            mVideoMuxer = null;
+        }
+        if (mVideoEncoder != null) {
+            mVideoEncoder.stop();
+        }
     }
 
     public Surface GetEncodeSurface() {

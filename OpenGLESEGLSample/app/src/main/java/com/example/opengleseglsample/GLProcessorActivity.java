@@ -4,6 +4,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 
 import com.example.media.MediaCodecHelper;
 
@@ -22,6 +24,10 @@ public class GLProcessorActivity extends AppCompatActivity {
     private boolean bRenderResume = true;
     private MediaCodecHelper mMediaCodecHelper = null;
     private final static int EACH_FRAME_TIME = 30;
+    private final static int FRAME_NUM_MP4 = 60;
+    private boolean bRecording = false;
+    private boolean bStartRecord =false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +39,7 @@ public class GLProcessorActivity extends AppCompatActivity {
         if (null == mMediaCodecHelper) {
             mMediaCodecHelper = new MediaCodecHelper();
         }
+
     }
 
     @Override
@@ -43,6 +50,8 @@ public class GLProcessorActivity extends AppCompatActivity {
             public void run() {
                 Log.d(TAG, "run");
                 int retCode = 0;
+
+                while (!mNativeEGLHelper.isbSurfaceReady()) { }
 
                 mMediaCodecHelper.PrepareEncoder();
                 mNativeEGLHelper.SetWindow(mMediaCodecHelper.GetEncodeSurface(), mMediaCodecHelper.GetVideoWidth(),
@@ -60,9 +69,9 @@ public class GLProcessorActivity extends AppCompatActivity {
                 retCode = mNativeEGLHelper.Init();
                 Log.d(TAG, "mNativeEGLHelper.Init retCode = " + retCode);
 
-                mMediaCodecHelper.StartEncode();
                 if (bRenderResume) {
-                    for (int i = 0; i < 30; ++i) {
+                    mMediaCodecHelper.StartEncode();
+                    for (int i = 0; i < FRAME_NUM_MP4; ++i) {
                         mMediaCodecHelper.DrainEncoder(false);
                         int retCode2 = mNativeEGLHelper.Draw();
                         Log.d(TAG, "mNativeEGLHelper.Draw retCode = " + retCode2);
@@ -70,8 +79,8 @@ public class GLProcessorActivity extends AppCompatActivity {
                             break;
                     }
                     mMediaCodecHelper.DrainEncoder(true);
+                    mMediaCodecHelper.StopEncode();
                 }
-                mMediaCodecHelper.ReleaseEncoder();
                 while (bRenderResume) {
                     int retCode2 = mNativeEGLHelper.Draw();
                     Log.d(TAG, "mNativeEGLHelper.Draw retCode = " + retCode2);
@@ -93,7 +102,7 @@ public class GLProcessorActivity extends AppCompatActivity {
                     }
 
                 }
-
+                mMediaCodecHelper.ReleaseEncoder();
                 bRenderResume = false;
                 mNativeEGLHelper.UnInit();
             }
@@ -109,6 +118,22 @@ public class GLProcessorActivity extends AppCompatActivity {
     protected void onDestroy () {
         super.onDestroy();
 
+    }
+
+    private void setupUI () {
+        findViewById(R.id.btn_recording).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bStartRecord = true;
+            }
+        });
+    }
+    private void updateUI () {
+        if (bStartRecord) {
+            ((Button)findViewById(R.id.btn_recording)).setText("stop recording");
+        } else {
+            ((Button)findViewById(R.id.btn_recording)).setText("start recording");
+        }
     }
 }
 

@@ -94,11 +94,15 @@ JNIEXPORT jint JNICALL
 Java_com_example_opengleseglsample_NativeEGLHelper_SetWindow(JNIEnv *env, jobject thiz, jobject surface, jint width, jint height)
 {
     // TODO: implement SetWindow()
-
     ANativeWindow *pNativeWindow = ANativeWindow_fromSurface (env, surface);
     EGLHelper::CreateInstance()->SetWindow(pNativeWindow, width, height);
-
-
-
     return 0;
+}extern "C"
+JNIEXPORT jint JNICALL
+Java_com_example_opengleseglsample_NativeEGLHelper_SetWindowRender(JNIEnv *env, jobject thiz, jobject surface, jint width, jint height)
+{
+	// TODO: implement SetWindowRender()
+	ANativeWindow *pNativeWindow = ANativeWindow_fromSurface (env, surface);
+	EGLHelper::CreateInstance()->SetWindowRender(pNativeWindow, width, height);
+	return 0;
 }

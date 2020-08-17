@@ -9,6 +9,8 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.WindowManager;
 
+import com.example.utils.MyLog;
+
 import java.nio.IntBuffer;
 
 public class NativeEGLHelper {
@@ -34,10 +36,10 @@ public class NativeEGLHelper {
     private TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-           /* MyLog.d(TAG, "onSurfaceTextureAvailable width = " + width + " height = " + height);
+            MyLog.d(TAG, "onSurfaceTextureAvailable width = " + width + " height = " + height);
             mWindowSurface = new Surface(surface);
-            SetWindow(mWindowSurface, width, height);
-            bSetSurface = true;*/
+            SetWindowRender(mWindowSurface, width, height);
+            bSurfaceReady = true;
         }
 
         @Override
@@ -67,6 +69,8 @@ public class NativeEGLHelper {
     public native int Init ();
 
     public native int SetWindow (Surface surface, int width, int height);
+
+    public native int SetWindowRender (Surface surface, int width, int height);
 
     public native int UnInit ();
 
