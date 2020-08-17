@@ -91,7 +91,7 @@ int EGLHelper::Init()
 
 		retCode = createShader();
 		CHECK_OK_RETURN(retCode);
-		creteGLBuffer();
+		retCode = creteGLBuffer();
 		CHECK_OK_RETURN(retCode);
 
 	} while (false);
@@ -103,8 +103,8 @@ int EGLHelper::UnInit()
 {
 	LOGD("EGLHelper::UnInit");
 
-	destroyShader();
-	destroyGLBuffer ();
+	//destroyShader();
+	//destroyGLBuffer ();
 	DestroyEGLEnv();
 
 	return ERROR_OK;
@@ -117,7 +117,8 @@ EGLHelper::EGLHelper():
 	m_EGLContext(nullptr),
 	m_pShaderHelperNormal (nullptr),
 	m_pShaderHelperFBO (nullptr),
-	m_pANativeWindow(nullptr)
+	m_pANativeWindow(nullptr),
+	m_pfneglPresentationTimeANDROID(nullptr)
 {
 	m_VAO = GL_NONE;
 	/*for (auto val : m_VBO)
@@ -247,6 +248,13 @@ int EGLHelper::CreateEGLEnv()
 			break;
 		}
 
+		m_pfneglPresentationTimeANDROID = reinterpret_cast<PFNEGLPRESENTATIONTIMEANDROIDPROC>(eglGetProcAddress(
+				"eglPresentationTimeANDROID"));
+		if (!m_pfneglPresentationTimeANDROID)
+		{
+			LOGE("eglPresentationTimeANDROID is not available!");
+		}
+
 		m_bEGLEnvReady = true;
 
 	} while (false);
@@ -262,6 +270,11 @@ int EGLHelper::Draw()
 	if (!m_bEGLEnvReady)
 		return 0;
 
+	if (!eglMakeCurrent(m_EGLDisplay, m_EGLSurface, m_EGLSurface, m_EGLContext)) {
+		LOGE("EGLHelper::CreateEGLEnv eglMakeCurrent failed");
+		return ERROR_EGL_STATE;
+	}
+
 	// draw FBO
 	m_pShaderHelperNormal->use();
 	DrawHelper::CheckGLError("OnDrawFrame use");
@@ -273,14 +286,14 @@ int EGLHelper::Draw()
 	glBindVertexArray(GL_NONE);
 	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
 
-	GLint viewport[4]{0};
+	/*GLint viewport[4]{0};
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	SRECT sRect {0};
 	sRect.left = viewport[0];sRect.top = viewport[1];sRect.right = viewport[2];sRect.bottom = viewport[3];
 	char sPath[MAX_PATH]{0};
 	sprintf(sPath, "/sdcard/OpenGLESTest/testDrawFBO_%04d_%dx%d.png", m_FrameID, sRect.right - sRect.left,
 			sRect.bottom - sRect.top);
-	DrawHelper::SaveRenderImage(sRect, GL_RGBA, sPath);
+	DrawHelper::SaveRenderImage(sRect, GL_RGBA, sPath);*/
 
 	glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
 
@@ -297,6 +310,15 @@ int EGLHelper::Draw()
 	DrawHelper::CheckGLError("OnDrawFrame glDrawElements");
 	glBindVertexArray(GL_NONE);
 	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
+
+	//generateSurfaceFrame();
+	long ONE_BILLION = 1000000000;
+	long timestamp = m_FrameID * ONE_BILLION / 15;
+
+	if (m_pfneglPresentationTimeANDROID)
+	{
+		m_pfneglPresentationTimeANDROID (m_EGLDisplay, m_EGLSurface, timestamp);
+	}
 
 	// 交换display和surface，很重要，如果没有就无法绘制出画面
 	eglSwapBuffers(m_EGLDisplay, m_EGLSurface);
@@ -378,7 +400,8 @@ RESULT EGLHelper::creteGLBuffer ()
 	LOGD("creteGLBuffer maxRenderBufferSize (%d, %d, %d, %d)", maxRenderBufferSize[0], maxRenderBufferSize[1],
 		 maxRenderBufferSize[2], maxRenderBufferSize[3]);
 
-	//glViewport(0, 0, 1080, 1920);
+
+	glViewport(0, 0, m_WindowWidth, m_WindowHeight);
 	int viewportSize[4]{0};
 	glGetIntegerv(GL_VIEWPORT, viewportSize);
 	LOGD("creteGLBuffer viewportSize (%d, %d, %d, %d)", viewportSize[0], viewportSize[1],
@@ -470,8 +493,16 @@ void EGLHelper::destroyGLBuffer ()
 	m_VAO = m_VBO = m_EBO = GL_NONE;
 }
 
-int EGLHelper::SetWindow(ANativeWindow *const pNativeWindow)
+int EGLHelper::SetWindow(ANativeWindow *const pNativeWindow, const int windowWith, const int windowHeight)
 {
 	m_pANativeWindow = pNativeWindow;
+	m_WindowWidth = windowWith;
+	m_WindowHeight = windowHeight;
 	return 0;
+}
+
+void EGLHelper::generateSurfaceFrame()
+{
+	glClearColor(1.f, 0.f, 0.5f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 }

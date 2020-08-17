@@ -1,17 +1,13 @@
 package com.example.opengleseglsample;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
 import android.opengl.GLException;
 import android.view.Surface;
 import android.view.TextureView;
-import android.view.Window;
 import android.view.WindowManager;
-
-import com.example.utils.MyLog;
 
 import java.nio.IntBuffer;
 
@@ -21,7 +17,8 @@ public class NativeEGLHelper {
 
     private TextureView mTextureView = null;
     private Surface mWindowSurface = null;
-    private boolean bSetSurface = false;
+
+    private boolean bSurfaceReady = false;
 
     NativeEGLHelper () {}
 
@@ -37,10 +34,10 @@ public class NativeEGLHelper {
     private TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-            MyLog.d(TAG, "onSurfaceTextureAvailable width = " + width + " height = " + height);
+           /* MyLog.d(TAG, "onSurfaceTextureAvailable width = " + width + " height = " + height);
             mWindowSurface = new Surface(surface);
             SetWindow(mWindowSurface, width, height);
-            bSetSurface = true;
+            bSetSurface = true;*/
         }
 
         @Override
@@ -59,8 +56,12 @@ public class NativeEGLHelper {
         }
     };
 
-    public boolean isbSetSurface() {
-        return bSetSurface;
+    public boolean isbSurfaceReady() {
+        return bSurfaceReady;
+    }
+
+    public void setSurfaceReady(boolean bSetSurface) {
+        this.bSurfaceReady = bSetSurface;
     }
 
     public native int Init ();

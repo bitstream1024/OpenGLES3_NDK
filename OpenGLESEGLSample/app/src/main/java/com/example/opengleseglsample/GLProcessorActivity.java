@@ -2,10 +2,12 @@ package com.example.opengleseglsample;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.util.Log;
+
+import com.example.media.MediaCodecHelper;
+
+import java.io.IOException;
 
 public class GLProcessorActivity extends AppCompatActivity {
 
@@ -14,10 +16,12 @@ public class GLProcessorActivity extends AppCompatActivity {
         System.loadLibrary("eglutils");
     }
 
-    private final static String TAG = "MainActivity";
+    private final String TAG = this.getClass().getName();
 
-    NativeEGLHelper mNativeEGLHelper = null;
+    private NativeEGLHelper mNativeEGLHelper = null;
     private boolean bRenderResume = true;
+    private MediaCodecHelper mMediaCodecHelper = null;
+    private final static int EACH_FRAME_TIME = 30;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,6 +29,9 @@ public class GLProcessorActivity extends AppCompatActivity {
         setContentView(R.layout.activity_gl_processor);
         if (mNativeEGLHelper == null) {
             mNativeEGLHelper = new NativeEGLHelper(this);
+        }
+        if (null == mMediaCodecHelper) {
+            mMediaCodecHelper = new MediaCodecHelper();
         }
     }
 
@@ -37,7 +44,12 @@ public class GLProcessorActivity extends AppCompatActivity {
                 Log.d(TAG, "run");
                 int retCode = 0;
 
-                while (!mNativeEGLHelper.isbSetSurface()) {
+                mMediaCodecHelper.PrepareEncoder();
+                mNativeEGLHelper.SetWindow(mMediaCodecHelper.GetEncodeSurface(), mMediaCodecHelper.GetVideoWidth(),
+                        mMediaCodecHelper.GetVideoHeight());
+                mNativeEGLHelper.setSurfaceReady (true);
+
+                while (!mNativeEGLHelper.isbSurfaceReady()) {
                     try {
                         Thread.sleep(200);
                     } catch (InterruptedException e) {
@@ -48,6 +60,18 @@ public class GLProcessorActivity extends AppCompatActivity {
                 retCode = mNativeEGLHelper.Init();
                 Log.d(TAG, "mNativeEGLHelper.Init retCode = " + retCode);
 
+                mMediaCodecHelper.StartEncode();
+                if (bRenderResume) {
+                    for (int i = 0; i < 30; ++i) {
+                        mMediaCodecHelper.DrainEncoder(false);
+                        int retCode2 = mNativeEGLHelper.Draw();
+                        Log.d(TAG, "mNativeEGLHelper.Draw retCode = " + retCode2);
+                        if (retCode2 != 0)
+                            break;
+                    }
+                    mMediaCodecHelper.DrainEncoder(true);
+                }
+                mMediaCodecHelper.ReleaseEncoder();
                 while (bRenderResume) {
                     int retCode2 = mNativeEGLHelper.Draw();
                     Log.d(TAG, "mNativeEGLHelper.Draw retCode = " + retCode2);
@@ -63,7 +87,7 @@ public class GLProcessorActivity extends AppCompatActivity {
                     });*/
 
                     try {
-                        Thread.sleep(50);
+                        Thread.sleep(EACH_FRAME_TIME);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

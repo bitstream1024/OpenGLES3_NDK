@@ -96,7 +96,9 @@ Java_com_example_opengleseglsample_NativeEGLHelper_SetWindow(JNIEnv *env, jobjec
     // TODO: implement SetWindow()
 
     ANativeWindow *pNativeWindow = ANativeWindow_fromSurface (env, surface);
-    EGLHelper::CreateInstance()->SetWindow(pNativeWindow);
+    EGLHelper::CreateInstance()->SetWindow(pNativeWindow, width, height);
+
+
 
     return 0;
 }

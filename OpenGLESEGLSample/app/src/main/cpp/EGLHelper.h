@@ -20,7 +20,7 @@ public:
 	// 单例
 	static EGLHelper* CreateInstance ();
 	int Init ();
-	int SetWindow (ANativeWindow * const pNativeWindow);
+	int SetWindow (ANativeWindow * const pNativeWindow, const int windowWith, const int windowHeight);
 	int UnInit ();
 	int Draw ();
 	int SetImageData (const int imgWidth, const int imgHeight, const unsigned char* pImgData);
@@ -35,6 +35,7 @@ private:
 	void destroyShader();
 	int creteGLBuffer ();
 	void destroyGLBuffer ();
+	void generateSurfaceFrame();
 
 	static EGLHelper *m_EGLHelper;
 	EGLDisplay m_EGLDisplay;
@@ -44,6 +45,7 @@ private:
 	bool m_bEGLEnvReady;
 
 	ANativeWindow *m_pANativeWindow;
+	PFNEGLPRESENTATIONTIMEANDROIDPROC m_pfneglPresentationTimeANDROID;
 
 	GLuint m_VAO;
 	GLuint m_VBO;
@@ -54,8 +56,8 @@ private:
 	ShaderHelper* m_pShaderHelperNormal;
 	ShaderHelper* m_pShaderHelperFBO;
 
-	int m_ImgWidth;
-	int m_ImgHeight;
+	int m_WindowWidth;
+	int m_WindowHeight;
 	int m_ImgFormat;
 	MyImageInfo m_RenderImg;
 
