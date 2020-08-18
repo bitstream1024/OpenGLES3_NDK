@@ -18,6 +18,16 @@ Java_com_cgwang1580_openglessamples_MyGLRenderer_onSurfaceCreatedJNI(JNIEnv *env
 
 extern "C"
 JNIEXPORT jint JNICALL
+Java_com_cgwang1580_openglessamples_MyGLRenderer_onSurfaceCreatedByTypeJNI(JNIEnv *env, jobject thiz, jint effect_type)
+{
+	// TODO: implement onSurfaceCreatedByTypeJNI()
+	// TODO: implement onSurfaceCreatedJNI()
+	int ret = onSurfaceCreated(&pProcessorHandle);
+	return ret;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
 Java_com_cgwang1580_openglessamples_MyGLRenderer_onSurfaceChangedJNI(JNIEnv *env, jobject thiz, jint width, jint height)
 {
 	// TODO: implement onSurfaceChangedJNI()

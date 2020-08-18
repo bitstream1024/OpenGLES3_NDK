@@ -37,11 +37,11 @@ typedef enum
 {
 	eDraw_Triangle = 0,
 	eDraw_SimpleTexture,
-	eDraw_TextureFbo,
+	eDraw_TextureFBO,
 	eDraw_HardwareBuffer,
-	eDraw_TransFrom,
+	eDraw_Transform,
 	eDraw_Render3D,
-	eDraw_TriangleFbo,
+	eDraw_TriangleFBO,
 	eDraw_Render3DMesh,
 }DrawType;
 

@@ -3,7 +3,7 @@ package com.cgwang1580.permission;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import com.cgwang1580.openglessamples.MyLog;
+import com.cgwang1580.utils.MyLog;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;

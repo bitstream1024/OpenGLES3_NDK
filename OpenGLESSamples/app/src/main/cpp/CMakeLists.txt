@@ -47,7 +47,7 @@ link_directories(
         ${CLANG_STL_PATH}
 )
 
-set(LIST_SRC_FILES native.cpp)
+set(LIST_SRC_FILES opengles-sample-jni.cpp)
 
 list(APPEND LIST_SRC_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/shader_helper/ShaderHelper.cpp

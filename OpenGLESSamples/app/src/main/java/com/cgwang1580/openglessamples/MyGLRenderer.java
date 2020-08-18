@@ -3,6 +3,7 @@ package com.cgwang1580.openglessamples;
 import android.opengl.GLSurfaceView;
 
 import com.cgwang1580.multimotionhelper.MotionStateGL;
+import com.cgwang1580.utils.MyLog;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -75,6 +76,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
      * which is packaged with this application.
      */
     public native int onSurfaceCreatedJNI();
+    public native int onSurfaceCreatedByTypeJNI(int effectType);
     public native int onSurfaceChangedJNI (int width, int height);
     public native int onDrawFrameJNI ();
     public native int onSurfaceDestroyedJNI ();

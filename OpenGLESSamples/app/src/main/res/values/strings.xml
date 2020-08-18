@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">OpenGLESSamples</string>
+    <string name="home_activity">HomeActivity</string>
+    <string name="click_to_show_surface">click to show render effect</string>
 </resources>

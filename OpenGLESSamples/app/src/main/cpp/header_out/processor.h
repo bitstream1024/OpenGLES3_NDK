@@ -8,7 +8,7 @@
 
 typedef void* 	PHandle;
 
-int onSurfaceCreated (PHandle *ppProcessorHandle);
+int onSurfaceCreated (PHandle *ppProcessorHandle, const int effectType = 0);
 int onSurfaceChanged (const PHandle pProcessorHandle, const int width, const int height);
 int setMotionState (const PHandle pProcessorHandle, MotionState const motionState);
 int onDrawFrame (const PHandle pProcessorHandle);
