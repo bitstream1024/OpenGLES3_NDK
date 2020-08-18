@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="effects">
+        <item>Triangle</item>
+        <item>SimpleTexture</item>
+        <item>TextureFBO</item>
+        <item>HardwareBuffer</item>
+        <item>Transform</item>
+        <item>Render3D</item>
+        <item>TriangleFBO</item>
+        <item>Render3DMesh</item>
+    </string-array>
+</resources>

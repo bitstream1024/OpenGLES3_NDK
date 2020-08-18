@@ -3,11 +3,13 @@
 #include <LogAndroid.h>
 #include <common.h>
 #include <MyDefineUtils.h>
+#include <MediaCodecHelper.h>
 #include "EGLHelper.h"
 #include <android/native_window_jni.h>
 
 int m_ImgBufferLength = 0;
 unsigned char* m_pImgData = nullptr;
+bool bNeedEnocode = true;
 
 extern "C"
 JNIEXPORT jint JNICALL
@@ -15,8 +17,12 @@ Java_com_example_opengleseglsample_NativeEGLHelper_Init(JNIEnv *env, jobject cla
 {
     // TODO: implement Init()
     int retCode = 0;
+    if (MediaCodecHelper::CreateInstance()) {
+		retCode = MediaCodecHelper::CreateInstance()->PrepareEncoderWithCtx(1080, 1920, 15, "/sdcard/native_out.mp4", nullptr);
+    }
+
     if (EGLHelper::CreateInstance()) {
-        retCode = EGLHelper::CreateInstance()->Init();
+        retCode = EGLHelper::CreateInstance()->Init(1, MediaCodecHelper::CreateInstance()->GetInputWindow());
         LOGD ("Java_com_example_opengleseglsample_NativeEGLHelper_Init Init ret = %d", retCode);
     }
     return retCode;
@@ -46,9 +52,22 @@ Java_com_example_opengleseglsample_NativeEGLHelper_Draw(JNIEnv *env, jobject cla
 {
     // TODO: implement Draw()
     int retCode = 0;
-    if (EGLHelper::CreateInstance()) {
-        retCode = EGLHelper::CreateInstance()->Draw();
-        LOGD ("Java_com_example_opengleseglsample_NativeEGLHelper_Draw Draw ret = %d", retCode);
+    if (EGLHelper::CreateInstance() && MediaCodecHelper::CreateInstance()) {
+    	if (bNeedEnocode) {
+			for (int i = 0; i < 50; ++i) {
+				MediaCodecHelper::CreateInstance()->DrainEncoder(false);
+				retCode = EGLHelper::CreateInstance()->Draw();
+				LOGD ("Java_com_example_opengleseglsample_NativeEGLHelper_Draw Draw ret = %d", retCode);
+			}
+			MediaCodecHelper::CreateInstance()->DrainEncoder(true);
+			if (MediaCodecHelper::CreateInstance()) {
+				MediaCodecHelper::CreateInstance()->ReleaseEncoder();
+				bNeedEnocode = false;
+			}
+    	} else {
+			retCode = EGLHelper::CreateInstance()->Draw();
+			LOGD ("Java_com_example_opengleseglsample_NativeEGLHelper_Draw Draw ret = %d", retCode);
+    	}
     }
     return retCode;
 }

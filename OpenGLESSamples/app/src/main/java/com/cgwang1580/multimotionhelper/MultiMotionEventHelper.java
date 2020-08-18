@@ -1,7 +1,7 @@
 package com.cgwang1580.multimotionhelper;
 
 import android.view.MotionEvent;
-import com.cgwang1580.openglessamples.MyLog;
+import com.cgwang1580.utils.MyLog;
 import java.util.ArrayList;
 import java.util.List;
 

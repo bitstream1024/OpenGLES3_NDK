@@ -2,6 +2,7 @@ package com.cgwang1580.openglessamples;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.widget.Toast;
@@ -10,18 +11,19 @@ import com.cgwang1580.multimotionhelper.MotionStateGL;
 import com.cgwang1580.permission.PermissionHelper;
 import com.cgwang1580.permission.PermissionInterface;
 import com.cgwang1580.multimotionhelper.MultiMotionEventHelper;
+import com.cgwang1580.utils.CommonDefine;
+import com.cgwang1580.utils.MyLog;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class MainActivity extends AppCompatActivity {
+public class GLViewActivity extends AppCompatActivity {
 
     private final static String PROCESSOR_NAME = "processor.draw";
 
     static {
         System.loadLibrary(PROCESSOR_NAME);
     }
-
-    private final static String TAG = "MainActivity";
+    private final String TAG = this.getClass().getName();
 
     MultiMotionEventHelper mMultiMotionHelper = null;
 
@@ -29,37 +31,17 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.READ_EXTERNAL_STORAGE , Manifest.permission.CAMERA};
 
     MyGLSurfaceView myGLSurfaceView;
+    private int mEffectType = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         MyLog.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        requestPermission ();
         mMultiMotionHelper = new MultiMotionEventHelper();
-    }
 
-    public void requestPermission () {
-        PermissionHelper.MyRequestPermission(this, PermissionList, new PermissionInterface() {
-            @Override
-            public int doPermissionSucceed() {
-                Toast.makeText(MainActivity.this, "onCreate doPermissionSucceed", Toast.LENGTH_SHORT).show();
-                return 0;
-            }
-
-            @Override
-            public int doPermissionFailed() {
-                Toast.makeText(MainActivity.this, "onCreate doPermissionFailed",
-                        Toast.LENGTH_SHORT).show();
-                return 0;
-            }
-        });
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        PermissionHelper.onMyRequestPermissionsResult(requestCode, permissions, grantResults);
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        mEffectType = getIntent().getIntExtra(CommonDefine.MESSAGE_EFFECT_TYPE, 0);
+        MyLog.d(TAG, "onCreate mEffectType = " + mEffectType);
     }
 
     @Override

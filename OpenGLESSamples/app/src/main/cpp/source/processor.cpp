@@ -29,7 +29,7 @@ int CreateSampleAndShaderByDrawType (const PHandle pProcessorHandle, DrawType dr
 			ret = CreateShaderHelper(&MyProcessorHandle->mShaderSetTexture, texture_vertex_shader, texture_fragment_shader);
 			LOGD("CreateSampleAndShaderByDrawType CreateShaderHelper mShaderSetTexture ret = %d", ret);
 			break;
-		case eDraw_TextureFbo:
+		case eDraw_TextureFBO:
 			ret = CreateShaderHelper(&MyProcessorHandle->mShaderSetFBO, fbo_vertex_shader, fbo_fragment_shader);
 			LOGD("CreateSampleAndShaderByDrawType CreateShaderHelper mShaderSetFBO ret = %d", ret);
 			ret = CreateShaderHelper(&MyProcessorHandle->mShaderSetFBONormal, fbo_vertex_shader, fbo_normal_fragment_shader);
@@ -41,7 +41,7 @@ int CreateSampleAndShaderByDrawType (const PHandle pProcessorHandle, DrawType dr
 				MyProcessorHandle->pHardwareBufferHelper = new AHardwareBufferHelper();
 			}
 			break;
-		case eDraw_TransFrom:
+		case eDraw_Transform:
 			if (nullptr == MyProcessorHandle->m_pSampleTransform)
 			{
 				MyProcessorHandle->m_pSampleTransform = new SampleTransform ();
@@ -55,7 +55,7 @@ int CreateSampleAndShaderByDrawType (const PHandle pProcessorHandle, DrawType dr
 				MyProcessorHandle->m_pSampleRender3D->InitSample();
 			}
 			break;
-		case eDraw_TriangleFbo:
+		case eDraw_TriangleFBO:
 			if (nullptr == MyProcessorHandle->m_pSampleDrawFBO)
 			{
 				MyProcessorHandle->m_pSampleDrawFBO = new SampleDrawFBO ();
@@ -90,7 +90,7 @@ int DestroySampleAndShaderByDrawType (const PHandle pProcessorHandle, DrawType d
 		case eDraw_SimpleTexture:
 			SafeDelete (MyProcessorHandle->mShaderSetTexture.pShaderHelper);
 			break;
-		case eDraw_TextureFbo:
+		case eDraw_TextureFBO:
 			SafeDelete(MyProcessorHandle->mShaderSetFBO.pShaderHelper);
 			SafeDelete(MyProcessorHandle->mShaderSetFBONormal.pShaderHelper);
 			break;
@@ -101,7 +101,7 @@ int DestroySampleAndShaderByDrawType (const PHandle pProcessorHandle, DrawType d
 			}
 			SafeDelete (MyProcessorHandle->pHardwareBufferHelper);
 			break;
-		case eDraw_TransFrom:
+		case eDraw_Transform:
 			if (MyProcessorHandle->m_pSampleTransform)
 			{
 				MyProcessorHandle->m_pSampleTransform->UnInitSample();
@@ -115,7 +115,7 @@ int DestroySampleAndShaderByDrawType (const PHandle pProcessorHandle, DrawType d
 				SafeDelete(MyProcessorHandle->m_pSampleRender3D);
 			}
 			break;
-		case eDraw_TriangleFbo:
+		case eDraw_TriangleFBO:
 			if (MyProcessorHandle->m_pSampleDrawFBO)
 			{
 				MyProcessorHandle->m_pSampleDrawFBO->UnInitSample();
@@ -132,7 +132,7 @@ int DestroySampleAndShaderByDrawType (const PHandle pProcessorHandle, DrawType d
 	return ERROR_OK;
 }
 
-int onSurfaceCreated (PHandle *ppProcessorHandle)
+int onSurfaceCreated (PHandle *ppProcessorHandle, const int effectType)
 {
 	LOGD("onSurfaceCreated");
 
@@ -148,7 +148,8 @@ int onSurfaceCreated (PHandle *ppProcessorHandle)
 	memset(MyProcessorHandle, 0, sizeof(ProcessorHandle));
 
 	/// set which sample you want to get
-	MyProcessorHandle->m_eDrawType = eDraw_Render3DMesh;
+	LOGD("onSurfaceCreated effectType = %d", effectType);
+	MyProcessorHandle->m_eDrawType = (DrawType) effectType;
 	int ret = CreateSampleAndShaderByDrawType(MyProcessorHandle, MyProcessorHandle->m_eDrawType);
 	LOGD("CreateSampleAndShaderByDrawType ret = %d", ret);
 
@@ -225,7 +226,7 @@ int onDrawFrame (const PHandle pProcessorHandle)
 			ret = drawTexture(MyProcessorHandle->mShaderSetTexture.pShaderHelper, MyProcessorHandle->lpMyImageInfo);
 			LOGD("onDrawFrame drawTexture ret = %d", ret);
 			break;
-		case eDraw_TextureFbo:
+		case eDraw_TextureFBO:
 			ret = drawFBO(MyProcessorHandle->mShaderSetFBO.pShaderHelper, MyProcessorHandle->mShaderSetFBONormal.pShaderHelper,
 						  MyProcessorHandle->lpMyImageInfo);
 			LOGD("onDrawFrame drawFBO ret = %d", ret);
@@ -235,13 +236,13 @@ int onDrawFrame (const PHandle pProcessorHandle)
 			LOGD("onDrawFrame drawByHardwareBuffer ret = %d", ret);
 			usleep(33000);  // fps 33ms
 			break;
-		case eDraw_TransFrom:
+		case eDraw_Transform:
 			ret = MyProcessorHandle->m_pSampleTransform->OnDrawFrame();
 			break;
 		case eDraw_Render3D:
 			ret = MyProcessorHandle->m_pSampleRender3D->OnDrawFrame();
 			break;
-		case eDraw_TriangleFbo:
+		case eDraw_TriangleFBO:
 			ret = MyProcessorHandle->m_pSampleDrawFBO->OnDrawFrame();
 			break;
 		case eDraw_Render3DMesh:

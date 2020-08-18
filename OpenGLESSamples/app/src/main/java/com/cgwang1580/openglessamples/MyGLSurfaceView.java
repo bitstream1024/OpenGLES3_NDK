@@ -5,6 +5,7 @@ import android.content.Context;
 import android.opengl.GLSurfaceView;
 
 import com.cgwang1580.multimotionhelper.MotionStateGL;
+import com.cgwang1580.utils.MyLog;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;

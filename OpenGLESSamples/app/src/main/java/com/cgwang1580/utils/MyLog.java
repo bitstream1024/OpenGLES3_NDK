@@ -1,4 +1,4 @@
-package com.cgwang1580.openglessamples;
+package com.cgwang1580.utils;
 
 import android.util.Log;
 

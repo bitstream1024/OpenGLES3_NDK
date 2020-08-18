@@ -1,6 +1,6 @@
 package com.cgwang1580.multimotionhelper;
 
-import com.cgwang1580.openglessamples.MyLog;
+import com.cgwang1580.utils.MyLog;
 
 public class MotionStateGL {
     private static final String TAG = "MotionStateGL";
