@@ -15,6 +15,7 @@ set(TARGET_LIB_NAME eglutils)
 
 FILE(GLOB PROCESSOR_SRC_FILES *.cpp)
 LIST(APPEND PROCESSOR_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/shader_helper/ShaderHelper.cpp)
+LIST(APPEND PROCESSOR_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/media/MediaCodecHelper.cpp)
 
 link_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../OpenGLESCommon/libpng/lib/${TARGET_ABI}
@@ -29,14 +30,18 @@ target_include_directories( ${TARGET_LIB_NAME} PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../OpenGLESCommon/libpng/inc
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../OpenGLESCommon/common
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../OpenGLESCommon/utils
-        ${CMAKE_CURRENT_SOURCE_DIR}/shader_helper
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../OpenGLESCommon/glrender
+        ${CMAKE_CURRENT_SOURCE_DIR}/shader_helper
+        ${CMAKE_CURRENT_SOURCE_DIR}/media
         )
 
 target_link_libraries( ${TARGET_LIB_NAME}
         EGL
         GLESv3
         png16
+        mediandk
+        OpenMAXAL
+        android
         log
         )
 

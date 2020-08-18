@@ -18,7 +18,8 @@ typedef enum _enum_error_code_
 	ERROR_EGL_STATE,
 	ERROR_ASSIMP,
 	ERROR_FILE_NOT_EXIT,
-	ERROR_FILE_COMMON
+	ERROR_FILE_COMMON,
+	ERROR_NATIVE_MEDIA
 }ERROR_CODE;
 
 typedef struct _tag_rect_

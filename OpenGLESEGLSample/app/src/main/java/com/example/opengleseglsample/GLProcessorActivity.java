@@ -1,16 +1,11 @@
 package com.example.opengleseglsample;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import android.Manifest;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
-
-import com.example.permission.PermissionHelper;
-import com.example.permission.PermissionInterface;
 
 public class GLProcessorActivity extends AppCompatActivity {
 
@@ -39,7 +34,10 @@ public class GLProcessorActivity extends AppCompatActivity {
                 Log.d(TAG, "run");
                 int retCode = 0;
                 retCode = mNativeEGLHelper.Init();
-                Log.d(TAG, "mNativeEGLHelper.Init retCode = " + retCode);
+                if (0 != retCode) {
+                    Log.d(TAG, "mNativeEGLHelper.Init retCode = " + retCode);
+                    return;
+                }
 
                 while (bRenderResume) {
                     int retCode2 = mNativeEGLHelper.Draw();
@@ -47,16 +45,16 @@ public class GLProcessorActivity extends AppCompatActivity {
                     if (retCode2 != 0)
                         break;
 
-                    Bitmap bitmap = mNativeEGLHelper.CreateBitmapFromGLSurface (0, 0, 1080, 1920);
+                    /*Bitmap bitmap = mNativeEGLHelper.CreateBitmapFromGLSurface (0, 0, 1080, 1920);
                     GLProcessorActivity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             findViewById(R.id.image_view).setBackground(new BitmapDrawable(getResources(), bitmap));
                         }
-                    });
+                    });*/
 
                     try {
-                        Thread.sleep(50);
+                        Thread.sleep(10);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

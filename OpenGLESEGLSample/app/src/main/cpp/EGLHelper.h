@@ -19,21 +19,23 @@ class EGLHelper
 public:
 	// 单例
 	static EGLHelper* CreateInstance ();
-	int Init ();
+	int Init(int usage = 0, ANativeWindow *const pWindow = nullptr); // usage: 0 for render, 1 for encode
 	int UnInit ();
 	int Draw ();
+	int SetRecordWindow (ANativeWindow * const pWindow);
 	int SetImageData (const int imgWidth, const int imgHeight, const unsigned char* pImgData);
 
 private:
 	EGLHelper ();
 	~EGLHelper ();
-	int CreateEGLEnv ();
+	int CreateEGLEnv (int usage, ANativeWindow *const pWindow);
 	int DestroyEGLEnv ();
 
 	int createShader();
 	void destroyShader();
 	int creteGLBuffer ();
 	void destroyGLBuffer ();
+	int drawFBO ();
 
 	static EGLHelper *m_EGLHelper;
 	EGLDisplay m_EGLDisplay;
@@ -41,6 +43,7 @@ private:
 	EGLSurface m_EGLSurface;
 	EGLContext m_EGLContext;
 	bool m_bEGLEnvReady;
+	ANativeWindow *m_pRecordWindow;
 
 	GLuint m_VAO;
 	GLuint m_VBO;
