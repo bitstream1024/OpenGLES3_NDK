@@ -2,14 +2,10 @@ package com.cgwang1580.openglessamples;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.MotionEvent;
-import android.widget.Toast;
 
 import com.cgwang1580.multimotionhelper.MotionStateGL;
-import com.cgwang1580.permission.PermissionHelper;
-import com.cgwang1580.permission.PermissionInterface;
 import com.cgwang1580.multimotionhelper.MultiMotionEventHelper;
 import com.cgwang1580.utils.CommonDefine;
 import com.cgwang1580.utils.MyLog;
@@ -37,7 +33,7 @@ public class GLViewActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         MyLog.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_gl_view);
         mMultiMotionHelper = new MultiMotionEventHelper();
 
         mEffectType = getIntent().getIntExtra(CommonDefine.MESSAGE_EFFECT_TYPE, 0);
@@ -79,12 +75,13 @@ public class GLViewActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         MyLog.d(TAG, "onDestroy");
+        myGLSurfaceView = null;
         super.onDestroy();
     }
 
     public void InitGLSurfaceView (Context context) {
         MyLog.d(TAG, "InitGLSurfaceView");
         myGLSurfaceView = new MyGLSurfaceView();
-        myGLSurfaceView.Init(context);
+        myGLSurfaceView.Init(context, mEffectType);
     }
 }

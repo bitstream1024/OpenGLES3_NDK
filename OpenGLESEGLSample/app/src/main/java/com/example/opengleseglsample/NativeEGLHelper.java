@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
 import android.opengl.GLException;
+import android.opengl.GLSurfaceView;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.WindowManager;

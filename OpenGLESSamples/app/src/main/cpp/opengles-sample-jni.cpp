@@ -22,7 +22,8 @@ Java_com_cgwang1580_openglessamples_MyGLRenderer_onSurfaceCreatedByTypeJNI(JNIEn
 {
 	// TODO: implement onSurfaceCreatedByTypeJNI()
 	// TODO: implement onSurfaceCreatedJNI()
-	int ret = onSurfaceCreated(&pProcessorHandle);
+	int drawType = effect_type;
+	int ret = onSurfaceCreated(&pProcessorHandle, drawType);
 	return ret;
 }
 

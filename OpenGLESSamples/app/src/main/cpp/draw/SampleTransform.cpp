@@ -132,5 +132,7 @@ RESULT SampleTransform::OnDrawFrame ()
 	DrawHelper::CheckGLError("OnDrawFrame glDrawElements");
 	glBindVertexArray(GL_NONE);
 	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
+	glFinish();
+	DrawHelper::CheckGLError("OnDrawFrame glFinish");
 	return ERROR_OK;
 }

@@ -1,5 +1,6 @@
 package com.cgwang1580.permission;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -17,6 +18,7 @@ public class PermissionHelper {
 
     private static PermissionInterface mPermissionInterface;
 
+    @SuppressLint("WrongConstant")
     public static boolean MyRequestPermission(@NonNull Context context, String[] permissionList, PermissionInterface permissionInterface) {
         if (null == permissionList) {
             return true;

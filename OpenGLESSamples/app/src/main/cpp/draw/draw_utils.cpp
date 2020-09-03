@@ -342,7 +342,7 @@ int drawFBO (ShaderHelper *pShaderHelperFBO, ShaderHelper *pShaderHelperNormal, 
 	return ERROR_OK;
 }
 
-int drawByHardwareBuffer (const AHardwareBufferHelper *pHardwareBufferHelper, LPMyImageInfo const lpMyImageInfo)
+int drawByHardwareBuffer (const AHardwareBufferHelper *pHardwareBufferHelper, MyImageInfo *const lpMyImageInfo)
 {
 	LOGD ("drawByHardwareBuffer");
 
@@ -393,13 +393,16 @@ int drawByHardwareBuffer (const AHardwareBufferHelper *pHardwareBufferHelper, LP
 			ret = pBufferHelper->createGPUBuffer(nImageWidth, nImageHeight, nImageFormat);
 			LOGE("drawByHardwareBuffer createGPUBuffer ret = %d", ret);
 			if (ERROR_OK != ret)
+			{
 				break;
+			}
 		}
 		ret = pBufferHelper->onDrawFrame(textureColorId, &myImageInfo);
+		LOGE("drawByHardwareBuffer onDrawFrame ret = %d", ret);
 		if (MY_FORMAT_NV21 == myImageInfo.format || MY_FORMAT_NV12 == myImageInfo.format)
 		{
 			char sPath[MAX_PATH]{0};
-			sprintf(sPath, "/sdcard/OpenGLESTest/gpu/gpu_%d_%dX%d.NV21", pBufferHelper->getRenderNum(), myImageInfo.channel[0], myImageInfo.height);
+			sprintf(sPath, "/sdcard/OpenGLESTest/gpu/gpu_%04d_%dX%d.NV21", pBufferHelper->getRenderNum(), myImageInfo.channel[0], myImageInfo.height);
 			OpenImageHelper::SaveImageToYuv(&myImageInfo, sPath);
 		}
 		if (ERROR_OK != ret)

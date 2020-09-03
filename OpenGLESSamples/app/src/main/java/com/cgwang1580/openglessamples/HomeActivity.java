@@ -30,11 +30,11 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         init ();
-        requestPermission ();
+        bPermissionOK = requestPermission();
     }
 
-    public void requestPermission () {
-        PermissionHelper.MyRequestPermission(this, PermissionList, new PermissionInterface() {
+    public boolean requestPermission () {
+        return PermissionHelper.MyRequestPermission(this, PermissionList, new PermissionInterface() {
             @Override
             public int doPermissionSucceed() {
                 bPermissionOK = true;
@@ -90,14 +90,14 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void startGLActivity () {
-//        if (bPermissionOK) {
+        if (bPermissionOK) {
             Intent intent = new Intent(this, GLViewActivity.class);
             intent.putExtra(CommonDefine.MESSAGE_EFFECT_TYPE, mEffectType);
             startActivity(intent);
-//        }
-        /*else {
-            Toast.makeText(HomeActivity.this, "Please ammit permission", Toast.LENGTH_SHORT).show();
-        }*/
+        }
+        else {
+            Toast.makeText(HomeActivity.this, "Please confirm permission", Toast.LENGTH_SHORT).show();
+        }
     }
 
 }

@@ -18,7 +18,9 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private final int TEST_NUM = 20;
     private final String TEST_STRING = "test_string";*/
     ///**** test for jni end *****///
-    private MyGLSurfaceView mMyGLSurfaceView;
+    private MyGLSurfaceView mMyGLSurfaceView = null;
+
+    private int mDrawType = 0;
 
     public boolean getCreateState() {
         return bCreateState;
@@ -48,18 +50,22 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onDrawFrame(GL10 gl) {
         MyLog.d(TAG, "onDrawFrame");
-        MotionStateGL motionStateGL = new MotionStateGL();
-        motionStateGL = mMyGLSurfaceView.getMotionState();
-        int ret = SetMotionState(motionStateGL);
-        ret = onDrawFrameJNI ();
-        MyLog.d(TAG, "onDrawFrameJNI ret = " + ret);
-        mMyGLSurfaceView.setRenderCount(mMyGLSurfaceView.getRenderCount() + 1);
-        mMyGLSurfaceView.requestRender();
+        int ret = ERROR_OK;
+        MotionStateGL motionStateGL = null;
+        if (mMyGLSurfaceView != null && bCreateState) {
+            motionStateGL = mMyGLSurfaceView.getMotionState();
+            ret = SetMotionState(motionStateGL);
+            MyLog.d(TAG, "SetMotionState ret = " + ret);
+            ret = onDrawFrameJNI ();
+            MyLog.d(TAG, "onDrawFrameJNI ret = " + ret);
+            mMyGLSurfaceView.setRenderCount(mMyGLSurfaceView.getRenderCount() + 1);
+            mMyGLSurfaceView.requestRender();
+        }
     }
 
     public void GLSurfaceCreated () {
         MyLog.d(TAG, "GLSurfaceCreated");
-        int ret = onSurfaceCreatedJNI();
+        int ret = onSurfaceCreatedByTypeJNI(mDrawType);
         MyLog.d(TAG, "onSurfaceCreatedJNI ret = " + ret);
         bCreateState = (ret == ERROR_OK);
     }
@@ -67,8 +73,12 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     public void GLSurfaceDestroyed() {
         MyLog.d(TAG, "GLSurfaceDestroyed");
         int ret = onSurfaceDestroyedJNI ();
-        bCreateState = false;
         MyLog.d(TAG, "onSurfaceDestroyedJNI ret = " + ret);
+        bCreateState = false;
+    }
+
+    public void setDrawType(int drawType) {
+        mDrawType = drawType;
     }
 
     /**

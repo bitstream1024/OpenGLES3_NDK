@@ -25,12 +25,14 @@ public class MyGLSurfaceView{
 
     MyGLSurfaceView () {}
 
-    protected void Init (Context context) {
+    protected void Init (Context context, int drawType) {
 
         MyLog.d(TAG, "Init");
         mGLSurfaceView = ((Activity)context).findViewById(R.id.gl_surface_view);
         mGLSurfaceView.setEGLContextClientVersion(GLES_VERSION);
         mGLRenderer = new MyGLRenderer(this);
+        mGLRenderer.setDrawType(drawType);
+
         mGLSurfaceView.setRenderer(mGLRenderer);
         mGLSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mRenderCount = 0;
