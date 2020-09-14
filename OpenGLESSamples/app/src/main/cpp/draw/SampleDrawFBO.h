@@ -7,11 +7,12 @@
 #include "GLES3/gl3.h"
 #include "ShaderHelper.h"
 #include "DrawHelper.h"
+#include "SampleBase.h"
 #include <vector>
 
 //using namespace std;
 
-class SampleDrawFBO
+class SampleDrawFBO : public SampleBase
 {
 public:
 	SampleDrawFBO ();
@@ -26,6 +27,7 @@ private:
 	void destroyShader();
 	RESULT creteGLBuffer ();
 	void destroyGLBuffer ();
+	void initMVPMatrix ();
 
 	std::vector <float> m_vertices;
 	std::vector <int> m_Indices;
@@ -42,9 +44,11 @@ private:
 			GLES_VERSION_STRING
 	R"(
 layout (location = 0) in vec3 aPos;
+uniform mat4 mvp;
+
 void main()
 {
-	gl_Position = vec4(aPos, 1.0);
+	gl_Position = mvp * vec4(aPos, 1.0);
 }
 )";
 

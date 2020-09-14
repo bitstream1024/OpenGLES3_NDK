@@ -11,6 +11,7 @@ import com.cgwang1580.permission.PermissionHelper;
 import com.cgwang1580.permission.PermissionInterface;
 import com.cgwang1580.utils.CommonDefine;
 import com.cgwang1580.utils.MyLog;
+import com.cgwang1580.utils.SharedPreferenceUtils;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -18,6 +19,9 @@ public class HomeActivity extends AppCompatActivity {
 
     private final String TAG  = this.getClass().getName();
     private int mEffectType = 0;
+    private SharedPreferenceUtils mSharedPreferenceUtils = null;
+    private Spinner mSpinnerView = null;
+
 
     private final static String[]PermissionList = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE};
@@ -68,14 +72,15 @@ public class HomeActivity extends AppCompatActivity {
 
     private void init () {
 
-        findViewById(R.id.home_text_view).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.btn_start_activity).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startGLActivity ();
             }
         });
 
-        ((Spinner)findViewById(R.id.home_spinner_effect)).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        mSpinnerView = findViewById(R.id.home_spinner_effect);
+        mSpinnerView.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 mEffectType = position;
@@ -87,6 +92,13 @@ public class HomeActivity extends AppCompatActivity {
 
             }
         });
+
+        if (mSharedPreferenceUtils == null) {
+            mSharedPreferenceUtils = new SharedPreferenceUtils();
+        }
+        mSharedPreferenceUtils.Init(this);
+        mEffectType = mSharedPreferenceUtils.getDefaultEffectTypeFromSharedPreference();
+        mSpinnerView.setSelection(mEffectType);
     }
 
     private void startGLActivity () {
@@ -98,6 +110,8 @@ public class HomeActivity extends AppCompatActivity {
         else {
             Toast.makeText(HomeActivity.this, "Please confirm permission", Toast.LENGTH_SHORT).show();
         }
+        if (mSharedPreferenceUtils != null) {
+            mSharedPreferenceUtils.setDefaultEffectTypeToSharedPreference(mEffectType);
+        }
     }
-
 }

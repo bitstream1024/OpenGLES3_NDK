@@ -11,6 +11,8 @@ SampleDrawFBO::SampleDrawFBO ()
 	m_VBO = GL_NONE;
 	m_EBO = GL_NONE;
 	m_pShaderHelperNormal = nullptr;
+	m_Time = 0;
+	initMVPMatrix();
 }
 
 SampleDrawFBO::~SampleDrawFBO ()
@@ -40,13 +42,27 @@ RESULT SampleDrawFBO::OnDrawFrame ()
 {
 	LOGD("SampleDrawFBO::onDrawFrame");
 
-	/*glm::mat4 modelView = glm::mat4(1.0f);
-	glm::mat4 projection = glm::perspective (glm::radians(45.f), 1.f, 0.1f, 1000.f);
-	LOGOUT_MAT4 (projection, "onDrawFrame projection")*/
+	float angle = 0.f;
+	long long currentTime = MyTimeUtils::getCurrentTime();
+	if (!m_Time) {
+		m_Time = currentTime;
+	} else {
+		angle = 1.f * (currentTime - m_Time)/1000 * 10; // 15 degrees each 1s
+		LOGD("SampleRender3DMesh::OnDrawFrame view angle = %f", angle);
+		m_Time = currentTime;
+	}
+	m_Model = glm::rotate(m_Model, glm::radians(angle), glm::vec3(0.f, 0.f, 1.f));
+	LOGOUT_MAT4_MATH (m_Model, "onDrawFrame m_Model")
+	LOGOUT_MAT4_MATH (m_Model, "onDrawFrame m_View")
+	LOGOUT_MAT4_MATH (m_Projection, "onDrawFrame projection")
+	glm::mat4 mvp = m_Projection * m_View * m_Model;
+	LOGOUT_MAT4_MATH (mvp, "onDrawFrame mvp")
 
 	// draw FBO
 	m_pShaderHelperNormal->use();
-	DrawHelper::CheckGLError("OnDrawFrame use");
+	DrawHelper::CheckGLError("OnDrawFrame m_pShaderHelperNormal use");
+	m_pShaderHelperNormal->setMat4("mvp", mvp);
+	DrawHelper::CheckGLError("OnDrawFrame setMat4");
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
 	glBindVertexArray(m_VAO);
 	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
@@ -64,6 +80,9 @@ RESULT SampleDrawFBO::OnDrawFrame ()
 
 	// draw FBO texture to screen
 	m_pShaderHelperFBO->use();
+	DrawHelper::CheckGLError("OnDrawFrame m_pShaderHelperFBO use");
+	m_pShaderHelperFBO->setMat4("mvp", mvp);
+	DrawHelper::CheckGLError("OnDrawFrame m_pShaderHelperFBO setMat4");
 	glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
 	DrawHelper::CheckGLError("OnDrawFrame glBindFramebuffer");
 	glClear (GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
@@ -196,4 +215,16 @@ void SampleDrawFBO::destroyGLBuffer ()
 	SafeDeleteGLBuffer (1, &m_VBO);
 	SafeDeleteGLBuffer (1, &m_EBO);
 	m_VAO = m_VBO = m_EBO = GL_NONE;
+}
+
+void SampleDrawFBO::initMVPMatrix ()
+{
+	LOGD("SampleRender3DMesh::initMVPMatrix");
+	m_Model = glm::mat4 (1.f);
+	m_View = glm::mat4 (1.f);
+	glm::vec3 Position = glm::vec3 (0.f, 0.f, 3.f);
+	glm::vec3 Target = glm::vec3 (0.f, 0.f, 0.f);
+	glm::vec3 Up = glm::vec3 (0.f, 1.f, 0.f);
+	m_View= glm::lookAt(Position, Target, Up);
+	m_Projection = glm::perspective (glm::radians(45.f), 1.f, 0.1f, 1000.f);
 }

@@ -12,14 +12,14 @@
         android:text="@string/home_activity"
         android:textSize="45sp"
         android:textAllCaps="false"
-        app:layout_constraintBottom_toTopOf="@+id/home_text_view"
+        app:layout_constraintBottom_toTopOf="@+id/btn_start_activity"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.419" />
 
     <Button
-        android:id="@+id/home_text_view"
+        android:id="@+id/btn_start_activity"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/click_to_show_surface"
@@ -39,7 +39,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/home_text_view"
+        app:layout_constraintTop_toBottomOf="@+id/btn_start_activity"
         app:layout_constraintVertical_bias="0.191" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

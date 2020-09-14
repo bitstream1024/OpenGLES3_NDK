@@ -31,11 +31,6 @@ private:
 	Model *m_pModel;
 	ShaderHelper *m_pShaderHelper;
 
-	long long m_Time;
-	glm::mat4 m_Model;
-	glm::mat4 m_View;
-	glm::mat4 m_Projection;
-
 	const char *pVertex_shader_0 =
 			GLES_VERSION_STRING
 			R"(

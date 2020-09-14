@@ -8,7 +8,7 @@
 #define ModelPath "/sdcard/OpenGLESTest/nanosuit/nanosuit.obj"
 
 SampleRender3DMesh::SampleRender3DMesh ()
-	:m_pModel(nullptr), m_pShaderHelper(nullptr),m_Time(0)
+	:m_pModel(nullptr), m_pShaderHelper(nullptr)
 {
 	LOGD("SampleRender3DMesh::SampleRender3DMesh");
 	if (!m_pModel)
@@ -21,6 +21,7 @@ SampleRender3DMesh::SampleRender3DMesh ()
 		int state = m_pShaderHelper->getShaderHelperState();
 		LOGD("SampleRender3DMesh state = %d", state);
 	}
+	m_Time = 0;
 	initMVPMatrix ();
 };
 

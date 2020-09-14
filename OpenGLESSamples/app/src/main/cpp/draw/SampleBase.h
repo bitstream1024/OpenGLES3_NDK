@@ -6,6 +6,7 @@
 
 #include <MotionState.h>
 #include "GLES3/gl3.h"
+#include "glm/glm.hpp"
 
 class SampleBase
 {
@@ -16,6 +17,11 @@ public:
 	void DestroyGLBuffer ();
 	void SetMotionState (MotionState const motionState);
 	MotionState GetMotionState ();
+
+	long long m_Time;
+	glm::mat4 m_Model;
+	glm::mat4 m_View;
+	glm::mat4 m_Projection;
 
 private:
 	GLuint m_VAO;
