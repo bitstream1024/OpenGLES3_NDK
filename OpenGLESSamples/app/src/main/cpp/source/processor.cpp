@@ -185,6 +185,9 @@ int onSurfaceChanged (const PHandle pProcessorHandle, const int width, const int
 int onDrawFrame (const PHandle pProcessorHandle)
 {
 	LOGD("onDrawFrame");
+
+	LOGD("onSurfaceDestroyed pProcessorHandle = %p", pProcessorHandle);
+
 	CHECK_NULL_INPUT (pProcessorHandle)
 	LPProcessorHandle MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
 	++MyProcessorHandle->mRenderTime;
@@ -280,6 +283,7 @@ int setMotionState (const PHandle pProcessorHandle, MotionState const motionStat
 int onSurfaceDestroyed (PHandle *ppProcessorHandle)
 {
 	LOGD("onSurfaceDestroyed");
+	LOGD("onSurfaceDestroyed *ppProcessorHandle = %p", *ppProcessorHandle);
 
 	CHECK_NULL_INPUT (*ppProcessorHandle);
 	LPProcessorHandle MyProcessorHandle = (LPProcessorHandle)*ppProcessorHandle;
@@ -296,7 +300,8 @@ int onSurfaceDestroyed (PHandle *ppProcessorHandle)
 		OpenImageHelper::FreeMyImageInfo(MyProcessorHandle->lpMyImageInfo_YUV);
 		SafeFree(MyProcessorHandle->lpMyImageInfo_YUV);
 	}
-	SafeFree (MyProcessorHandle);
+	SafeFree (*ppProcessorHandle);
+	LOGD("onSurfaceDestroyed *ppProcessorHandle = %p", *ppProcessorHandle);
 
 	return 0;
 }

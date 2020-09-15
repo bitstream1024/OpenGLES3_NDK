@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.MotionEvent;
 import android.view.WindowManager;
 import com.cgwang1580.multimotionhelper.MotionStateGL;
@@ -20,19 +22,13 @@ import androidx.appcompat.app.AppCompatActivity;
 public class GLViewActivity extends AppCompatActivity {
 
     private final static String PROCESSOR_NAME = "processor.draw";
-    private List<String> mEffectList = null;
-
     static {
         System.loadLibrary(PROCESSOR_NAME);
     }
     private final String TAG = this.getClass().getName();
-
-    MultiMotionEventHelper mMultiMotionHelper = null;
-
-    private final static String[]PermissionList = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE , Manifest.permission.CAMERA};
-
-    MyGLSurfaceView myGLSurfaceView;
+    private List<String> mEffectList = null;
+    private MultiMotionEventHelper mMultiMotionHelper = null;
+    private MyGLSurfaceView myGLSurfaceView;
     private int mEffectType = 0;
 
     @Override
@@ -41,10 +37,8 @@ public class GLViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gl_view);
         mMultiMotionHelper = new MultiMotionEventHelper();
-
         mEffectType = getIntent().getIntExtra(CommonDefine.MESSAGE_EFFECT_TYPE, 0);
         MyLog.d(TAG, "onCreate mEffectType = " + mEffectType);
-
         initUI (mEffectType);
     }
 
@@ -67,8 +61,6 @@ public class GLViewActivity extends AppCompatActivity {
         if (null == myGLSurfaceView) {
             InitGLSurfaceView(this);
         }
-        //myGLSurfaceView.MyGLSurfaceResume();
-        myGLSurfaceView.requestRender();
     }
 
     @Override
@@ -89,8 +81,7 @@ public class GLViewActivity extends AppCompatActivity {
 
     public void InitGLSurfaceView (Context context) {
         MyLog.d(TAG, "InitGLSurfaceView");
-        myGLSurfaceView = new MyGLSurfaceView();
-        myGLSurfaceView.Init(context, mEffectType);
+        myGLSurfaceView = new MyGLSurfaceView(context, mEffectType);
     }
 
     private void initUI (int effectType) {

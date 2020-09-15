@@ -40,7 +40,7 @@ void SampleDrawFBO::UnInitSample ()
 
 RESULT SampleDrawFBO::OnDrawFrame ()
 {
-	LOGD("SampleDrawFBO::onDrawFrame");
+	MyAutoTimeUtils("SampleDrawFBO::onDrawFrame");
 
 	float angle = 0.f;
 	long long currentTime = MyTimeUtils::getCurrentTime();
@@ -76,7 +76,7 @@ RESULT SampleDrawFBO::OnDrawFrame ()
 	SRECT sRect {0};
 	sRect.left = viewport[0];sRect.top = viewport[1];sRect.right = viewport[2];sRect.bottom = viewport[3];
 	char sPath[MAX_PATH] = "/sdcard/OpenGLESTest/testDrawFBO.png";
-	DrawHelper::SaveRenderImage(sRect, GL_RGB, sPath);
+	//DrawHelper::SaveRenderImage(sRect, GL_RGB, sPath);
 
 	// draw FBO texture to screen
 	m_pShaderHelperFBO->use();

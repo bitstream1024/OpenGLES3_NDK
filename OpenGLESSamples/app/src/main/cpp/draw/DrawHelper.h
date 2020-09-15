@@ -11,7 +11,7 @@
 
 #define SafeDeleteGLBuffer(_num_, _pVal_)	if (_pVal_) {glDeleteBuffers ((_num_), (_pVal_));}
 
-#define IF_LOGOUT_MAT_INFO	1
+#define IF_LOGOUT_MAT_INFO	0
 #define LOGOUT_MAT4(_mat4_,_info_)		\
 	if (IF_LOGOUT_MAT_INFO) {	\
 		for (int i = 0; i < 4; ++i) { \

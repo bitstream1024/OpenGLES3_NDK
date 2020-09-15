@@ -1,8 +1,11 @@
 package com.cgwang1580.openglessamples;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
+import android.os.Handler;
+import android.os.Message;
 
 import com.cgwang1580.multimotionhelper.MotionStateGL;
 import com.cgwang1580.utils.MyLog;
@@ -10,36 +13,48 @@ import com.cgwang1580.utils.MyLog;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class MyGLSurfaceView{
-    private final static String TAG = "MyGLSurfaceView";
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
+
+import static com.cgwang1580.utils.CommonDefine.ERROR_OK;
+
+public class MyGLSurfaceView implements GLSurfaceView.Renderer{
+    private final String TAG = this.getClass().getName();
     private final static long MAX_RENDER_COUNT = 500;
+
+    public final static int MSG_SURFACE_CREATED = 0x10;
 
     private final static int GLES_VERSION = 3;
     private GLSurfaceView mGLSurfaceView = null;
-    private MyGLRenderer mGLRenderer = null;
+    private int mDrawType = 0;
     private int mRenderCount = 0;
     private int mGLViewWidth = 0;
     private int mGLViewHeight = 0;
     private MotionStateGL m_MotionStateGL;
-    private Lock m_MotionStateLock;
+    private Lock m_MotionStateLock = null;
+    private RenderHandler mRenderHandler = null;
+    private boolean bGLStateReady = false;
 
-    MyGLSurfaceView () {}
+    MyGLSurfaceView (Context context, int drawType) {
+        initGL(context, drawType);
+    }
 
-    protected void Init (Context context, int drawType) {
+    protected void initGL(Context context, int drawType) {
 
-        MyLog.d(TAG, "Init");
+        MyLog.d(TAG, "initGL");
         mGLSurfaceView = ((Activity)context).findViewById(R.id.gl_surface_view);
         mGLSurfaceView.setEGLContextClientVersion(GLES_VERSION);
-        mGLRenderer = new MyGLRenderer(this);
-        mGLRenderer.setDrawType(drawType);
+        mDrawType = drawType;
 
-        mGLSurfaceView.setRenderer(mGLRenderer);
+        mGLSurfaceView.setRenderer(this);
         mGLSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mRenderCount = 0;
         mGLViewWidth = 0;
         mGLViewHeight = 0;
         m_MotionStateLock = new ReentrantLock();
         m_MotionStateGL = new MotionStateGL();
+
+        mRenderHandler = new RenderHandler();
     }
 
     protected void requestRender () {
@@ -54,8 +69,8 @@ public class MyGLSurfaceView{
             mGLSurfaceView.queueEvent(new Runnable() {
                 @Override
                 public void run() {
-                    if (!mGLRenderer.getCreateState()) {
-                        mGLRenderer.GLSurfaceCreated();
+                    if (!bGLStateReady) {
+                        GLSurfaceCreated();
                     }
                 }
             });
@@ -67,9 +82,13 @@ public class MyGLSurfaceView{
             mGLSurfaceView.queueEvent(new Runnable() {
                 @Override
                 public void run() {
-                    mGLRenderer.GLSurfaceDestroyed();
+                    GLSurfaceDestroyed();
                 }
             });
+            if (mRenderHandler != null) {
+                // todo: should not in main thread
+                mRenderHandler.waitUntilDestroy();
+            }
             mRenderCount = 0;
         }
     }
@@ -83,12 +102,6 @@ public class MyGLSurfaceView{
     public void setGLViewSize(int GLViewWidth, int GLViewHeight) {
         mGLViewWidth = GLViewWidth;
         mGLViewHeight = GLViewHeight;
-    }
-    public int getRenderCount() {
-        return mRenderCount;
-    }
-    public void setRenderCount(int renderCount) {
-        mRenderCount = renderCount;
     }
 
     public void setMotionState (MotionStateGL motionState)
@@ -114,4 +127,109 @@ public class MyGLSurfaceView{
         m_MotionStateLock.unlock();
         return motionStateGL;
     }
+
+    @Override
+    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        MyLog.d(TAG, "onSurfaceCreated");
+        GLSurfaceCreated ();
+    }
+
+    @Override
+    public void onSurfaceChanged(GL10 gl, int width, int height) {
+        MyLog.d(TAG, "onSurfaceChanged");
+        //GLES30.glViewport(0, 0, width, height);
+        int ret = onSurfaceChangedJNI (width, height);
+        MyLog.d(TAG, "onSurfaceChangedJNI ret = " + ret);
+        setGLViewSize(width, height);
+    }
+
+    @Override
+    public void onDrawFrame(GL10 gl) {
+        MyLog.d(TAG, "onDrawFrame");
+        MotionStateGL motionStateGL = getMotionState();
+        int ret = SetMotionState(motionStateGL);
+        MyLog.d(TAG, "SetMotionState ret = " + ret);
+        ret = onDrawFrameJNI();
+        MyLog.d(TAG, "onDrawFrameJNI ret = " + ret);
+        mRenderCount = mRenderCount + 1;
+        if (bGLStateReady) {
+            requestRender();
+        }
+    }
+
+    public void GLSurfaceCreated () {
+        MyLog.d(TAG, "GLSurfaceCreated");
+        int ret = onSurfaceCreatedByTypeJNI(mDrawType);
+        MyLog.d(TAG, "onSurfaceCreatedJNI ret = " + ret);
+        bGLStateReady = (ret == ERROR_OK);
+        if (bGLStateReady) {
+            mRenderHandler.sendMessage(mRenderHandler.obtainMessage(MSG_SURFACE_CREATED));
+            mRenderHandler.setGLState(bGLStateReady);
+        }
+    }
+
+    public void GLSurfaceDestroyed() {
+        MyLog.d(TAG, "GLSurfaceDestroyed");
+        int ret = onSurfaceDestroyedJNI ();
+        MyLog.d(TAG, "onSurfaceDestroyedJNI ret = " + ret);
+        bGLStateReady = false;
+        mRenderHandler.setGLState(false);
+        mRenderHandler.notifyAfterDestroy();
+    }
+
+    @SuppressLint("HandlerLeak")
+    private class RenderHandler extends Handler {
+
+        private final Object mStopLock = new Object();
+        private boolean bGLReady = false;
+
+        public RenderHandler () {}
+
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg == null) return;
+            int msgType = msg.what;
+            MyLog.d(TAG, "RenderHandler msgType = " + msgType);
+            switch (msgType) {
+                case MSG_SURFACE_CREATED:
+                    requestRender();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        public void setGLState(boolean bGLReady) {
+            this.bGLReady = bGLReady;
+        }
+
+        public void waitUntilDestroy () {
+            synchronized (mStopLock) {
+                while (bGLReady) {
+                    try {
+                        mStopLock.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        public void notifyAfterDestroy () {
+            synchronized (mStopLock) {
+                mStopLock.notifyAll();
+            }
+        }
+    }
+
+    /**
+     * A native method that is implemented by the 'native-lib' native library,
+     * which is packaged with this application.
+     */
+    public native int onSurfaceCreatedJNI();
+    public native int onSurfaceCreatedByTypeJNI(int effectType);
+    public native int onSurfaceChangedJNI (int width, int height);
+    public native int onDrawFrameJNI ();
+    public native int onSurfaceDestroyedJNI ();
+    public native int SetMotionState (MotionStateGL motionStateGL);
 }
