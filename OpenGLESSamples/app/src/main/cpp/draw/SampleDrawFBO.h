@@ -21,6 +21,7 @@ public:
 	RESULT InitSample ();
 	void UnInitSample ();
 	RESULT OnDrawFrame ();
+	int GetDrawTexture ();
 
 private:
 	RESULT createShader();

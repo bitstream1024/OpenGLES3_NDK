@@ -313,7 +313,7 @@ int drawFBO (ShaderHelper *pShaderHelperFBO, ShaderHelper *pShaderHelperNormal, 
 
 	// save texture for test
 	SRECT sRect{0, 0, nImageWidth, nImageHeight};
-	DrawHelper::SaveRenderImage (sRect, GL_RGBA, "/sdcard/OpenGLESTest/SaveRender.png");
+	//DrawHelper::SaveRenderImage (sRect, GL_RGBA, "/sdcard/OpenGLESTest/SaveRender.png");
 
 	// normal render
 	glViewport(0, 0, nScreenWidth, nScreenHeight);

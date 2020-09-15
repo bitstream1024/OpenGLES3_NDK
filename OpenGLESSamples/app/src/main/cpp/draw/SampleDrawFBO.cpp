@@ -40,7 +40,7 @@ void SampleDrawFBO::UnInitSample ()
 
 RESULT SampleDrawFBO::OnDrawFrame ()
 {
-	MyAutoTimeUtils("SampleDrawFBO::onDrawFrame");
+	CAL_TIME_COST("SampleDrawFBO::onDrawFrame");
 
 	float angle = 0.f;
 	long long currentTime = MyTimeUtils::getCurrentTime();
@@ -75,7 +75,7 @@ RESULT SampleDrawFBO::OnDrawFrame ()
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	SRECT sRect {0};
 	sRect.left = viewport[0];sRect.top = viewport[1];sRect.right = viewport[2];sRect.bottom = viewport[3];
-	char sPath[MAX_PATH] = "/sdcard/OpenGLESTest/testDrawFBO.png";
+	//char sPath[MAX_PATH] = "/sdcard/OpenGLESTest/testDrawFBO.png";
 	//DrawHelper::SaveRenderImage(sRect, GL_RGB, sPath);
 
 	// draw FBO texture to screen
@@ -92,10 +92,17 @@ RESULT SampleDrawFBO::OnDrawFrame ()
 	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
 	DrawHelper::CheckGLError("OnDrawFrame glDrawElements");
+	glBindTexture(GL_TEXTURE_2D, GL_NONE);
+	DrawHelper::CheckGLError("OnDrawFrame glBindTexture");
 	glBindVertexArray(GL_NONE);
 	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
 
 	return ERROR_OK;
+}
+
+int SampleDrawFBO::GetDrawTexture()
+{
+	return m_FBOTexture;
 }
 
 RESULT SampleDrawFBO::createShader()

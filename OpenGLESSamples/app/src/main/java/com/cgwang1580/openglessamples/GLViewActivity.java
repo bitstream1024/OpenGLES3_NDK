@@ -1,11 +1,8 @@
 package com.cgwang1580.openglessamples;
 
-import android.Manifest;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.view.MotionEvent;
 import android.view.WindowManager;
 import com.cgwang1580.multimotionhelper.MotionStateGL;

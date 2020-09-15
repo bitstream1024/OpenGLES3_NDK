@@ -71,14 +71,6 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void init () {
-
-        findViewById(R.id.btn_start_activity).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startGLActivity ();
-            }
-        });
-
         mSpinnerView = findViewById(R.id.home_spinner_effect);
         mSpinnerView.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -101,6 +93,22 @@ public class HomeActivity extends AppCompatActivity {
         mSpinnerView.setSelection(mEffectType);
     }
 
+    public void viewOnClick(View view) {
+        if (view == null) {
+            return;
+        }
+        switch (view.getId()) {
+            case R.id.btn_start_activity:
+                startGLActivity();
+                break;
+            case R.id.btn_recording_activity:
+                startRecordingActivity();
+                break;
+            default:
+                break;
+        }
+    }
+
     private void startGLActivity () {
         if (bPermissionOK) {
             Intent intent = new Intent(this, GLViewActivity.class);
@@ -114,4 +122,16 @@ public class HomeActivity extends AppCompatActivity {
             mSharedPreferenceUtils.setDefaultEffectTypeToSharedPreference(mEffectType);
         }
     }
+
+    private void startRecordingActivity () {
+        if (bPermissionOK) {
+            Intent intent = new Intent(this, RecordingActivity.class);
+            startActivity(intent);
+        }
+        else {
+            Toast.makeText(HomeActivity.this, "Please confirm permission", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
 }

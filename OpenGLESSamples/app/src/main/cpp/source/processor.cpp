@@ -263,6 +263,15 @@ int onDrawFrame (const PHandle pProcessorHandle)
 	return ret;
 }
 
+int getTextureFromFrameBuffer (const PHandle pProcessorHandle) {
+	LOGD("getTextureFromFrameBuffer");
+	if (nullptr == pProcessorHandle) {
+		return -1;
+	}
+	LPProcessorHandle MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
+	return MyProcessorHandle->m_pSampleDrawFBO->GetDrawTexture();
+}
+
 int setMotionState (const PHandle pProcessorHandle, MotionState const motionState)
 {
 	LOGD("setMotionState");
