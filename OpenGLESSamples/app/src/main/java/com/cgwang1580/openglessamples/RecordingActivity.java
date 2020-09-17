@@ -4,7 +4,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
+
 import com.cgwang1580.utils.MyLog;
 
 import androidx.appcompat.app.ActionBar;
@@ -20,6 +23,7 @@ public class RecordingActivity extends AppCompatActivity {
     private final int DRAW_TYPE = 6;
 
     private RecordGLSurfaceView mGLView = null;
+    private boolean mRecordingEnabled = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,5 +83,26 @@ public class RecordingActivity extends AppCompatActivity {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
         }
+    }
+
+    public void clickToggleRecording(View view) {
+        mRecordingEnabled = !mRecordingEnabled;
+        if (mGLView != null) {
+            mGLView.queueEvent(() -> {
+                // notify the renderer that we want to change the encoder's state
+                mGLView.changeRecordingState(mRecordingEnabled);
+            });
+        }
+        updateControls();
+    }
+
+    public void updateControls() {
+        String text = "";
+        if (mRecordingEnabled) {
+            text = "stop recording";
+        } else {
+            text = "start recording";
+        }
+        ((Button)findViewById(R.id.btn_recording)).setText(text);
     }
 }

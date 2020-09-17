@@ -19,7 +19,7 @@
         </activity>
 
         <activity android:name="com.cgwang1580.openglessamples.RecordingActivity"
-            android:theme="@style/AppActionTheme" />
+            android:theme="@style/AppTheme" />
 
         <activity android:name=".HomeActivity" >
             <intent-filter>

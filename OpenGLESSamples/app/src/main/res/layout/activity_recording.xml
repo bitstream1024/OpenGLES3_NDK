@@ -20,7 +20,8 @@
             android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:text="start recording"
-            android:textAllCaps="false" />
+            android:textAllCaps="false"
+            android:onClick="clickToggleRecording" />
     </FrameLayout>
 
     <com.cgwang1580.openglessamples.RecordGLSurfaceView

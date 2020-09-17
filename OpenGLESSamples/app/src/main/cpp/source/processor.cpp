@@ -186,7 +186,7 @@ int onDrawFrame (const PHandle pProcessorHandle)
 {
 	LOGD("onDrawFrame");
 
-	LOGD("onSurfaceDestroyed pProcessorHandle = %p", pProcessorHandle);
+	//LOGD("onDrawFrame pProcessorHandle = %p", pProcessorHandle);
 
 	CHECK_NULL_INPUT (pProcessorHandle)
 	LPProcessorHandle MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;

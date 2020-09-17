@@ -1,13 +1,19 @@
 package com.cgwang1580.openglessamples;
 
+import android.app.Activity;
 import android.content.Context;
+import android.opengl.EGL14;
+import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.os.Environment;
 import android.util.AttributeSet;
-
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import com.cgwang1580.encoder.video.TextureMovieEncoder;
 import com.cgwang1580.utils.CommonDefine;
 import com.cgwang1580.utils.MyLog;
-
-import java.util.jar.Attributes;
+import java.io.File;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -20,41 +26,61 @@ public class RecordGLSurfaceView extends GLSurfaceView {
     private final int GLES_VERSION = 3;
     private final int RENDER_FPS = 30;
 
+    private static final int RECORDING_OFF = 0;
+    private static final int RECORDING_ON = 1;
+    private static final int RECORDING_RESUMED = 2;
+
     private NativeFunctionSet mNativeFunctionSet = new NativeFunctionSet();
     private int mDrawType = 0;
     private int mOffscreenTexture = -1;
     private boolean bGLStateReady = false;
 
+    private File mOutputFile = null;
+    private boolean mRecordingEnabled = false;
+    private int mRecordingStatus;
+    private int mWindowWith = 0;
+    private int mWindowHeight = 0;
+    private int mFrameCount = 0;
+    private Button mBtnRecording = null;
+
+    // this is static so it survives activity restarts
+    private static TextureMovieEncoder mVideoEncoder = new TextureMovieEncoder();
+
+
     public RecordGLSurfaceView(Context context) {
         super(context);
     }
 
-    public RecordGLSurfaceView (Context context, AttributeSet attrs) {
+    public RecordGLSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init ();
+        init(context);
     }
 
-    public void init () {
+    public void init(Context context) {
         MyLog.d(TAG, "init");
         setEGLContextClientVersion(GLES_VERSION);
         setRenderer(mRenderer);
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+
+        mOutputFile = new File(Environment.getExternalStorageDirectory() + "/" + "test_record.mp4");
+        MyLog.d(TAG, "init path = " + mOutputFile.getPath());
+        mBtnRecording = ((Activity)context).findViewById(R.id.btn_recording);
     }
 
-    public void RecordGLSurfacePause () {
+    public void RecordGLSurfacePause() {
         this.queueEvent(this::GLSurfaceDestroyed);
     }
 
     public void GLSurfaceDestroyed() {
         MyLog.d(TAG, "GLSurfaceDestroyed");
-        int ret = mNativeFunctionSet.onSurfaceDestroyedJNI ();
+        int ret = mNativeFunctionSet.onSurfaceDestroyedJNI();
         MyLog.d(TAG, "onSurfaceDestroyedJNI ret = " + ret);
         bGLStateReady = false;
     }
 
     private GLSurfaceView.Renderer mRenderer = new GLSurfaceView.Renderer() {
         @Override
-        public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        public void onSurfaceCreated(GL10 gl, EGLConfig conVideoEncoderConfig) {
             mDrawType = 6;
             int ret = mNativeFunctionSet.onSurfaceCreatedByTypeJNI(mDrawType);
             if (ret != CommonDefine.ERROR_OK) {
@@ -62,6 +88,7 @@ public class RecordGLSurfaceView extends GLSurfaceView {
                 return;
             }
             mOffscreenTexture = mNativeFunctionSet.getTextureFromFrameBuffer();
+            MyLog.d(TAG, "onSurfaceCreated mOffscreenTexture = " + mOffscreenTexture);
             bGLStateReady = true;
             requestRender();
         }
@@ -72,17 +99,77 @@ public class RecordGLSurfaceView extends GLSurfaceView {
             if (ret != CommonDefine.ERROR_OK) {
                 MyLog.e(TAG, "onSurfaceChangedJNI error");
             }
+            mWindowWith = width;
+            mWindowHeight = height;
         }
 
         @Override
         public void onDrawFrame(GL10 gl) {
+
+            boolean showBox = false;
+
+            if (mRecordingEnabled) {
+                switch (mRecordingStatus) {
+                    case RECORDING_OFF:
+                        Log.d(TAG, "START recording");
+                        // start recording
+                        mVideoEncoder.startRecording(new TextureMovieEncoder.EncoderConfig(
+                                mOutputFile, 640, 480, 1000000, EGL14.eglGetCurrentContext()));
+                        mRecordingStatus = RECORDING_ON;
+                        break;
+                    case RECORDING_RESUMED:
+                        Log.d(TAG, "RESUME recording");
+                        mVideoEncoder.updateSharedContext(EGL14.eglGetCurrentContext());
+                        mRecordingStatus = RECORDING_ON;
+                        break;
+                    case RECORDING_ON:
+                        // yay
+                        break;
+                    default:
+                        throw new RuntimeException("unknown status " + mRecordingStatus);
+                }
+            } else {
+                switch (mRecordingStatus) {
+                    case RECORDING_ON:
+                    case RECORDING_RESUMED:
+                        // stop recording
+                        Log.d(TAG, "STOP recording");
+                        mVideoEncoder.stopRecording();
+                        mRecordingStatus = RECORDING_OFF;
+                        break;
+                    case RECORDING_OFF:
+                        // yay
+                        break;
+                    default:
+                        throw new RuntimeException("unknown status " + mRecordingStatus);
+                }
+            }
+
             int ret = mNativeFunctionSet.onDrawFrameJNI();
             if (ret != CommonDefine.ERROR_OK) {
                 MyLog.e(TAG, "onDrawFrameJNI error");
                 return;
             }
+
+            // Set the video encoder's texture name.  We only need to do this once, but in the
+            // current implementation it has to happen after the video encoder is started, so
+            // we just do it here.
+            //
+            // TODO: be less lame.
+            mVideoEncoder.setTextureId(mOffscreenTexture);
+
+            // Tell the video encoder thread that a new frame is available.
+            // This will be ignored if we're not actually recording.
+            mVideoEncoder.frameAvailable(null);
+
+            // Draw a flashing box if we're recording.  This only appears on screen.
+            showBox = (mRecordingStatus == RECORDING_ON);
+            if (showBox && (++mFrameCount & 0x04) == 0) {
+                drawBox();
+            }
+
             try {
-                Thread.sleep(1000/RENDER_FPS);
+                Thread.sleep(1000 / RENDER_FPS);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -91,4 +178,28 @@ public class RecordGLSurfaceView extends GLSurfaceView {
             }
         }
     };
+
+    /**
+     * Draws a red box in the corner.
+     */
+    private void drawBox() {
+        GLES20.glEnable(GLES20.GL_SCISSOR_TEST);
+        GLES20.glScissor(0, 0, 100, 100);
+        GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+        GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
+    }
+
+    public void changeRecordingState(boolean isRecording) {
+        MyLog.d(TAG, "changeRecordingState: was " + mRecordingEnabled + " now " + isRecording);
+        mRecordingEnabled = isRecording;
+    }
+
+    public void setRecordingEnabled(boolean recordingEnabled) {
+        mRecordingEnabled = recordingEnabled;
+    }
+
+    public boolean isRecordingEnabled() {
+        return mRecordingEnabled;
+    }
 }
