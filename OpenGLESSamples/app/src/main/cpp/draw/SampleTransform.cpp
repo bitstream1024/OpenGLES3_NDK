@@ -52,10 +52,10 @@ SampleTransform::SampleTransform()
 SampleTransform::~SampleTransform()
 {
 	LOGD("~SampleTransform::SampleTransform");
-	SafeDeleteGLBuffer (1, &m_VAO);
-	SafeDeleteGLBuffer (1, &m_VBO);
-	SafeDeleteGLBuffer (1, &m_EBO);
-	SafeDeleteGLBuffer (2, m_sVBO);
+	SafeDeleteGLBuffers (1, &m_VAO);
+	SafeDeleteGLBuffers (1, &m_VBO);
+	SafeDeleteGLBuffers (1, &m_EBO);
+	SafeDeleteGLBuffers (2, m_sVBO);
 	m_VAO = m_VBO = m_EBO = GL_NONE;
 	for (auto val : m_sVBO)
 		val = GL_NONE;
@@ -73,24 +73,24 @@ RESULT SampleTransform::createShader()
 
 RESULT SampleTransform::creteGLBuffer ()
 {
-	LOGD("SampleTransform::creteGLBuffer");
+	LOGD("SampleTransform::createGLBuffer");
 
 	glGenVertexArrays(1, &m_VAO);
 	glBindVertexArray(m_VAO);
 	glGenBuffers(2, m_sVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_sVBO[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vVertex), vVertex, GL_STATIC_DRAW);
-	DrawHelper::CheckGLError("creteGLBuffer glBufferData");
+	DrawHelper::CheckGLError("createGLBuffer glBufferData");
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_sVBO[1]);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vIndex), vIndex, GL_STATIC_DRAW);
-	DrawHelper::CheckGLError("creteGLBuffer glBufferData");
+	DrawHelper::CheckGLError("createGLBuffer glBufferData");
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_sVBO[0]);
-	DrawHelper::CheckGLError("creteGLBuffer glBindBuffer");
+	DrawHelper::CheckGLError("createGLBuffer glBindBuffer");
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
-	DrawHelper::CheckGLError("creteGLBuffer glVertexAttribPointer");
+	DrawHelper::CheckGLError("createGLBuffer glVertexAttribPointer");
 	glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_sVBO[1]);
 	glBindVertexArray(GL_NONE);
@@ -112,10 +112,10 @@ RESULT SampleTransform::InitSample ()
 void SampleTransform::UnInitSample ()
 {
 	LOGD("SampleTransform::UnInitSample");
-	SafeDeleteGLBuffer (1, &m_VAO);
-	SafeDeleteGLBuffer (1, &m_VBO);
-	SafeDeleteGLBuffer (1, &m_EBO);
-	SafeDeleteGLBuffer (2, m_sVBO);
+	SafeDeleteGLBuffers (1, &m_VAO);
+	SafeDeleteGLBuffers (1, &m_VBO);
+	SafeDeleteGLBuffers (1, &m_EBO);
+	SafeDeleteGLBuffers (2, m_sVBO);
 	m_VAO = m_VBO = m_EBO = GL_NONE;
 	for (auto  val : m_sVBO) val = GL_NONE;
 	SafeDelete (m_pShaderHelper);

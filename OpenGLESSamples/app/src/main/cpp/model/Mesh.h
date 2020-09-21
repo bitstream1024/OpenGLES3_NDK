@@ -137,9 +137,9 @@ private:
 		m_vIndices.clear();
 		m_vTextures.clear();
 		for (int i = 0; i < m_vTextures.size(); ++i)
-			SafeDeleteGLBuffer(1, &m_vTextures[i].id);
-		SafeDeleteGLBuffer(1, &m_VAO);
-		SafeDeleteGLBuffer(1, &m_VBO);
-		SafeDeleteGLBuffer(1, &m_EBO);
+			SafeDeleteGLBuffers(1, &m_vTextures[i].id);
+		SafeDeleteGLBuffers(1, &m_VAO);
+		SafeDeleteGLBuffers(1, &m_VBO);
+		SafeDeleteGLBuffers(1, &m_EBO);
 	}
 };

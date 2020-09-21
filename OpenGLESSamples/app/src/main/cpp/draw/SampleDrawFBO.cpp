@@ -2,6 +2,7 @@
 // Created by wcg3031 on 2020/6/1.
 //
 
+#include <unistd.h>
 #include "SampleDrawFBO.h"
 
 SampleDrawFBO::SampleDrawFBO ()
@@ -10,7 +11,10 @@ SampleDrawFBO::SampleDrawFBO ()
 	m_VAO = GL_NONE;
 	m_VBO = GL_NONE;
 	m_EBO = GL_NONE;
+	m_VAO_fbo = GL_NONE;
+	m_EBO_fbo = GL_NONE;
 	m_pShaderHelperNormal = nullptr;
+	m_pShaderHelperFBO = nullptr;
 	m_Time = 0;
 	initMVPMatrix();
 }
@@ -26,7 +30,7 @@ RESULT SampleDrawFBO::InitSample()
 	RESULT ret = ERROR_OK;
 	ret = createShader();
 	CHECK_OK_RETURN(ret);
-	creteGLBuffer();
+	createGLBuffer();
 	CHECK_OK_RETURN(ret);
 	return ret;
 }
@@ -53,17 +57,25 @@ RESULT SampleDrawFBO::OnDrawFrame ()
 	}
 	m_Model = glm::rotate(m_Model, glm::radians(angle), glm::vec3(0.f, 0.f, 1.f));
 	LOGOUT_MAT4_MATH (m_Model, "onDrawFrame m_Model")
-	LOGOUT_MAT4_MATH (m_Model, "onDrawFrame m_View")
+	LOGOUT_MAT4_MATH (m_View, "onDrawFrame m_View")
 	LOGOUT_MAT4_MATH (m_Projection, "onDrawFrame projection")
 	glm::mat4 mvp = m_Projection * m_View * m_Model;
 	LOGOUT_MAT4_MATH (mvp, "onDrawFrame mvp")
 
+	mvp = glm::mat4(1.f) * m_Model;
 	// draw FBO
 	m_pShaderHelperNormal->use();
 	DrawHelper::CheckGLError("OnDrawFrame m_pShaderHelperNormal use");
 	m_pShaderHelperNormal->setMat4("mvp", mvp);
 	DrawHelper::CheckGLError("OnDrawFrame setMat4");
+	/*glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	DrawHelper::CheckGLError("OnDrawFrame glPixelStorei");*/
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
+	DrawHelper::CheckGLError("OnDrawFrame glBindFramebuffer");
+
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0.f, 0.f, 0.f, 1.f);
+
 	glBindVertexArray(m_VAO);
 	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
@@ -75,27 +87,39 @@ RESULT SampleDrawFBO::OnDrawFrame ()
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	SRECT sRect {0};
 	sRect.left = viewport[0];sRect.top = viewport[1];sRect.right = viewport[2];sRect.bottom = viewport[3];
-	//char sPath[MAX_PATH] = "/sdcard/OpenGLESTest/testDrawFBO.png";
-	//DrawHelper::SaveRenderImage(sRect, GL_RGB, sPath);
+	char sPath[MAX_PATH] {0};
+	sprintf(sPath, "/sdcard/OpenGLESTest/read/testDrawFBO_%04d.png", mFrameNum);
+	//sprintf(sPath, "/sdcard/OpenGLESTest/testDrawFBO_%04d_%dx%d.png", 0, sRect.right, sRect.bottom);
+	DrawHelper::SaveRenderImage(sRect, GL_RGBA, sPath);
 
 	// draw FBO texture to screen
 	m_pShaderHelperFBO->use();
 	DrawHelper::CheckGLError("OnDrawFrame m_pShaderHelperFBO use");
-	m_pShaderHelperFBO->setMat4("mvp", mvp);
+	glm::mat4 mvp_bg = glm::mat4(1.f);
+	m_pShaderHelperFBO->setMat4("mvp", mvp_bg);
 	DrawHelper::CheckGLError("OnDrawFrame m_pShaderHelperFBO setMat4");
 	glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
 	DrawHelper::CheckGLError("OnDrawFrame glBindFramebuffer");
-	glClear (GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+	glClear (GL_COLOR_BUFFER_BIT);
+	glClearColor(0.f, 0.f, 0.f, 1.f);
+	glBindVertexArray(m_VAO_fbo);
+	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
+	glActiveTexture(GL_TEXTURE0);
+	DrawHelper::CheckGLError("OnDrawFrame glActiveTexture");
 	glBindTexture(GL_TEXTURE_2D, m_FBOTexture);
 	DrawHelper::CheckGLError("OnDrawFrame glBindTexture");
-	glBindVertexArray(m_VAO);
-	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
+	m_pShaderHelperFBO->setInt("screenTexture", 0);
+	DrawHelper::CheckGLError("OnDrawFrame m_pShaderHelperFBO setInt");
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
 	DrawHelper::CheckGLError("OnDrawFrame glDrawElements");
 	glBindTexture(GL_TEXTURE_2D, GL_NONE);
 	DrawHelper::CheckGLError("OnDrawFrame glBindTexture");
 	glBindVertexArray(GL_NONE);
 	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
+
+	++mFrameNum;
+
+	usleep(50);
 
 	return ERROR_OK;
 }
@@ -112,7 +136,7 @@ RESULT SampleDrawFBO::createShader()
 	RESULT ret = m_pShaderHelperNormal->getShaderHelperState();
 	LOGD("createShader m_pShaderHelperNormal getShaderHelperState ret = %d", ret);
 
-	m_pShaderHelperFBO = new ShaderHelper (triangle_vertex_shader0, triangle_fragment_shader1);
+	m_pShaderHelperFBO = new ShaderHelper (fbo_vertex_shader, fbo_fragment_shader);
 	ret = m_pShaderHelperFBO->getShaderHelperState();
 	LOGD("createShader m_pShaderHelperFBO getShaderHelperState ret = %d", ret);
 	return ret;
@@ -121,96 +145,156 @@ RESULT SampleDrawFBO::createShader()
 void SampleDrawFBO::destroyShader()
 {
 	LOGD("SampleDrawFBO::destroyShader");
-	SafeDelete (m_pShaderHelperNormal);
+	SafeDelete (m_pShaderHelperNormal)
+	SafeDelete (m_pShaderHelperFBO)
 }
 
-RESULT SampleDrawFBO::creteGLBuffer ()
+RESULT SampleDrawFBO::createGLBuffer ()
 {
-	LOGD("SampleDrawFBO::creteGLBuffer");
+	LOGD("SampleDrawFBO::createGLBuffer");
 
 	int maxRenderBufferSize[4]{0};
 	glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, maxRenderBufferSize);
-	LOGD("creteGLBuffer maxRenderBufferSize (%d, %d, %d, %d)", maxRenderBufferSize[0], maxRenderBufferSize[1],
+	LOGD("createGLBuffer maxRenderBufferSize (%d, %d, %d, %d)", maxRenderBufferSize[0], maxRenderBufferSize[1],
 			maxRenderBufferSize[2], maxRenderBufferSize[3]);
 
 	int viewportSize[4]{0};
 	glGetIntegerv(GL_VIEWPORT, viewportSize);
-	LOGD("creteGLBuffer viewportSize (%d, %d, %d, %d)", viewportSize[0], viewportSize[1],
+	LOGD("createGLBuffer viewportSize (%d, %d, %d, %d)", viewportSize[0], viewportSize[1],
 			viewportSize[2], viewportSize[3]);
 	int screenWidth = viewportSize[2];
 	int screenHeight = viewportSize[3];
 	glGenFramebuffers(1, &m_FBO);
-	GLenum targetFBO = GL_TEXTURE_2D;
-	DrawHelper::GetOneTexture(targetFBO, &m_FBOTexture);
-	glBindTexture(targetFBO, m_FBOTexture);
-	glTexImage2D(targetFBO, GL_FALSE, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-	glBindTexture(targetFBO, GL_NONE);
+	const GLenum TARGET_FBO = GL_TEXTURE_2D;
+	DrawHelper::GetOneTexture(TARGET_FBO, &m_FBOTexture);
+	glBindTexture(TARGET_FBO, m_FBOTexture);
+	glTexImage2D(TARGET_FBO, GL_FALSE, GL_RGBA, screenWidth, screenHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	glBindTexture(TARGET_FBO, GL_NONE);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, targetFBO, m_FBOTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, TARGET_FBO, m_FBOTexture, 0);
+	glBindTexture(TARGET_FBO, GL_NONE);
 	GLenum tmpStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (GL_FRAMEBUFFER_COMPLETE != tmpStatus)
 	{
-		LOGE("creteGLBuffer GL_FRAMEBUFFER error");
+		LOGE("createGLBuffer GL_FRAMEBUFFER error");
 		return ERROR_GL_STATE;
 	}
-
 	std::vector <float> vertex_multi{
-			0.3199f, -0.5f, 0,
-			-0.3199f, 0.5f, 0,
-			0.3199f, 0.5f, 0,
-			-0.3199f, -0.5f, 0
+		0.f, 0.f , 0.f,
+		0.5f, 0.f, 0.f,
+		0.5f, 0.75f, 0.f,
+		0.f, 0.75f, 0.f
 	};
-	std::vector<int> index_multi{
-			0, 1, 3,
-			0, 2, 3
+	/*std::vector <float> vertex_multi{
+			-1.f, -1.f, 0,
+			 1.f, -1.f, 0,
+			 1.f,  1.f, 0,
+			-1.f,  1.f, 0
+	};*/
+
+	std::vector<unsigned int> index_multi{
+			0, 1, 2,
+			0, 1, 3
 	};
 
 	glGenVertexArrays(1, &m_VAO);
-	DrawHelper::CheckGLError("creteGLBuffer glGenBuffers");
+	DrawHelper::CheckGLError("createGLBuffer glGenBuffers");
 	glGenBuffers(1, &m_VBO);
-	DrawHelper::CheckGLError("creteGLBuffer glGenBuffers");
+	DrawHelper::CheckGLError("createGLBuffer glGenBuffers");
 	glGenBuffers(1, &m_EBO);
-	DrawHelper::CheckGLError("creteGLBuffer glGenBuffers");
+	DrawHelper::CheckGLError("createGLBuffer glGenBuffers");
 
-	bool bStatic = true;
 	long lSize = 0;
+	lSize = sizeof(float) * vertex_multi.size();
+	glBindVertexArray(m_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+	glBufferData(GL_ARRAY_BUFFER, lSize, &vertex_multi[0], GL_STATIC_DRAW);
+	DrawHelper::CheckGLError("createGLBuffer glBufferData");
+	glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
 
-	if (bStatic)
-	{
-		lSize = sizeof(float) * vertex_multi.size();
-		glBindVertexArray(m_VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-		glBufferData(GL_ARRAY_BUFFER, lSize, &vertex_multi[0], GL_STATIC_DRAW);
-		DrawHelper::CheckGLError("creteGLBuffer glBufferData");
+	lSize = sizeof(unsigned int) * index_multi.size();
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, lSize, &index_multi[0], GL_STATIC_DRAW);
+	DrawHelper::CheckGLError("createGLBuffer glBufferData");
 
-		lSize = sizeof(int) * index_multi.size();
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, lSize, &index_multi[0], GL_STATIC_DRAW);
-		DrawHelper::CheckGLError("creteGLBuffer glBufferData");
-	}
-	else
-	{
-		lSize = sizeof(float) * m_vertices.size();
-		glBindVertexArray(m_VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-		glBufferData(GL_ARRAY_BUFFER, lSize, &m_vertices[0], GL_STATIC_DRAW);
-		LOGD("creteGLBuffer %p %p %p %p %p %p", &m_vertices[0], &m_vertices[1], &m_vertices[2],
-			 &m_vertices[3], &m_vertices[4], &m_vertices[5]);
-		DrawHelper::CheckGLError("creteGLBuffer glBufferData");
-
-		lSize = sizeof(int) * m_Indices.size();
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, lSize, &m_Indices[0], GL_STATIC_DRAW);
-		DrawHelper::CheckGLError("creteGLBuffer glBufferData");
-	}
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	DrawHelper::CheckGLError("creteGLBuffer glVertexAttribPointer");
+	m_pShaderHelperNormal->use();
+	//GLuint posLocationNor = m_pShaderHelperNormal->getAttribLocation("aPos");
+	GLuint posLocationNor = 0;
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+	glEnableVertexAttribArray(posLocationNor);
+	glVertexAttribPointer(posLocationNor, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	DrawHelper::CheckGLError("createGLBuffer glVertexAttribPointer");
 
 	glBindVertexArray(GL_NONE);
-	DrawHelper::CheckGLError("creteGLBuffer glBindVertexArray");
+	DrawHelper::CheckGLError("createGLBuffer glBindVertexArray");
+
+	std::vector <float> vertex_fbo{
+			-1.f, -1.f, 0,
+			 1.f, -1.f, 0,
+			 1.f,  1.f, 0,
+			-1.f,  1.f, 0
+	};
+
+	// FrameBuffer中texture坐标相反
+	std::vector <float> texCoors {
+			0.0f, 0.0f,
+			1.0f, 0.0f,
+			1.0f, 1.0f,
+			0.0f, 1.0f
+	};
+
+	std::vector<unsigned int> index_fbo{
+			0, 1, 2,
+			0, 2, 3
+	};
+	GLuint VBO_fbo[2] = {GL_NONE};
+	glGenBuffers(2, VBO_fbo);
+	glGenBuffers(1, &m_EBO_fbo);
+	glGenVertexArrays(1, &m_VAO_fbo);
+
+	glBindVertexArray(m_VAO_fbo);
+	lSize = sizeof(float) * vertex_fbo.size();
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_fbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, lSize, &vertex_fbo[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
+	DrawHelper::CheckGLError("createGLBuffer glBufferData");
+
+	lSize = sizeof(float) * texCoors.size();
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_fbo[1]);
+	glBufferData(GL_ARRAY_BUFFER, lSize, &texCoors[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
+	DrawHelper::CheckGLError("createGLBuffer glBufferData");
+
+	lSize = sizeof(unsigned int) * index_fbo.size();
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_fbo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, lSize, &index_fbo[0], GL_STATIC_DRAW);
+	DrawHelper::CheckGLError("createGLBuffer glBufferData");
+
+	m_pShaderHelperFBO->use();
+	DrawHelper::CheckGLError("createGLBuffer m_pShaderHelperFBO use");
+	//GLint posAttrib  = m_pShaderHelperFBO->getAttribLocation("aPos");
+	//GLint texCoodsAttrib = m_pShaderHelperFBO->getAttribLocation("aTex");
+	//LOGD("createGLBuffer posLocation = %d, texCoodsLocation = %d", posAttrib, texCoodsAttrib);
+
+	GLint posAttrib = 0;
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_fbo[0]);
+	glEnableVertexAttribArray(posAttrib);
+	DrawHelper::CheckGLError("createGLBuffer glEnableVertexAttribArray posLocation");
+	glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	DrawHelper::CheckGLError("createGLBuffer glVertexAttribPointer posLocation");
+
+	GLint texCoodsAttrib = 1;
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_fbo[1]);
+	glEnableVertexAttribArray(texCoodsAttrib);
+	DrawHelper::CheckGLError("createGLBuffer glEnableVertexAttribArray texCoodsLocation");
+	glVertexAttribPointer(texCoodsAttrib, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	DrawHelper::CheckGLError("createGLBuffer glVertexAttribPointer texCoodsLocation");
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
+	glBindVertexArray(GL_NONE);
+
+	SafeDeleteGLBuffers(2, VBO_fbo);
 
 	return ERROR_OK;
 }
@@ -218,10 +302,13 @@ RESULT SampleDrawFBO::creteGLBuffer ()
 void SampleDrawFBO::destroyGLBuffer ()
 {
 	LOGD("SampleDrawFBO::DestroyGLBuffer");
-	SafeDeleteGLBuffer (1, &m_VAO);
-	SafeDeleteGLBuffer (1, &m_VBO);
-	SafeDeleteGLBuffer (1, &m_EBO);
-	m_VAO = m_VBO = m_EBO = GL_NONE;
+	SafeDeleteGLArrays (1, &m_VAO)
+	SafeDeleteGLBuffers (1, &m_VBO)
+	SafeDeleteGLBuffers (1, &m_EBO)
+	SafeDeleteGLArrays (1, &m_VAO_fbo)
+	SafeDeleteGLBuffers (1, &m_EBO_fbo)
+
+	SafeDeleteTexture(&m_FBOTexture)
 }
 
 void SampleDrawFBO::initMVPMatrix ()
@@ -234,4 +321,62 @@ void SampleDrawFBO::initMVPMatrix ()
 	glm::vec3 Up = glm::vec3 (0.f, 1.f, 0.f);
 	m_View= glm::lookAt(Position, Target, Up);
 	m_Projection = glm::perspective (glm::radians(45.f), 1.f, 0.1f, 1000.f);
+}
+
+RESULT SampleDrawFBO::OnDrawFrameRect()
+{
+	CAL_TIME_COST("SampleDrawFBO::OnDrawFrameRect")
+
+	std::vector <GLfloat> vertex {
+		-0.5f, -0.5f, 0,
+		 0.5f, -0.5f, 0,
+		 0.5f,  0.5f, 0,
+		-0.5f,  0.5f, 0,
+	};
+
+	std::vector<GLuint > indices {
+		0, 1, 2,
+		0, 1, 3
+	};
+
+	GLuint VAO = GL_NONE, EBO = GL_NONE;
+	GLuint VBO = GL_NONE;
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+	DrawHelper::CheckGLError("OnDrawFrameRect glBindVertexArray VAO");
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	DrawHelper::CheckGLError("OnDrawFrameRect glBindBuffer GL_ARRAY_BUFFER");
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertex.size(), &vertex[0], GL_STATIC_DRAW);
+	DrawHelper::CheckGLError("OnDrawFrameRect glBufferData GL_ARRAY_BUFFER");
+	glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indices.size(), &indices[0], GL_STATIC_DRAW);
+	DrawHelper::CheckGLError("OnDrawFrameRect glBufferData GL_ELEMENT_ARRAY_BUFFER");
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
+	DrawHelper::CheckGLError("OnDrawFrameRect glVertexAttribPointer");
+	glBindVertexArray(GL_NONE);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_NONE);
+
+	glm::mat4 mvp = glm::mat4(1.f);
+	m_pShaderHelperNormal->use();
+	m_pShaderHelperNormal->setMat4("mvp", mvp);
+	glBindVertexArray(VAO);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
+	//glDrawArrays(GL_TRIANGLES, 0, 6);
+	DrawHelper::CheckGLError("OnDrawFrameRect glDrawElements");
+	glBindVertexArray(GL_NONE);
+
+	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &EBO);
+	glDeleteVertexArrays(1, &VAO);
+	usleep (50);
+
+	return 0;
 }

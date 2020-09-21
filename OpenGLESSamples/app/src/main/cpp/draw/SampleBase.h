@@ -22,12 +22,12 @@ public:
 	glm::mat4 m_Model;
 	glm::mat4 m_View;
 	glm::mat4 m_Projection;
-
-private:
+	int mFrameNum;
 	GLuint m_VAO;
 	GLuint m_VBO;
 	GLuint m_EBO;
 
+private:
 	GLuint m_TextureId;
 
 	MotionState m_MotionState;

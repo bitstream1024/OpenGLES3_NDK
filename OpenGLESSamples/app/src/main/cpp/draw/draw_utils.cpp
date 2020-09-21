@@ -83,7 +83,11 @@ int drawTriangle (ShaderHelper *pShaderHelper)
 	glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
 
+	float angle = 5;
+	glm::mat4 mvp (1.0f);
+	mvp = glm::rotate(mvp, glm::radians(angle), glm::vec3(0.f, 0.f, 1.f));
 	pShaderHelper->use();
+	pShaderHelper->setMat4("mvp", mvp);
 	pShaderHelper->setFloat("g_color", 0.2f);
 	glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 3);

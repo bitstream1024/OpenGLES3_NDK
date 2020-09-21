@@ -21,21 +21,22 @@ public:
 	RESULT InitSample ();
 	void UnInitSample ();
 	RESULT OnDrawFrame ();
+	RESULT OnDrawFrameRect ();
 	int GetDrawTexture ();
 
 private:
 	RESULT createShader();
 	void destroyShader();
-	RESULT creteGLBuffer ();
+	RESULT createGLBuffer ();
 	void destroyGLBuffer ();
 	void initMVPMatrix ();
 
 	std::vector <float> m_vertices;
 	std::vector <int> m_Indices;
 
-	GLuint m_VAO;
-	GLuint m_VBO;
-	GLuint m_EBO;
+	GLuint m_VAO_fbo;
+	GLuint m_EBO_fbo;
+
 	GLuint m_FBO;
 	GLuint m_FBOTexture;
 	ShaderHelper *m_pShaderHelperNormal;
@@ -44,7 +45,7 @@ private:
 	const char *triangle_vertex_shader0 =
 			GLES_VERSION_STRING
 	R"(
-layout (location = 0) in vec3 aPos;
+layout (location=0) in vec3 aPos;
 uniform mat4 mvp;
 
 void main()
@@ -60,18 +61,40 @@ void main()
 out vec4 FragColor;
 void main()
 {
-	FragColor = vec4(1.0f, 0.0f, 0.2f, 1.0f);
+	FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
 }
 )";
 
-	const char *triangle_fragment_shader1 =
+
+	const char *fbo_vertex_shader =
+			GLES_VERSION_STRING
+	R"(
+layout (location=0) in vec3 aPos;
+layout (location=1) in vec2 aTex;
+out vec2 TexCoords;
+uniform mat4 mvp;
+
+void main()
+{
+	gl_Position = mvp * vec4(aPos, 1.0);
+	TexCoords = aTex;
+}
+)";
+
+	const char *fbo_fragment_shader =
 			GLES_VERSION_STRING
 			GLES_MEDIUM_STRING
 			R"(
+in vec2 TexCoords;
 out vec4 FragColor;
+uniform sampler2D screenTexture;
+
 void main()
 {
-	FragColor = vec4(0.0f, 1.0f, 0.2f, 1.0f);
+	vec4 tempColor = texture (screenTexture, TexCoords);
+	//float grayValue = tempColor.r * 0.299 + tempColor.g * 0.587 + tempColor.b * 0.114;
+	//FragColor = vec4 (vec3(grayValue), tempColor.a);
+	FragColor = vec4 (tempColor);
 }
 )";
 

@@ -82,7 +82,7 @@ void SampleRender3D::destroyShader()
 
 RESULT SampleRender3D::creteGLBuffer ()
 {
-	LOGD("SampleRender3D::creteGLBuffer");
+	LOGD("SampleRender3D::createGLBuffer");
 	std::vector <float> vertex_multi{
 			0.3199f, -0.05f, 0,
 			-0.3199f, 0.05f, 0,
@@ -95,17 +95,17 @@ RESULT SampleRender3D::creteGLBuffer ()
 	};
 
 	glGenVertexArrays(1, &m_VAO);
-	DrawHelper::CheckGLError("creteGLBuffer glGenBuffers");
+	DrawHelper::CheckGLError("createGLBuffer glGenBuffers");
 	glGenBuffers(1, &m_VBO);
-	DrawHelper::CheckGLError("creteGLBuffer glGenBuffers");
+	DrawHelper::CheckGLError("createGLBuffer glGenBuffers");
 	glGenBuffers(1, &m_EBO);
-	DrawHelper::CheckGLError("creteGLBuffer glGenBuffers");
+	DrawHelper::CheckGLError("createGLBuffer glGenBuffers");
 	/*glGenBuffers(1, &m_VBO_Position);
 	DrawHelper::CheckGLError("creteGLBuffer glGenBuffers");
 	glGenBuffers(1, &m_VBO_Normal);
 	DrawHelper::CheckGLError("creteGLBuffer glGenBuffers");
 	glGenBuffers(1, &m_VBO_Color);
-	DrawHelper::CheckGLError("creteGLBuffer glGenBuffers");*/
+	DrawHelper::CheckGLError("createGLBuffer glGenBuffers");*/
 
 	bool bStatic = true;
 	long lSize = 0;
@@ -116,12 +116,12 @@ RESULT SampleRender3D::creteGLBuffer ()
 		glBindVertexArray(m_VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 		glBufferData(GL_ARRAY_BUFFER, lSize, &vertex_multi[0], GL_STATIC_DRAW);
-		DrawHelper::CheckGLError("creteGLBuffer glBufferData");
+		DrawHelper::CheckGLError("createGLBuffer glBufferData");
 
 		lSize = sizeof(int) * index_multi.size();
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, lSize, &index_multi[0], GL_STATIC_DRAW);
-		DrawHelper::CheckGLError("creteGLBuffer glBufferData");
+		DrawHelper::CheckGLError("createGLBuffer glBufferData");
 	}
 	else
 	{
@@ -130,25 +130,25 @@ RESULT SampleRender3D::creteGLBuffer ()
 		glBindVertexArray(m_VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 		glBufferData(GL_ARRAY_BUFFER, lSize, &m_vertices[0], GL_STATIC_DRAW);
-		LOGD("creteGLBuffer %p %p %p %p %p %p", &m_vertices[0], &m_vertices[1], &m_vertices[2],
+		LOGD("createGLBuffer %p %p %p %p %p %p", &m_vertices[0], &m_vertices[1], &m_vertices[2],
 				&m_vertices[3], &m_vertices[4], &m_vertices[5]);
-		DrawHelper::CheckGLError("creteGLBuffer glBufferData");
+		DrawHelper::CheckGLError("createGLBuffer glBufferData");
 
 		lSize = sizeof(int) * m_Indices.size();
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, lSize, &m_Indices[0], GL_STATIC_DRAW);
-		DrawHelper::CheckGLError("creteGLBuffer glBufferData");
+		DrawHelper::CheckGLError("createGLBuffer glBufferData");
 	}
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	DrawHelper::CheckGLError("creteGLBuffer glVertexAttribPointer");
+	DrawHelper::CheckGLError("createGLBuffer glVertexAttribPointer");
 
 	//glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
 
 	glBindVertexArray(GL_NONE);
-	DrawHelper::CheckGLError("creteGLBuffer glBindVertexArray");
+	DrawHelper::CheckGLError("createGLBuffer glBindVertexArray");
 
 	return ERROR_OK;
 }
@@ -156,12 +156,12 @@ RESULT SampleRender3D::creteGLBuffer ()
 void SampleRender3D::destroyGLBuffer ()
 {
 	LOGD("SampleRender3D::DestroyGLBuffer");
-	SafeDeleteGLBuffer (1, &m_VAO);
-	SafeDeleteGLBuffer (1, &m_VBO);
-	SafeDeleteGLBuffer (1, &m_VBO_Position);
-	SafeDeleteGLBuffer (1, &m_VBO_Normal);
-	SafeDeleteGLBuffer (1, &m_VBO_Color);
-	SafeDeleteGLBuffer (1, &m_EBO);
+	SafeDeleteGLBuffers (1, &m_VAO);
+	SafeDeleteGLBuffers (1, &m_VBO);
+	SafeDeleteGLBuffers (1, &m_VBO_Position);
+	SafeDeleteGLBuffers (1, &m_VBO_Normal);
+	SafeDeleteGLBuffers (1, &m_VBO_Color);
+	SafeDeleteGLBuffers (1, &m_EBO);
 	m_VAO = m_VBO = m_VBO_Position = m_VBO_Normal = m_VBO_Color = m_EBO = GL_NONE;
 }
 

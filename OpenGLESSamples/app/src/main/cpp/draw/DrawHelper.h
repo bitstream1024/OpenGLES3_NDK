@@ -9,7 +9,23 @@
 #include "EGL/egl.h"
 #include "OpenImageHelper.h"
 
-#define SafeDeleteGLBuffer(_num_, _pVal_)	if (_pVal_) {glDeleteBuffers ((_num_), (_pVal_));}
+#define SafeDeleteGLBuffers(_num_, _pVal_)	\
+if (_pVal_) {    \
+	glDeleteBuffers (_num_, _pVal_);	\
+    for (int i = 0; i < _num_; ++i) {	\
+        *(_pVal_ + i) = GL_NONE;	\
+    }	\
+}
+
+#define SafeDeleteGLArrays(_num_, _pVal_)	\
+if (_pVal_) {    \
+	glDeleteVertexArrays (_num_, _pVal_);	\
+    for (int i = 0; i < _num_; ++i) {	\
+        *(_pVal_ + i) = GL_NONE;	\
+    }	\
+}
+
+#define SafeDeleteTexture(_pTexture_)	if (_pTexture_) {glDeleteTextures(1, _pTexture_); *_pTexture_ = GL_NONE;}
 
 #define IF_LOGOUT_MAT_INFO	0
 #define LOGOUT_MAT4(_mat4_,_info_)		\

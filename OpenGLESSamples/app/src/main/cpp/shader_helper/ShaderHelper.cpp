@@ -68,6 +68,11 @@ void ShaderHelper::use() {
 	glUseProgram(m_nProgramId);
 }
 
+int ShaderHelper::getAttribLocation(const std::string &name) const
+{
+	return glGetAttribLocation(m_nProgramId, name.c_str());
+}
+
 void ShaderHelper::setBool (const std::string &name, bool value) const{
 	glUniform1i(glGetUniformLocation(m_nProgramId, name.c_str()), value);
 }

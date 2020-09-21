@@ -14,6 +14,7 @@ import com.cgwang1580.encoder.video.TextureMovieEncoder;
 import com.cgwang1580.utils.CommonDefine;
 import com.cgwang1580.utils.MyLog;
 import java.io.File;
+import java.nio.IntBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -183,8 +184,12 @@ public class RecordGLSurfaceView extends GLSurfaceView {
      * Draws a red box in the corner.
      */
     private void drawBox() {
+        int []viewport = new int[4];
+        GLES20.glGetIntegerv(GLES20.GL_VIEWPORT, IntBuffer.wrap(viewport));
+        //GLES20.glViewport(0, 0, );
+
         GLES20.glEnable(GLES20.GL_SCISSOR_TEST);
-        GLES20.glScissor(0, 0, 100, 100);
+        GLES20.glScissor(0, 0, 50, 50);
         GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         GLES20.glDisable(GLES20.GL_SCISSOR_TEST);

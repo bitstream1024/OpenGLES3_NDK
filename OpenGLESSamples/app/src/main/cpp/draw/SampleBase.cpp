@@ -13,15 +13,16 @@ SampleBase::SampleBase()
 	m_VBO = GL_NONE;
 	m_EBO = GL_NONE;
 	m_TextureId = GL_NONE;
+	mFrameNum = 0;
 }
 
 SampleBase::~SampleBase()
 {
 	LOGD("SampleBase::~SampleBase");
-	SafeDeleteGLBuffer(1, &m_VAO);
-	SafeDeleteGLBuffer(1, &m_VBO);
-	SafeDeleteGLBuffer(1, &m_EBO);
-	SafeDeleteGLBuffer(1, &m_TextureId);
+	SafeDeleteGLArrays(1, &m_VAO)
+	SafeDeleteGLBuffers(1, &m_VBO)
+	SafeDeleteGLBuffers(1, &m_EBO)
+	SafeDeleteTexture(&m_TextureId)
 }
 
 void SampleBase::CreateGLBuffer ()
@@ -36,10 +37,10 @@ void SampleBase::CreateGLBuffer ()
 void SampleBase::DestroyGLBuffer ()
 {
 	LOGD("SampleBase::DestroyGLBuffer");
-	SafeDeleteGLBuffer(1, &m_VAO);
-	SafeDeleteGLBuffer(1, &m_VBO);
-	SafeDeleteGLBuffer(1, &m_EBO);
-	SafeDeleteGLBuffer(1, &m_TextureId);
+	SafeDeleteGLArrays(1, &m_VAO)
+	SafeDeleteGLBuffers(1, &m_VBO)
+	SafeDeleteGLBuffers(1, &m_EBO)
+	SafeDeleteTexture(&m_TextureId)
 }
 
 void SampleBase::SetMotionState (MotionState const motionState)

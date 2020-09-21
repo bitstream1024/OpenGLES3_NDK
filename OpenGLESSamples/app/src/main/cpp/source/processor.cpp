@@ -193,30 +193,16 @@ int onDrawFrame (const PHandle pProcessorHandle)
 	++MyProcessorHandle->mRenderTime;
 
 	int ret = ERROR_OK;
-	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	if (nullptr != MyProcessorHandle->lpMyImageInfo && nullptr == MyProcessorHandle->lpMyImageInfo->buffer[0])
 	{
 		OpenImageHelper::LoadPngFromFile(TEST_IMAGE_PATH_2, MyProcessorHandle->lpMyImageInfo);
-		//OpenImageHelper::SaveImageToPng (MyProcessorHandle->lpMyImageInfo, "/sdcard/OpenGLESTest/testpng.png");
-		/*MyImageInfo myImageInfo {0};
-		myImageInfo.width = MyProcessorHandle->lpMyImageInfo->width;
-		myImageInfo.height = MyProcessorHandle->lpMyImageInfo->height;
-		myImageInfo.format = MY_FORMAT_RGBA;
-		myImageInfo.channel [0] = myImageInfo.channel[1] = myImageInfo.channel[2] = myImageInfo.width;
-		myImageInfo.buffer[0] = MyProcessorHandle->lpMyImageInfo->buffer[0];
-		OpenImageHelper::SaveImageToYuv(&myImageInfo, "/sdcard/OpenGLESTest/test_0_1280x720.RGB32");*/
 	}
 
 	if (nullptr != MyProcessorHandle->lpMyImageInfo_YUV && nullptr == MyProcessorHandle->lpMyImageInfo_YUV->buffer[0])
 	{
 		OpenImageHelper::LoadYuvFromFile(TEST_IMAGE_PATH_YUV_0, MyProcessorHandle->lpMyImageInfo_YUV);
-		/*char sPath[MAX_PATH]{0};
-		sprintf(sPath, "/sdcard/OpenGLESTest/Save_0_%dx%d.nv12", MyProcessorHandle->lpMyImageInfo_YUV->channel[0],
-				MyProcessorHandle->lpMyImageInfo_YUV->height);
-		OpenImageHelper::SaveImageToYuv(MyProcessorHandle->lpMyImageInfo_YUV, sPath);*/
-
 	}
 	DrawType nDrawType = MyProcessorHandle->m_eDrawType;
 	switch (nDrawType)
@@ -241,12 +227,16 @@ int onDrawFrame (const PHandle pProcessorHandle)
 			break;
 		case eDraw_Transform:
 			ret = MyProcessorHandle->m_pSampleTransform->OnDrawFrame();
+			LOGD("onDrawFrame m_pSampleTransform OnDrawFrame ret = %d", ret);
 			break;
 		case eDraw_Render3D:
 			ret = MyProcessorHandle->m_pSampleRender3D->OnDrawFrame();
+			LOGD("onDrawFrame m_pSampleRender3D OnDrawFrame ret = %d", ret);
 			break;
 		case eDraw_TriangleFBO:
 			ret = MyProcessorHandle->m_pSampleDrawFBO->OnDrawFrame();
+			//ret = MyProcessorHandle->m_pSampleDrawFBO->OnDrawFrameRect();
+			LOGD("onDrawFrame m_pSampleDrawFBO OnDrawFrame ret = %d", ret);
 			break;
 		case eDraw_Render3DMesh:
 			if (MyProcessorHandle->m_pSampleRender3DMesh)
@@ -254,6 +244,7 @@ int onDrawFrame (const PHandle pProcessorHandle)
 				MyProcessorHandle->m_pSampleRender3DMesh->SetMotionState(MyProcessorHandle->m_MotionState);
 				MyProcessorHandle->m_MotionState.setZero();
 				ret = MyProcessorHandle->m_pSampleRender3DMesh->OnDrawFrame();
+				LOGD("onDrawFrame m_pSampleRender3DMesh OnDrawFrame ret = %d", ret);
 			}
 			break;
 		default:

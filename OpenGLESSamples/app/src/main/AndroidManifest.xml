@@ -15,7 +15,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name="com.cgwang1580.openglessamples.GLViewActivity"
-            android:theme="@style/AppActionTheme">
+            android:theme="@style/AppTheme">
         </activity>
 
         <activity android:name="com.cgwang1580.openglessamples.RecordingActivity"

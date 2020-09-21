@@ -83,7 +83,7 @@ public class GLViewActivity extends AppCompatActivity {
 
     private void initUI (int effectType) {
         MyLog.d(TAG, "initUI");
-        setNavigationColor ();
+        //setNavigationColor ();
         mEffectList = new ArrayList<String>(Arrays.asList("Triangle", "SimpleTexture", "TextureFBO",
                 "HardwareBuffer", "Transform", "Render3D", "TriangleFBO", "Render3DMesh"));
         ActionBar actionBar = getSupportActionBar();

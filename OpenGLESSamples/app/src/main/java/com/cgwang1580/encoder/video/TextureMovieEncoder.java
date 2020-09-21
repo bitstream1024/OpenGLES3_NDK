@@ -331,8 +331,8 @@ public class TextureMovieEncoder implements Runnable {
 
 
 
-        mFullScreen.drawFrame(mTextureId, transform);
-        //mFullScreen.drawFrameViewPort(mTextureId, transform);
+        //mFullScreen.drawFrame(mTextureId, transform);
+        mFullScreen.drawFrameViewPort(mTextureId, transform);
 
         drawBox(mFrameNum++);
 
@@ -379,7 +379,7 @@ public class TextureMovieEncoder implements Runnable {
 
         // Create new programs and such for the new context.
         mFullScreen = new FullFrameRect(
-                new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT));
+                new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_2D));
     }
 
     private void prepareEncoder(EGLContext sharedContext, int width, int height, int bitRate,
@@ -394,7 +394,7 @@ public class TextureMovieEncoder implements Runnable {
         mInputWindowSurface.makeCurrent();
 
         mFullScreen = new FullFrameRect(
-                new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT));
+                new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_2D));
     }
 
     private void releaseEncoder() {
