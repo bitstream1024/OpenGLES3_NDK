@@ -334,9 +334,12 @@ public class TextureMovieEncoder implements Runnable {
         //mFullScreen.drawFrame(mTextureId, transform);
         mFullScreen.drawFrameViewPort(mTextureId, transform);
 
-        drawBox(mFrameNum++);
+        //drawBox(mFrameNum++);
+        long timeStamp = mFrameNum * 1000000000/15;
+        mFrameNum++;
 
-        mInputWindowSurface.setPresentationTime(timestampNanos);
+        mInputWindowSurface.setPresentationTime(timeStamp);
+        //mInputWindowSurface.setPresentationTime(timestampNanos);
         mInputWindowSurface.swapBuffers();
     }
 

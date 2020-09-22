@@ -10,13 +10,20 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+
+import com.cgwang1580.encoder.gles.EglCore;
 import com.cgwang1580.encoder.video.TextureMovieEncoder;
 import com.cgwang1580.utils.CommonDefine;
 import com.cgwang1580.utils.MyLog;
 import java.io.File;
 import java.nio.IntBuffer;
 
+import javax.microedition.khronos.egl.EGL;
+import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.egl.EGLContext;
+import javax.microedition.khronos.egl.EGLDisplay;
+import javax.microedition.khronos.egl.EGLSurface;
 import javax.microedition.khronos.opengles.GL10;
 
 public class RecordGLSurfaceView extends GLSurfaceView {
@@ -44,9 +51,34 @@ public class RecordGLSurfaceView extends GLSurfaceView {
     private int mFrameCount = 0;
     private Button mBtnRecording = null;
 
+    private EGLConfig mEGLConfig = null;
+    private EGLSet mEGLSet = null;
+
     // this is static so it survives activity restarts
     private static TextureMovieEncoder mVideoEncoder = new TextureMovieEncoder();
 
+    public class EGLSet {
+        private EGL10 mEGL = null;
+        private EGLContext mEGLContext = null;
+        private EGLDisplay mEGLDisplay = null;
+        private EGLSurface mWindowSurface = null;
+        public EGLSet (EGLConfig eglConfig) {
+            mEGL = (EGL10) EGLContext.getEGL();
+            if (mEGL != null) {
+                mEGLContext = mEGL.eglGetCurrentContext();
+                mEGLDisplay = mEGL.eglGetCurrentDisplay();
+                mWindowSurface = mEGL.eglGetCurrentSurface(EGL10.EGL_DRAW);
+            }
+        }
+
+        public EGLSurface getEGLSurface () {
+            return mWindowSurface;
+        }
+
+        public void makeWindowSurfaceCurrent () {
+            mEGL.eglMakeCurrent(mEGLDisplay, mWindowSurface, mWindowSurface, mEGLContext);
+        }
+    }
 
     public RecordGLSurfaceView(Context context) {
         super(context);
@@ -83,6 +115,8 @@ public class RecordGLSurfaceView extends GLSurfaceView {
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig conVideoEncoderConfig) {
             mDrawType = 6;
+            mEGLConfig = conVideoEncoderConfig;
+            mEGLSet = new EGLSet(mEGLConfig);
             int ret = mNativeFunctionSet.onSurfaceCreatedByTypeJNI(mDrawType);
             if (ret != CommonDefine.ERROR_OK) {
                 MyLog.e(TAG, "onSurfaceCreatedByTypeJNI error");
@@ -115,7 +149,7 @@ public class RecordGLSurfaceView extends GLSurfaceView {
                         Log.d(TAG, "START recording");
                         // start recording
                         mVideoEncoder.startRecording(new TextureMovieEncoder.EncoderConfig(
-                                mOutputFile, 640, 480, 1000000, EGL14.eglGetCurrentContext()));
+                                mOutputFile, mWindowWith, mWindowHeight, 4000000, EGL14.eglGetCurrentContext()));
                         mRecordingStatus = RECORDING_ON;
                         break;
                     case RECORDING_RESUMED:
@@ -166,7 +200,7 @@ public class RecordGLSurfaceView extends GLSurfaceView {
             // Draw a flashing box if we're recording.  This only appears on screen.
             showBox = (mRecordingStatus == RECORDING_ON);
             if (showBox && (++mFrameCount & 0x04) == 0) {
-                drawBox();
+                //drawBox();
             }
 
             try {
@@ -174,6 +208,9 @@ public class RecordGLSurfaceView extends GLSurfaceView {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+            mEGLSet.makeWindowSurfaceCurrent();
+
             if (bGLStateReady) {
                 requestRender();
             }

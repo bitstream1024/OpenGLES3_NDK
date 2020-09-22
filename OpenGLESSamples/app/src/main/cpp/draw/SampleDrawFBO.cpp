@@ -119,7 +119,7 @@ RESULT SampleDrawFBO::OnDrawFrame ()
 
 	++mFrameNum;
 
-	usleep(50);
+	//usleep(50);
 
 	return ERROR_OK;
 }
