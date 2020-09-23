@@ -62,7 +62,7 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
 
     protected void requestRender () {
         MyLog.d(TAG, "requestRender");
-        if (null != mGLSurfaceView && mRenderCount < MAX_RENDER_COUNT) {
+        if (null != mGLSurfaceView ){ //&& mRenderCount < MAX_RENDER_COUNT) {
             mGLSurfaceView.requestRender();
         }
     }

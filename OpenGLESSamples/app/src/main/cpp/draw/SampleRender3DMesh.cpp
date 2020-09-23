@@ -36,7 +36,7 @@ RESULT SampleRender3DMesh::OnDrawFrame ()
 {
 	LOGD("SampleRender3DMesh::OnDrawFrame");
 	glEnable(GL_DEPTH_TEST);
-	glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+	glClearColor(0.5f, 0.5f, 0.5f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	m_pShaderHelper->use();
