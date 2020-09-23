@@ -5,6 +5,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.WindowManager;
+import android.widget.Toast;
+
 import com.cgwang1580.multimotionhelper.MotionStateGL;
 import com.cgwang1580.multimotionhelper.MultiMotionEventHelper;
 import com.cgwang1580.utils.CommonDefine;
@@ -27,6 +29,7 @@ public class GLViewActivity extends AppCompatActivity {
     private MultiMotionEventHelper mMultiMotionHelper = null;
     private MyGLSurfaceView myGLSurfaceView;
     private int mEffectType = 0;
+    private NativeFunctionHelper mNativeFunctionHelper = new NativeFunctionHelper();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +58,12 @@ public class GLViewActivity extends AppCompatActivity {
     protected void onResume () {
         MyLog.d(TAG, "onResume");
         super.onResume();
+        int retCode = mNativeFunctionHelper.Init();
+        if (retCode != CommonDefine.ERROR_OK) {
+            MyLog.e(TAG, "onResume mNativeFunctionHelper Init failed");
+            Toast.makeText(this, "Init error", Toast.LENGTH_SHORT).show();
+            return;
+        }
         if (null == myGLSurfaceView) {
             InitGLSurfaceView(this);
         }
@@ -66,19 +75,20 @@ public class GLViewActivity extends AppCompatActivity {
         super.onPause();
         if (null != myGLSurfaceView) {
             myGLSurfaceView.MyGLSurfacePause ();
+            myGLSurfaceView = null;
         }
+        mNativeFunctionHelper.DestroyProcessor();
     }
 
     @Override
     protected void onDestroy() {
         MyLog.d(TAG, "onDestroy");
-        myGLSurfaceView = null;
         super.onDestroy();
     }
 
     public void InitGLSurfaceView (Context context) {
         MyLog.d(TAG, "InitGLSurfaceView");
-        myGLSurfaceView = new MyGLSurfaceView(context, mEffectType);
+        myGLSurfaceView = new MyGLSurfaceView(context, mEffectType, mNativeFunctionHelper);
     }
 
     private void initUI (int effectType) {

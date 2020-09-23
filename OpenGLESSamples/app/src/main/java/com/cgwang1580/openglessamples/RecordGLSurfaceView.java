@@ -8,17 +8,14 @@ import android.opengl.GLSurfaceView;
 import android.os.Environment;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 
-import com.cgwang1580.encoder.gles.EglCore;
 import com.cgwang1580.encoder.video.TextureMovieEncoder;
 import com.cgwang1580.utils.CommonDefine;
 import com.cgwang1580.utils.MyLog;
 import java.io.File;
 import java.nio.IntBuffer;
 
-import javax.microedition.khronos.egl.EGL;
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
@@ -38,7 +35,6 @@ public class RecordGLSurfaceView extends GLSurfaceView {
     private static final int RECORDING_ON = 1;
     private static final int RECORDING_RESUMED = 2;
 
-    private NativeFunctionSet mNativeFunctionSet = new NativeFunctionSet();
     private int mDrawType = 0;
     private int mOffscreenTexture = -1;
     private boolean bGLStateReady = false;
@@ -56,6 +52,11 @@ public class RecordGLSurfaceView extends GLSurfaceView {
 
     // this is static so it survives activity restarts
     private static TextureMovieEncoder mVideoEncoder = new TextureMovieEncoder();
+
+    public static NativeFunctionHelper mNativeFunctionHelper = null;
+    public static void SetNativeFunctionHelper (NativeFunctionHelper nativeFunctionHelper) {
+        mNativeFunctionHelper = nativeFunctionHelper;
+    }
 
     public class EGLSet {
         private EGL10 mEGL = null;
@@ -106,7 +107,7 @@ public class RecordGLSurfaceView extends GLSurfaceView {
 
     public void GLSurfaceDestroyed() {
         MyLog.d(TAG, "GLSurfaceDestroyed");
-        int ret = mNativeFunctionSet.onSurfaceDestroyedJNI();
+        int ret = mNativeFunctionHelper.OnSurfaceDestroyed();
         MyLog.d(TAG, "onSurfaceDestroyedJNI ret = " + ret);
         bGLStateReady = false;
     }
@@ -117,12 +118,12 @@ public class RecordGLSurfaceView extends GLSurfaceView {
             mDrawType = 6;
             mEGLConfig = conVideoEncoderConfig;
             mEGLSet = new EGLSet(mEGLConfig);
-            int ret = mNativeFunctionSet.onSurfaceCreatedByTypeJNI(mDrawType);
+            int ret = mNativeFunctionHelper.OnSurfaceCreatedByType(mDrawType);
             if (ret != CommonDefine.ERROR_OK) {
                 MyLog.e(TAG, "onSurfaceCreatedByTypeJNI error");
                 return;
             }
-            mOffscreenTexture = mNativeFunctionSet.getTextureFromFrameBuffer();
+            mOffscreenTexture = mNativeFunctionHelper.GetTextureFromFrameBuffer();
             MyLog.d(TAG, "onSurfaceCreated mOffscreenTexture = " + mOffscreenTexture);
             bGLStateReady = true;
             requestRender();
@@ -130,7 +131,7 @@ public class RecordGLSurfaceView extends GLSurfaceView {
 
         @Override
         public void onSurfaceChanged(GL10 gl, int width, int height) {
-            int ret = mNativeFunctionSet.onSurfaceChangedJNI(width, height);
+            int ret = mNativeFunctionHelper.OnSurfaceChanged(width, height);
             if (ret != CommonDefine.ERROR_OK) {
                 MyLog.e(TAG, "onSurfaceChangedJNI error");
             }
@@ -140,6 +141,8 @@ public class RecordGLSurfaceView extends GLSurfaceView {
 
         @Override
         public void onDrawFrame(GL10 gl) {
+
+            long beginTime = System.currentTimeMillis();
 
             boolean showBox = false;
 
@@ -180,11 +183,13 @@ public class RecordGLSurfaceView extends GLSurfaceView {
                 }
             }
 
-            int ret = mNativeFunctionSet.onDrawFrameJNI();
+            int ret = mNativeFunctionHelper.OnDrawFrame();
             if (ret != CommonDefine.ERROR_OK) {
                 MyLog.e(TAG, "onDrawFrameJNI error");
                 return;
             }
+
+            Log.d(TAG, "OnDrawFrame cost time 0 = " + Long.toString(System.currentTimeMillis() - beginTime));
 
             // Set the video encoder's texture name.  We only need to do this once, but in the
             // current implementation it has to happen after the video encoder is started, so
@@ -208,6 +213,8 @@ public class RecordGLSurfaceView extends GLSurfaceView {
             if (bGLStateReady) {
                 requestRender();
             }
+
+            Log.d(TAG, "OnDrawFrame cost time = " + Long.toString(System.currentTimeMillis() - beginTime));
         }
     };
 

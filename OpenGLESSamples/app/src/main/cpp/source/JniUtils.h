@@ -6,6 +6,7 @@
 
 #include <LogAndroid.h>
 #include <MyDefineUtils.h>
+#include <jni.h>
 
 int ConvertMotionState (JNIEnv *env, jobject jMotionObject, MotionState &motionState)
 {

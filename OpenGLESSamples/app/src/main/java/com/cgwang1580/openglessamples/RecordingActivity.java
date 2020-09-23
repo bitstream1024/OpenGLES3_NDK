@@ -7,7 +7,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Toast;
 
+import com.cgwang1580.utils.CommonDefine;
 import com.cgwang1580.utils.MyLog;
 
 import androidx.appcompat.app.ActionBar;
@@ -20,10 +22,10 @@ public class RecordingActivity extends AppCompatActivity {
         System.loadLibrary(PROCESSOR_NAME);
     }
     private final String TAG = this.getClass().getName();
-    private final int DRAW_TYPE = 6;
 
     private RecordGLSurfaceView mGLView = null;
     private boolean mRecordingEnabled = false;
+    private NativeFunctionHelper mNativeFunctionHelper = new NativeFunctionHelper();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +39,13 @@ public class RecordingActivity extends AppCompatActivity {
     protected void onResume () {
         MyLog.d(TAG, "onResume");
         super.onResume();
+        int retCode = mNativeFunctionHelper.Init();
+        if (retCode != CommonDefine.ERROR_OK) {
+            MyLog.e(TAG, "onResume mNativeFunctionHelper Init failed");
+            Toast.makeText(this, "Init error", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        RecordGLSurfaceView.SetNativeFunctionHelper(mNativeFunctionHelper);
         if (null == mGLView) {
             InitGLSurfaceView(this);
         }
@@ -48,13 +57,14 @@ public class RecordingActivity extends AppCompatActivity {
         super.onPause();
         if (null != mGLView) {
             mGLView.RecordGLSurfacePause ();
+            mGLView = null;
         }
+        mNativeFunctionHelper.DestroyProcessor();
     }
 
     @Override
     protected void onDestroy() {
         MyLog.d(TAG, "onDestroy");
-        mGLView = null;
         super.onDestroy();
     }
 

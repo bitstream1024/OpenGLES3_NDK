@@ -52,7 +52,7 @@ RESULT SampleDrawFBO::OnDrawFrame ()
 		m_Time = currentTime;
 	} else {
 		angle = 1.f * (currentTime - m_Time)/1000 * 10; // 15 degrees each 1s
-		LOGD("SampleRender3DMesh::OnDrawFrame view angle = %f", angle);
+		LOGD("SampleDrawFBO::OnDrawFrame view angle = %f", angle);
 		m_Time = currentTime;
 	}
 	m_Model = glm::rotate(m_Model, glm::radians(angle), glm::vec3(0.f, 0.f, 1.f));
@@ -62,17 +62,21 @@ RESULT SampleDrawFBO::OnDrawFrame ()
 	glm::mat4 mvp = m_Projection * m_View * m_Model;
 	LOGOUT_MAT4_MATH (mvp, "onDrawFrame mvp")
 
-	mvp = glm::mat4(1.f) * m_Model;
+	mvp = m_Model;
 	// draw FBO
 	m_pShaderHelperNormal->use();
 	DrawHelper::CheckGLError("OnDrawFrame m_pShaderHelperNormal use");
 	m_pShaderHelperNormal->setMat4("mvp", mvp);
 	DrawHelper::CheckGLError("OnDrawFrame setMat4");
+	glm::vec3 aColor = glm::vec3 (1.f, 0.f, 0.f);
+	m_pShaderHelperNormal->setVec3f("aColor", aColor.x, aColor.y, aColor.z);
+	DrawHelper::CheckGLError("OnDrawFrame setVec3f");
 	/*glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	DrawHelper::CheckGLError("OnDrawFrame glPixelStorei");*/
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
 	DrawHelper::CheckGLError("OnDrawFrame glBindFramebuffer");
 
+	// 在绑定GL_FRAMEBUFFER之后再clear颜色缓存，否则绘制会叠加上次的绘制结果
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClearColor(0.f, 0.f, 0.f, 1.f);
 
@@ -83,14 +87,33 @@ RESULT SampleDrawFBO::OnDrawFrame ()
 	glBindVertexArray(GL_NONE);
 	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
 
-	GLint viewport[4]{0};
-	glGetIntegerv(GL_VIEWPORT, viewport);
-	SRECT sRect {0};
-	sRect.left = viewport[0];sRect.top = viewport[1];sRect.right = viewport[2];sRect.bottom = viewport[3];
-	char sPath[MAX_PATH] {0};
-	sprintf(sPath, "/sdcard/OpenGLESTest/read/testDrawFBO_%04d.png", mFrameNum);
-	//sprintf(sPath, "/sdcard/OpenGLESTest/testDrawFBO_%04d_%dx%d.png", 0, sRect.right, sRect.bottom);
-	DrawHelper::SaveRenderImage(sRect, GL_RGBA, sPath);
+	// add draw test
+	LOGD("SampleDrawFBO::onDrawFrame 2 angle = %f", angle);
+	m_Model2 = glm::rotate(m_Model2, glm::radians(-2.f * angle), glm::vec3 (0.f, 0.f, 1.f));
+	glm::mat4 mvp2 = m_Model2;
+	LOGOUT_MAT4_MATH(mvp2, "onDrawFrame mvp 2");
+	m_pShaderHelperNormal->setMat4("mvp", mvp2);
+	glm::vec3 aColor2 = glm::vec3 (0.f, 1.f, 0.f);
+	m_pShaderHelperNormal->setVec3f("aColor", aColor2.x, aColor2.y, aColor2.z);
+	glBindVertexArray(m_VAO);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
+	glBindVertexArray(GL_NONE);
+
+
+	// if save render texture
+	if (false) {
+		GLint viewport[4]{0};
+		glGetIntegerv(GL_VIEWPORT, viewport);
+		SRECT sRect{0};
+		sRect.left = viewport[0];
+		sRect.top = viewport[1];
+		sRect.right = viewport[2];
+		sRect.bottom = viewport[3];
+		char sPath[MAX_PATH]{0};
+		sprintf(sPath, "/sdcard/OpenGLESTest/read/testDrawFBO_%04d.png", mFrameNum);
+		DrawHelper::SaveRenderImage(sRect, GL_RGBA, sPath);
+	}
+
 
 	// draw FBO texture to screen
 	m_pShaderHelperFBO->use();
@@ -318,6 +341,8 @@ void SampleDrawFBO::initMVPMatrix ()
 	glm::vec3 Up = glm::vec3 (0.f, 1.f, 0.f);
 	m_View= glm::lookAt(Position, Target, Up);
 	m_Projection = glm::perspective (glm::radians(45.f), 1.f, 0.1f, 1000.f);
+
+	m_Model2 = glm::mat4(1.f);
 }
 
 RESULT SampleDrawFBO::OnDrawFrameRect()

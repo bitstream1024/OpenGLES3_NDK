@@ -6,12 +6,17 @@
 
 #include <MotionState.h>
 
+typedef void	Handle;
 typedef void* 	PHandle;
 
-int onSurfaceCreated (PHandle *ppProcessorHandle, const int effectType = 0);
-int onSurfaceChanged (const PHandle pProcessorHandle, const int width, const int height);
-int setMotionState (const PHandle pProcessorHandle, MotionState const motionState);
-int onDrawFrame (const PHandle pProcessorHandle);
-int getTextureFromFrameBuffer (const PHandle pProcessorHandle);
-int onSurfaceDestroyed (PHandle *ppProcessorHandle);
+int CreateProcessor (PHandle *ppProcessorHandle);
+int SetupResource (PHandle const pProcessorHandle);
+int DestroyProcessor (PHandle *ppProcessorHandle);
+
+int onSurfaceCreated (PHandle const pProcessorHandle, const int effectType = 0);
+int onSurfaceChanged (PHandle const pProcessorHandle, const int width, const int height);
+int setMotionState (PHandle const pProcessorHandle, MotionState const motionState);
+int onDrawFrame (PHandle const pProcessorHandle);
+int getTextureFromFrameBuffer (PHandle const pProcessorHandle);
+int onSurfaceDestroyed (PHandle const pProcessorHandle);
 

@@ -160,7 +160,6 @@ int drawTexture (ShaderHelper *pShaderHelper, const LPMyImageInfo lpMyImageInfo)
 	} else {
 		LOGE("drawTexture myImageInfo.buffer is NULL");
 	}
-	OpenImageHelper::FreeMyImageInfo(lpMyImageInfo);
 
 	pShaderHelper->use();
 

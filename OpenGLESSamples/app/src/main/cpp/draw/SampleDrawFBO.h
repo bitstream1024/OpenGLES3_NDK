@@ -42,15 +42,20 @@ private:
 	ShaderHelper *m_pShaderHelperNormal;
 	ShaderHelper *m_pShaderHelperFBO;
 
+	glm::mat4 m_Model2;
+
 	const char *triangle_vertex_shader0 =
 			GLES_VERSION_STRING
 	R"(
 layout (location=0) in vec3 aPos;
 uniform mat4 mvp;
+uniform vec3 aColor;
+out vec3 textColor;
 
 void main()
 {
 	gl_Position = mvp * vec4(aPos, 1.0);
+	textColor = aColor;
 }
 )";
 
@@ -58,10 +63,11 @@ void main()
 			GLES_VERSION_STRING
 	GLES_MEDIUM_STRING
 	R"(
+in vec3 textColor;
 out vec4 FragColor;
 void main()
 {
-	FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	FragColor = vec4(textColor.x, textColor.y, textColor.z, 1.0f);
 }
 )";
 

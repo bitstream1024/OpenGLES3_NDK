@@ -16,8 +16,9 @@
 int CreateSampleAndShaderByDrawType (const PHandle pProcessorHandle, DrawType drawType)
 {
 	LOGD("CreateSampleAndShaderByDrawType drawType = %d", drawType);
+	CAL_TIME_COST("CreateSampleAndShaderByDrawType")
 	CHECK_NULL_INPUT(pProcessorHandle)
-	LPProcessorHandle MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
+	auto MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
 	int ret = ERROR_OK;
 	switch (drawType)
 	{
@@ -79,7 +80,7 @@ int DestroySampleAndShaderByDrawType (const PHandle pProcessorHandle, DrawType d
 {
 	LOGD("DestroySampleAndShaderByDrawType drawType = %d", drawType);
 	CHECK_NULL_INPUT(pProcessorHandle)
-	LPProcessorHandle MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
+	auto MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
 	int ret = ERROR_OK;
 
 	switch (drawType)
@@ -132,9 +133,9 @@ int DestroySampleAndShaderByDrawType (const PHandle pProcessorHandle, DrawType d
 	return ERROR_OK;
 }
 
-int onSurfaceCreated (PHandle *ppProcessorHandle, const int effectType)
+int CreateProcessor (PHandle *ppProcessorHandle)
 {
-	LOGD("onSurfaceCreated");
+	CAL_TIME_COST("CreateProcessor")
 
 	if (nullptr == ppProcessorHandle || nullptr != *ppProcessorHandle)
 	{
@@ -144,8 +145,74 @@ int onSurfaceCreated (PHandle *ppProcessorHandle, const int effectType)
 
 	*ppProcessorHandle = (LPProcessorHandle)malloc (sizeof (ProcessorHandle));
 	CHECK_NULL_MALLOC (*ppProcessorHandle);
-	LPProcessorHandle MyProcessorHandle = (LPProcessorHandle)*ppProcessorHandle;
-	memset(MyProcessorHandle, 0, sizeof(ProcessorHandle));
+	memset(*ppProcessorHandle, 0, sizeof(ProcessorHandle));
+
+	return ERROR_OK;
+}
+
+int SetupResource (PHandle const pProcessorHandle)
+{
+	CAL_TIME_COST("SetupResource")
+
+	LOGD("SetupResource pProcessorHandle = %p", pProcessorHandle);
+
+	CHECK_NULL_INPUT (pProcessorHandle)
+	auto MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
+	int retCode = ERROR_OK;
+
+	do{
+		MyProcessorHandle->lpMyImageInfo = (LPMyImageInfo)malloc(sizeof(MyImageInfo));
+		CHECK_NULL_MALLOC(MyProcessorHandle->lpMyImageInfo);
+		memset (MyProcessorHandle->lpMyImageInfo, 0 , sizeof(MyImageInfo));
+		retCode = OpenImageHelper::LoadPngFromFile(TEST_IMAGE_PATH_2, MyProcessorHandle->lpMyImageInfo);
+		if (ERROR_OK != retCode) {
+			LOGE("SetupResource d retCode = %d", retCode);
+			break;
+		}
+
+		MyProcessorHandle->lpMyImageInfo_YUV = (LPMyImageInfo)malloc(sizeof(MyImageInfo));
+		CHECK_NULL_MALLOC(MyProcessorHandle->lpMyImageInfo_YUV);
+		memset(MyProcessorHandle->lpMyImageInfo_YUV, 0, sizeof(MyImageInfo));
+		retCode = OpenImageHelper::LoadYuvFromFile(TEST_IMAGE_PATH_YUV_0, MyProcessorHandle->lpMyImageInfo_YUV);
+		if (ERROR_OK != retCode) {
+			LOGE("SetupResource LoadYuvFromFile retCode = %d", retCode);
+			break;
+		}
+	} while (false);
+
+	return retCode;
+}
+
+int DestroyProcessor (PHandle *ppProcessorHandle)
+{
+	LOGD("SetupResource pProcessorHandle = %p", *ppProcessorHandle);
+
+	CHECK_NULL_INPUT (*ppProcessorHandle)
+	auto MyProcessorHandle = (LPProcessorHandle)(*ppProcessorHandle);
+	if (nullptr != MyProcessorHandle->lpMyImageInfo)
+	{
+		OpenImageHelper::FreeMyImageInfo(MyProcessorHandle->lpMyImageInfo);
+		SafeFree(MyProcessorHandle->lpMyImageInfo);
+	}
+	if (nullptr != MyProcessorHandle->lpMyImageInfo_YUV)
+	{
+		OpenImageHelper::FreeMyImageInfo(MyProcessorHandle->lpMyImageInfo_YUV);
+		SafeFree(MyProcessorHandle->lpMyImageInfo_YUV);
+	}
+	SafeFree (*ppProcessorHandle);
+	LOGD("onSurfaceDestroyed *ppProcessorHandle = %p", *ppProcessorHandle);
+
+	return ERROR_OK;
+}
+
+int onSurfaceCreated (PHandle const pProcessorHandle, const int effectType)
+{
+	CAL_TIME_COST("onSurfaceCreated")
+
+	LOGD("onSurfaceCreated pProcessorHandle = %p", pProcessorHandle);
+
+	CHECK_NULL_INPUT (pProcessorHandle)
+	auto MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
 
 	/// set which sample you want to get
 	LOGD("onSurfaceCreated effectType = %d", effectType);
@@ -153,57 +220,29 @@ int onSurfaceCreated (PHandle *ppProcessorHandle, const int effectType)
 	int ret = CreateSampleAndShaderByDrawType(MyProcessorHandle, MyProcessorHandle->m_eDrawType);
 	LOGD("CreateSampleAndShaderByDrawType ret = %d", ret);
 
-	if (nullptr != MyProcessorHandle->lpMyImageInfo)
-	{
-		OpenImageHelper::FreeMyImageInfo(MyProcessorHandle->lpMyImageInfo);
-	}
-	MyProcessorHandle->lpMyImageInfo = (LPMyImageInfo)malloc(sizeof(MyImageInfo));
-	CHECK_NULL_MALLOC(MyProcessorHandle->lpMyImageInfo);
-	memset (MyProcessorHandle->lpMyImageInfo, 0 , sizeof(MyImageInfo));
-
-	if (nullptr != MyProcessorHandle->lpMyImageInfo_YUV)
-	{
-		OpenImageHelper::FreeMyImageInfo(MyProcessorHandle->lpMyImageInfo_YUV);
-	}
-	MyProcessorHandle->lpMyImageInfo_YUV = (LPMyImageInfo)malloc(sizeof(MyImageInfo));
-	CHECK_NULL_MALLOC(MyProcessorHandle->lpMyImageInfo_YUV);
-	memset(MyProcessorHandle->lpMyImageInfo_YUV, 0, sizeof(MyImageInfo));
-
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	return ERROR_OK;
 }
 
-int onSurfaceChanged (const PHandle pProcessorHandle, const int width, const int height)
+int onSurfaceChanged (PHandle const pProcessorHandle, const int width, const int height)
 {
 	LOGD("onSurfaceChanged");
 	glViewport(0, 0, width, height);
 	return 0;
 }
 
-int onDrawFrame (const PHandle pProcessorHandle)
+int onDrawFrame (PHandle const pProcessorHandle)
 {
-	LOGD("onDrawFrame");
+	LOGD("processor onDrawFrame begin");
 
-	//LOGD("onDrawFrame pProcessorHandle = %p", pProcessorHandle);
+	LOGD("onDrawFrame pProcessorHandle = %p", pProcessorHandle);
 
 	CHECK_NULL_INPUT (pProcessorHandle)
-	LPProcessorHandle MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
+	auto MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
 	++MyProcessorHandle->mRenderTime;
 
 	int ret = ERROR_OK;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (nullptr != MyProcessorHandle->lpMyImageInfo && nullptr == MyProcessorHandle->lpMyImageInfo->buffer[0])
-	{
-		OpenImageHelper::LoadPngFromFile(TEST_IMAGE_PATH_2, MyProcessorHandle->lpMyImageInfo);
-	}
-
-	if (nullptr != MyProcessorHandle->lpMyImageInfo_YUV && nullptr == MyProcessorHandle->lpMyImageInfo_YUV->buffer[0])
-	{
-		OpenImageHelper::LoadYuvFromFile(TEST_IMAGE_PATH_YUV_0, MyProcessorHandle->lpMyImageInfo_YUV);
-	}
 	DrawType nDrawType = MyProcessorHandle->m_eDrawType;
 	switch (nDrawType)
 	{
@@ -223,7 +262,7 @@ int onDrawFrame (const PHandle pProcessorHandle)
 		case eDraw_HardwareBuffer:
 			ret = drawByHardwareBuffer(MyProcessorHandle->pHardwareBufferHelper, MyProcessorHandle->lpMyImageInfo);
 			LOGD("onDrawFrame drawByHardwareBuffer ret = %d", ret);
-			usleep(33000);  // fps 33ms
+			//usleep(33000);  // fps 33ms
 			break;
 		case eDraw_Transform:
 			ret = MyProcessorHandle->m_pSampleTransform->OnDrawFrame();
@@ -251,10 +290,13 @@ int onDrawFrame (const PHandle pProcessorHandle)
 			LOGD("onDrawFrame nDrawType = %d", nDrawType);
 			break;
 	}
+
+	LOGD("processor onDrawFrame end");
+
 	return ret;
 }
 
-int getTextureFromFrameBuffer (const PHandle pProcessorHandle) {
+int getTextureFromFrameBuffer (PHandle const pProcessorHandle) {
 	LOGD("getTextureFromFrameBuffer");
 	if (nullptr == pProcessorHandle) {
 		return -1;
@@ -263,11 +305,11 @@ int getTextureFromFrameBuffer (const PHandle pProcessorHandle) {
 	return MyProcessorHandle->m_pSampleDrawFBO->GetDrawTexture();
 }
 
-int setMotionState (const PHandle pProcessorHandle, MotionState const motionState)
+int setMotionState (PHandle const pProcessorHandle, MotionState const motionState)
 {
 	LOGD("setMotionState");
 	CHECK_NULL_INPUT (pProcessorHandle)
-	LPProcessorHandle MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
+	auto MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
 
 	MyProcessorHandle->m_MotionState.eMotionType = motionState.eMotionType;
 	MyProcessorHandle->m_MotionState.transform_x = motionState.transform_x;
@@ -280,28 +322,17 @@ int setMotionState (const PHandle pProcessorHandle, MotionState const motionStat
 	return ERROR_OK;
 }
 
-int onSurfaceDestroyed (PHandle *ppProcessorHandle)
+int onSurfaceDestroyed (PHandle const pProcessorHandle)
 {
-	LOGD("onSurfaceDestroyed");
-	LOGD("onSurfaceDestroyed *ppProcessorHandle = %p", *ppProcessorHandle);
+	LOGD("processor onSurfaceDestroyed = %p", pProcessorHandle);
 
-	CHECK_NULL_INPUT (*ppProcessorHandle);
-	LPProcessorHandle MyProcessorHandle = (LPProcessorHandle)*ppProcessorHandle;
+	CHECK_NULL_INPUT (pProcessorHandle)
+	auto MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
 
-	DestroySampleAndShaderByDrawType (MyProcessorHandle, MyProcessorHandle->m_eDrawType);
-
-	if (nullptr != MyProcessorHandle->lpMyImageInfo)
-	{
-		OpenImageHelper::FreeMyImageInfo(MyProcessorHandle->lpMyImageInfo);
-		SafeFree(MyProcessorHandle->lpMyImageInfo);
+	int retCode = DestroySampleAndShaderByDrawType (MyProcessorHandle, MyProcessorHandle->m_eDrawType);
+	if (ERROR_OK != retCode) {
+		LOGE("processor onSurfaceDestroyed retCode = %d", retCode);
 	}
-	if (nullptr != MyProcessorHandle->lpMyImageInfo_YUV)
-	{
-		OpenImageHelper::FreeMyImageInfo(MyProcessorHandle->lpMyImageInfo_YUV);
-		SafeFree(MyProcessorHandle->lpMyImageInfo_YUV);
-	}
-	SafeFree (*ppProcessorHandle);
-	LOGD("onSurfaceDestroyed *ppProcessorHandle = %p", *ppProcessorHandle);
 
-	return 0;
+	return retCode;
 }

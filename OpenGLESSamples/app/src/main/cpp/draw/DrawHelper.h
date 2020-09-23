@@ -27,7 +27,7 @@ if (_pVal_) {    \
 
 #define SafeDeleteTexture(_pTexture_)	if (_pTexture_) {glDeleteTextures(1, _pTexture_); *_pTexture_ = GL_NONE;}
 
-#define IF_LOGOUT_MAT_INFO	0
+#define IF_LOGOUT_MAT_INFO	1
 #define LOGOUT_MAT4(_mat4_,_info_)		\
 	if (IF_LOGOUT_MAT_INFO) {	\
 		for (int i = 0; i < 4; ++i) { \

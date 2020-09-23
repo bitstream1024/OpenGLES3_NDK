@@ -35,9 +35,10 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
     private RenderHandler mRenderHandler = null;
     private boolean bGLStateReady = false;
 
-    private NativeFunctionSet mNativeFunctionSet = new NativeFunctionSet();
+    private NativeFunctionHelper mNativeFunctionHelper = null;
 
-    MyGLSurfaceView (Context context, int drawType) {
+    MyGLSurfaceView (Context context, int drawType, NativeFunctionHelper nativeFunctionHelper) {
+        mNativeFunctionHelper = nativeFunctionHelper;
         initGL(context, drawType);
     }
 
@@ -140,7 +141,7 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         MyLog.d(TAG, "onSurfaceChanged");
         //GLES30.glViewport(0, 0, width, height);
-        int ret = mNativeFunctionSet.onSurfaceChangedJNI (width, height);
+        int ret = mNativeFunctionHelper.OnSurfaceChanged(width, height);
         MyLog.d(TAG, "onSurfaceChangedJNI ret = " + ret);
         setGLViewSize(width, height);
     }
@@ -149,9 +150,9 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
     public void onDrawFrame(GL10 gl) {
         MyLog.d(TAG, "onDrawFrame");
         MotionStateGL motionStateGL = getMotionState();
-        int ret = mNativeFunctionSet.SetMotionState(motionStateGL);
+        int ret = mNativeFunctionHelper.SetMotionState(motionStateGL);
         MyLog.d(TAG, "SetMotionState ret = " + ret);
-        ret = mNativeFunctionSet.onDrawFrameJNI();
+        ret = mNativeFunctionHelper.OnDrawFrame();
         MyLog.d(TAG, "onDrawFrameJNI ret = " + ret);
         mRenderCount = mRenderCount + 1;
         if (bGLStateReady) {
@@ -161,7 +162,7 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
 
     public void GLSurfaceCreated () {
         MyLog.d(TAG, "GLSurfaceCreated");
-        int ret = mNativeFunctionSet.onSurfaceCreatedByTypeJNI(mDrawType);
+        int ret = mNativeFunctionHelper.OnSurfaceCreatedByType(mDrawType);
         MyLog.d(TAG, "onSurfaceCreatedJNI ret = " + ret);
         bGLStateReady = (ret == ERROR_OK);
         if (bGLStateReady) {
@@ -172,7 +173,7 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
 
     public void GLSurfaceDestroyed() {
         MyLog.d(TAG, "GLSurfaceDestroyed");
-        int ret = mNativeFunctionSet.onSurfaceDestroyedJNI ();
+        int ret = mNativeFunctionHelper.OnSurfaceDestroyed();
         MyLog.d(TAG, "onSurfaceDestroyedJNI ret = " + ret);
         bGLStateReady = false;
         mRenderHandler.setGLState(false);
