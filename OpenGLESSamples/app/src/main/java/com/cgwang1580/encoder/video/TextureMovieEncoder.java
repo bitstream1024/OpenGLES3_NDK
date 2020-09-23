@@ -84,6 +84,8 @@ public class TextureMovieEncoder implements Runnable {
     private boolean mReady;
     private boolean mRunning;
 
+    private long mStartTimeStamp = 0;
+
 
     /**
      * Encoder configuration.
@@ -133,6 +135,7 @@ public class TextureMovieEncoder implements Runnable {
                 Log.w(TAG, "Encoder thread already running");
                 return;
             }
+            mStartTimeStamp = System.nanoTime();
             mRunning = true;
             new Thread(this, "TextureMovieEncoder").start();
             while (!mReady) {
@@ -335,9 +338,10 @@ public class TextureMovieEncoder implements Runnable {
         mFullScreen.drawFrameViewPort(mTextureId, transform);
 
         //drawBox(mFrameNum++);
-        long timeStamp = mFrameNum * 1000000000/15;
+        long timeStamp = System.nanoTime();
         mFrameNum++;
 
+        Log.d(TAG, "handleFrameAvailable timeStamp = " + timeStamp);
         mInputWindowSurface.setPresentationTime(timeStamp);
         //mInputWindowSurface.setPresentationTime(timestampNanos);
         mInputWindowSurface.swapBuffers();

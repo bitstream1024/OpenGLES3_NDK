@@ -61,7 +61,11 @@ public class VideoEncoderCore {
             throws IOException {
         mBufferInfo = new MediaCodec.BufferInfo();
 
-        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, width, height);
+        // 视频宽高16像素对齐
+        int videoWidth = 1080;
+        int videoHeight = 1920;
+
+        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, videoWidth, videoHeight);
 
         // Set some properties.  Failing to specify some of these can cause the MediaCodec
         // configure() call to throw an unhelpful exception.

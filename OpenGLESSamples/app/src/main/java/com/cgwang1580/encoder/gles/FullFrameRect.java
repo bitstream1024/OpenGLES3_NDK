@@ -98,10 +98,12 @@ public class FullFrameRect {
         GLES20.glGetIntegerv(GLES20.GL_VIEWPORT, IntBuffer.wrap(viewport));
         Log.d("FullFrameRect", "drawFrameViewPort viewport(" + viewport[0] + ","
                 + viewport[1] + "," + viewport[2] + "," + viewport[3] + ")");
-        int halfWidth = viewport[2]/2;
-        int halfHeight = viewport[3]/2;
-        GLES20.glViewport(0, 0, halfWidth, halfHeight);
+        int width = viewport[2];
+        int height = viewport[3];
+        int halfWidth = width/2;
+        int halfHeight = height/2;
+        //GLES20.glViewport(0, 0, width, height);
         drawFrame(textureId, texMatrix);
-        GLES20.glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+        //GLES20.glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     }
 }

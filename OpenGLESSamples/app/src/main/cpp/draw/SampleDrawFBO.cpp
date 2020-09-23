@@ -118,9 +118,6 @@ RESULT SampleDrawFBO::OnDrawFrame ()
 	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
 
 	++mFrameNum;
-
-	//usleep(50);
-
 	return ERROR_OK;
 }
 
@@ -376,7 +373,6 @@ RESULT SampleDrawFBO::OnDrawFrameRect()
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);
 	glDeleteVertexArrays(1, &VAO);
-	usleep (50);
 
 	return 0;
 }

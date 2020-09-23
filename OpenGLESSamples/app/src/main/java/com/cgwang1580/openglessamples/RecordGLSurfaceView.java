@@ -203,12 +203,6 @@ public class RecordGLSurfaceView extends GLSurfaceView {
                 //drawBox();
             }
 
-            try {
-                Thread.sleep(1000 / RENDER_FPS);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
             mEGLSet.makeWindowSurfaceCurrent();
 
             if (bGLStateReady) {
