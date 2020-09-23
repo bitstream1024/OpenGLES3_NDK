@@ -1,6 +1,6 @@
 package com.cgwang1580.multimotionhelper;
 
-import com.cgwang1580.utils.MyLog;
+import com.cgwang1580.utils.LogUtils;
 
 public class MotionStateGL {
     private static final String TAG = "MotionStateGL";
@@ -42,7 +42,7 @@ public class MotionStateGL {
     }
 
     public void logoutTransform() {
-        MyLog.d(TAG, "logoutTransform");
+        LogUtils.d(TAG, "logoutTransform");
         float transform_x = 0, transform_y = 0, transform_z = 0;
         boolean bLog = true;
         switch (mMotionType) {
@@ -57,11 +57,11 @@ public class MotionStateGL {
                 break;
             default:
                 bLog = false;
-                MyLog.e(TAG, "logoutTransform mMotionType not supported");
+                LogUtils.e(TAG, "logoutTransform mMotionType not supported");
                 break;
         }
         if (bLog) {
-            MyLog.d(TAG, "logoutTransform mMotionType = " + mMotionType + " transform("
+            LogUtils.d(TAG, "logoutTransform mMotionType = " + mMotionType + " transform("
                     + transform_x + " " + transform_y + " " + transform_z + ")");
         }
     }

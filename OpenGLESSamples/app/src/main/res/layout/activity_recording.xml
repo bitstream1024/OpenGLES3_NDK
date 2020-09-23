@@ -24,7 +24,7 @@
             android:onClick="clickToggleRecording" />
     </FrameLayout>
 
-    <com.cgwang1580.openglessamples.RecordGLSurfaceView
+    <com.cgwang1580.glview.RecordGLSurfaceView
         android:id="@+id/render_view"
         android:layout_width="360dp"
         android:layout_height="640dp"

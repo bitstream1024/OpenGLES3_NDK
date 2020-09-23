@@ -1,4 +1,4 @@
-package com.cgwang1580.openglessamples;
+package com.cgwang1580.glview;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -6,13 +6,11 @@ import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.Message;
-
 import com.cgwang1580.multimotionhelper.MotionStateGL;
-import com.cgwang1580.utils.MyLog;
-
+import com.cgwang1580.openglessamples.R;
+import com.cgwang1580.utils.LogUtils;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -34,17 +32,18 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
     private Lock m_MotionStateLock = null;
     private RenderHandler mRenderHandler = null;
     private boolean bGLStateReady = false;
+    private EGLConfig mEGLConfig = null;
 
     private NativeFunctionHelper mNativeFunctionHelper = null;
 
-    MyGLSurfaceView (Context context, int drawType, NativeFunctionHelper nativeFunctionHelper) {
+    public MyGLSurfaceView (Context context, int drawType, NativeFunctionHelper nativeFunctionHelper) {
         mNativeFunctionHelper = nativeFunctionHelper;
         initGL(context, drawType);
     }
 
     protected void initGL(Context context, int drawType) {
 
-        MyLog.d(TAG, "initGL");
+        LogUtils.d(TAG, "initGL");
         mGLSurfaceView = ((Activity)context).findViewById(R.id.gl_surface_view);
         mGLSurfaceView.setEGLContextClientVersion(GLES_VERSION);
         mDrawType = drawType;
@@ -61,7 +60,7 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
     }
 
     protected void requestRender () {
-        MyLog.d(TAG, "requestRender");
+        LogUtils.d(TAG, "requestRender");
         if (null != mGLSurfaceView ){ //&& mRenderCount < MAX_RENDER_COUNT) {
             mGLSurfaceView.requestRender();
         }
@@ -80,7 +79,7 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
         }
     }
 
-    protected void MyGLSurfacePause () {
+    public void MyGLSurfacePause () {
         if (null != mGLSurfaceView) {
             mGLSurfaceView.queueEvent(new Runnable() {
                 @Override
@@ -110,7 +109,7 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
     public void setMotionState (MotionStateGL motionState)
     {
         m_MotionStateLock.lock();
-        MyLog.d(TAG, "setMotionState");
+        LogUtils.d(TAG, "setMotionState");
         m_MotionStateGL.mMotionType = motionState.mMotionType;
         m_MotionStateGL.translate_x = motionState.translate_x;
         m_MotionStateGL.translate_y = motionState.translate_y;
@@ -122,7 +121,7 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
     {
         MotionStateGL motionStateGL = new MotionStateGL();
         m_MotionStateLock.lock();
-        MyLog.d(TAG, "getMotionState");
+        LogUtils.d(TAG, "getMotionState");
         motionStateGL.mMotionType =  m_MotionStateGL.mMotionType;
         motionStateGL.translate_x = m_MotionStateGL.translate_x;
         motionStateGL.translate_y = m_MotionStateGL.translate_y;
@@ -133,27 +132,28 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        MyLog.d(TAG, "onSurfaceCreated");
+        LogUtils.d(TAG, "onSurfaceCreated");
         GLSurfaceCreated ();
+        mEGLConfig = config;
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        MyLog.d(TAG, "onSurfaceChanged");
+        LogUtils.d(TAG, "onSurfaceChanged");
         //GLES30.glViewport(0, 0, width, height);
         int ret = mNativeFunctionHelper.OnSurfaceChanged(width, height);
-        MyLog.d(TAG, "onSurfaceChangedJNI ret = " + ret);
+        LogUtils.d(TAG, "onSurfaceChangedJNI ret = " + ret);
         setGLViewSize(width, height);
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        MyLog.d(TAG, "onDrawFrame");
+        LogUtils.d(TAG, "onDrawFrame");
         MotionStateGL motionStateGL = getMotionState();
         int ret = mNativeFunctionHelper.SetMotionState(motionStateGL);
-        MyLog.d(TAG, "SetMotionState ret = " + ret);
+        LogUtils.d(TAG, "SetMotionState ret = " + ret);
         ret = mNativeFunctionHelper.OnDrawFrame();
-        MyLog.d(TAG, "onDrawFrameJNI ret = " + ret);
+        LogUtils.d(TAG, "onDrawFrameJNI ret = " + ret);
         mRenderCount = mRenderCount + 1;
         if (bGLStateReady) {
             requestRender();
@@ -161,9 +161,9 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
     }
 
     public void GLSurfaceCreated () {
-        MyLog.d(TAG, "GLSurfaceCreated");
+        LogUtils.d(TAG, "GLSurfaceCreated");
         int ret = mNativeFunctionHelper.OnSurfaceCreatedByType(mDrawType);
-        MyLog.d(TAG, "onSurfaceCreatedJNI ret = " + ret);
+        LogUtils.d(TAG, "onSurfaceCreatedJNI ret = " + ret);
         bGLStateReady = (ret == ERROR_OK);
         if (bGLStateReady) {
             mRenderHandler.sendMessage(mRenderHandler.obtainMessage(MSG_SURFACE_CREATED));
@@ -172,9 +172,9 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
     }
 
     public void GLSurfaceDestroyed() {
-        MyLog.d(TAG, "GLSurfaceDestroyed");
+        LogUtils.d(TAG, "GLSurfaceDestroyed");
         int ret = mNativeFunctionHelper.OnSurfaceDestroyed();
-        MyLog.d(TAG, "onSurfaceDestroyedJNI ret = " + ret);
+        LogUtils.d(TAG, "onSurfaceDestroyedJNI ret = " + ret);
         bGLStateReady = false;
         mRenderHandler.setGLState(false);
         mRenderHandler.notifyAfterDestroy();
@@ -192,7 +192,7 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
         public void handleMessage(Message msg) {
             if (msg == null) return;
             int msgType = msg.what;
-            MyLog.d(TAG, "RenderHandler msgType = " + msgType);
+            LogUtils.d(TAG, "RenderHandler msgType = " + msgType);
             switch (msgType) {
                 case MSG_SURFACE_CREATED:
                     requestRender();

@@ -9,8 +9,10 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.cgwang1580.glview.NativeFunctionHelper;
+import com.cgwang1580.glview.RecordGLSurfaceView;
 import com.cgwang1580.utils.CommonDefine;
-import com.cgwang1580.utils.MyLog;
+import com.cgwang1580.utils.LogUtils;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,7 +31,7 @@ public class RecordingActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        MyLog.d(TAG, "onCreate");
+        LogUtils.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recording);
         initUI ();
@@ -37,11 +39,11 @@ public class RecordingActivity extends AppCompatActivity {
 
     @Override
     protected void onResume () {
-        MyLog.d(TAG, "onResume");
+        LogUtils.d(TAG, "onResume");
         super.onResume();
         int retCode = mNativeFunctionHelper.Init();
         if (retCode != CommonDefine.ERROR_OK) {
-            MyLog.e(TAG, "onResume mNativeFunctionHelper Init failed");
+            LogUtils.e(TAG, "onResume mNativeFunctionHelper Init failed");
             Toast.makeText(this, "Init error", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -53,7 +55,7 @@ public class RecordingActivity extends AppCompatActivity {
 
     @Override
     protected void onPause () {
-        MyLog.d(TAG, "onPause");
+        LogUtils.d(TAG, "onPause");
         super.onPause();
         if (null != mGLView) {
             mGLView.RecordGLSurfacePause ();
@@ -64,17 +66,17 @@ public class RecordingActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        MyLog.d(TAG, "onDestroy");
+        LogUtils.d(TAG, "onDestroy");
         super.onDestroy();
     }
 
     public void InitGLSurfaceView (Context context) {
-        MyLog.d(TAG, "InitGLSurfaceView");
+        LogUtils.d(TAG, "InitGLSurfaceView");
         mGLView = ((Activity)context).findViewById(R.id.render_view);
     }
 
     private void initUI () {
-        MyLog.d(TAG, "initUI");
+        LogUtils.d(TAG, "initUI");
         //setNavigationColor ();
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {

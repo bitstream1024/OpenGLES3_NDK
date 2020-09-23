@@ -217,19 +217,19 @@ int drawFBO (ShaderHelper *pShaderHelperFBO, ShaderHelper *pShaderHelperNormal, 
 
 	GLfloat vVertices[] = {
 			-1.0f, -1.0f, 0.0f,
-			1.0f, -1.0f, 0.0f,
-			-1.0f,  1.0f, 0.0f,
-			1.0f,  1.0f, 0.0f,
+			 1.0f, -1.0f, 0.0f,
+			 1.0f,  1.0f, 0.0f,
+			-1.0f,  1.0f, 0.0f
 	};
 
 	GLfloat vTexCoors[] = {
-			0.0f, 1.0f,
-			1.0f, 1.0f,
-			0.0f, 0.0f,
-			1.0f, 0.0f,
+			0.f, 0.f,
+			1.f, 0.f,
+			1.f, 1.f,
+			0.f, 1.f,
 	};
 
-	GLuint indices[] = { 0, 1, 2, 1, 3, 2 };
+	GLuint indices[] = { 0, 1, 2, 0, 2, 3 };
 
 	GLuint VBO[3];
 	glGenBuffers(3, VBO);
@@ -272,7 +272,6 @@ int drawFBO (ShaderHelper *pShaderHelperFBO, ShaderHelper *pShaderHelperNormal, 
 	} else {
 		LOGE("drawTexture myImageInfo.buffer is NULL");
 	}
-	//OpenImageHelper::FreeMyImageInfo(lpMyImageInfo);
 
 	// create a texture as FBO color attachment
 	DrawHelper::GetOneTexture(targetRgb, &textureFboId);
@@ -315,8 +314,12 @@ int drawFBO (ShaderHelper *pShaderHelperFBO, ShaderHelper *pShaderHelperNormal, 
 	glBindVertexArray(GL_NONE);
 
 	// save texture for test
-	SRECT sRect{0, 0, nImageWidth, nImageHeight};
-	//DrawHelper::SaveRenderImage (sRect, GL_RGBA, "/sdcard/OpenGLESTest/SaveRender.png");
+	if (false) {
+		SRECT sRect{0, 0, nImageWidth, nImageHeight};
+		char path[MAX_PATH]{0};
+		sprintf(path, "/sdcard/OpenGLESTest/SaveRender_0_%lld.png", MyTimeUtils::getCurrentTime());
+		DrawHelper::SaveRenderImage (sRect, GL_RGBA, path);
+	}
 
 	// normal render
 	glViewport(0, 0, nScreenWidth, nScreenHeight);

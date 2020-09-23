@@ -7,10 +7,12 @@ import android.view.MotionEvent;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.cgwang1580.glview.MyGLSurfaceView;
+import com.cgwang1580.glview.NativeFunctionHelper;
 import com.cgwang1580.multimotionhelper.MotionStateGL;
 import com.cgwang1580.multimotionhelper.MultiMotionEventHelper;
 import com.cgwang1580.utils.CommonDefine;
-import com.cgwang1580.utils.MyLog;
+import com.cgwang1580.utils.LogUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -25,7 +27,6 @@ public class GLViewActivity extends AppCompatActivity {
         System.loadLibrary(PROCESSOR_NAME);
     }
     private final String TAG = this.getClass().getName();
-    private List<String> mEffectList = null;
     private MultiMotionEventHelper mMultiMotionHelper = null;
     private MyGLSurfaceView myGLSurfaceView;
     private int mEffectType = 0;
@@ -33,12 +34,12 @@ public class GLViewActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        MyLog.d(TAG, "onCreate");
+        LogUtils.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gl_view);
         mMultiMotionHelper = new MultiMotionEventHelper();
         mEffectType = getIntent().getIntExtra(CommonDefine.MESSAGE_EFFECT_TYPE, 0);
-        MyLog.d(TAG, "onCreate mEffectType = " + mEffectType);
+        LogUtils.d(TAG, "onCreate mEffectType = " + mEffectType);
         initUI (mEffectType);
     }
 
@@ -56,11 +57,11 @@ public class GLViewActivity extends AppCompatActivity {
 
     @Override
     protected void onResume () {
-        MyLog.d(TAG, "onResume");
+        LogUtils.d(TAG, "onResume");
         super.onResume();
         int retCode = mNativeFunctionHelper.Init();
         if (retCode != CommonDefine.ERROR_OK) {
-            MyLog.e(TAG, "onResume mNativeFunctionHelper Init failed");
+            LogUtils.e(TAG, "onResume mNativeFunctionHelper Init failed");
             Toast.makeText(this, "Init error", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -71,7 +72,7 @@ public class GLViewActivity extends AppCompatActivity {
 
     @Override
     protected void onPause () {
-        MyLog.d(TAG, "onPause");
+        LogUtils.d(TAG, "onPause");
         super.onPause();
         if (null != myGLSurfaceView) {
             myGLSurfaceView.MyGLSurfacePause ();
@@ -82,25 +83,25 @@ public class GLViewActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        MyLog.d(TAG, "onDestroy");
+        LogUtils.d(TAG, "onDestroy");
         super.onDestroy();
     }
 
     public void InitGLSurfaceView (Context context) {
-        MyLog.d(TAG, "InitGLSurfaceView");
+        LogUtils.d(TAG, "InitGLSurfaceView");
         myGLSurfaceView = new MyGLSurfaceView(context, mEffectType, mNativeFunctionHelper);
     }
 
     private void initUI (int effectType) {
-        MyLog.d(TAG, "initUI");
+        LogUtils.d(TAG, "initUI");
         //setNavigationColor ();
-        mEffectList = new ArrayList<String>(Arrays.asList("Triangle", "SimpleTexture", "TextureFBO",
+        List<String> effectList = new ArrayList<String>(Arrays.asList("Triangle", "SimpleTexture", "TextureFBO",
                 "HardwareBuffer", "Transform", "Render3D", "TriangleFBO", "Render3DMesh"));
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
-            if (effectType < mEffectList.size()) {
-                actionBar.setTitle(mEffectList.get(effectType));
+            if (effectType < effectList.size()) {
+                actionBar.setTitle(effectList.get(effectType));
             }
         }
     }

@@ -7,7 +7,7 @@
 #pragma once
 
 //#define JNI_LOGE(...)	LOGE("")
-#define JNI_METHOD_NAME(name) Java_com_cgwang1580_openglessamples_NativeFunctionHelper_##name
+#define JNI_METHOD_NAME(name) Java_com_cgwang1580_glview_NativeFunctionHelper_##name
 
 extern "C" {
 JNIEXPORT jlong JNICALL JNI_METHOD_NAME(CreateProcessorJNI)(JNIEnv *env, jobject thiz);

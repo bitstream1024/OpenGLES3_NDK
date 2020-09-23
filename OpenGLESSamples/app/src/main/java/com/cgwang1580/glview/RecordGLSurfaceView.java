@@ -1,4 +1,4 @@
-package com.cgwang1580.openglessamples;
+package com.cgwang1580.glview;
 
 import android.app.Activity;
 import android.content.Context;
@@ -11,8 +11,9 @@ import android.util.Log;
 import android.widget.Button;
 
 import com.cgwang1580.encoder.video.TextureMovieEncoder;
+import com.cgwang1580.openglessamples.R;
 import com.cgwang1580.utils.CommonDefine;
-import com.cgwang1580.utils.MyLog;
+import com.cgwang1580.utils.LogUtils;
 import java.io.File;
 import java.nio.IntBuffer;
 
@@ -29,7 +30,8 @@ public class RecordGLSurfaceView extends GLSurfaceView {
 
     private final String VIDEO_NAME = "test_record.mp4";
     private final int GLES_VERSION = 3;
-    private final int RENDER_FPS = 30;
+    private final int RENDER_ENCODE_FPS = 30;
+    private final long RENDER_ENCODE_INTERVAL = 1000/30;
 
     private static final int RECORDING_OFF = 0;
     private static final int RECORDING_ON = 1;
@@ -91,13 +93,13 @@ public class RecordGLSurfaceView extends GLSurfaceView {
     }
 
     public void init(Context context) {
-        MyLog.d(TAG, "init");
+        LogUtils.d(TAG, "init");
         setEGLContextClientVersion(GLES_VERSION);
         setRenderer(mRenderer);
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 
-        mOutputFile = new File(Environment.getExternalStorageDirectory() + "/" + "test_record.mp4");
-        MyLog.d(TAG, "init path = " + mOutputFile.getPath());
+        mOutputFile = new File(Environment.getExternalStorageDirectory() + "/" + VIDEO_NAME);
+        LogUtils.d(TAG, "init path = " + mOutputFile.getPath());
         mBtnRecording = ((Activity)context).findViewById(R.id.btn_recording);
     }
 
@@ -106,9 +108,9 @@ public class RecordGLSurfaceView extends GLSurfaceView {
     }
 
     public void GLSurfaceDestroyed() {
-        MyLog.d(TAG, "GLSurfaceDestroyed");
+        LogUtils.d(TAG, "GLSurfaceDestroyed");
         int ret = mNativeFunctionHelper.OnSurfaceDestroyed();
-        MyLog.d(TAG, "onSurfaceDestroyedJNI ret = " + ret);
+        LogUtils.d(TAG, "onSurfaceDestroyedJNI ret = " + ret);
         bGLStateReady = false;
     }
 
@@ -120,11 +122,11 @@ public class RecordGLSurfaceView extends GLSurfaceView {
             mEGLSet = new EGLSet(mEGLConfig);
             int ret = mNativeFunctionHelper.OnSurfaceCreatedByType(mDrawType);
             if (ret != CommonDefine.ERROR_OK) {
-                MyLog.e(TAG, "onSurfaceCreatedByTypeJNI error");
+                LogUtils.e(TAG, "onSurfaceCreatedByTypeJNI error");
                 return;
             }
             mOffscreenTexture = mNativeFunctionHelper.GetTextureFromFrameBuffer();
-            MyLog.d(TAG, "onSurfaceCreated mOffscreenTexture = " + mOffscreenTexture);
+            LogUtils.d(TAG, "onSurfaceCreated mOffscreenTexture = " + mOffscreenTexture);
             bGLStateReady = true;
             requestRender();
         }
@@ -133,7 +135,7 @@ public class RecordGLSurfaceView extends GLSurfaceView {
         public void onSurfaceChanged(GL10 gl, int width, int height) {
             int ret = mNativeFunctionHelper.OnSurfaceChanged(width, height);
             if (ret != CommonDefine.ERROR_OK) {
-                MyLog.e(TAG, "onSurfaceChangedJNI error");
+                LogUtils.e(TAG, "onSurfaceChangedJNI error");
             }
             mWindowWith = width;
             mWindowHeight = height;
@@ -185,7 +187,7 @@ public class RecordGLSurfaceView extends GLSurfaceView {
 
             int ret = mNativeFunctionHelper.OnDrawFrame();
             if (ret != CommonDefine.ERROR_OK) {
-                MyLog.e(TAG, "onDrawFrameJNI error");
+                LogUtils.e(TAG, "onDrawFrameJNI error");
                 return;
             }
 
@@ -211,6 +213,9 @@ public class RecordGLSurfaceView extends GLSurfaceView {
             mEGLSet.makeWindowSurfaceCurrent();
 
             if (bGLStateReady) {
+                // 控制录制帧率
+                makeRecorderFPS (beginTime);
+
                 requestRender();
             }
 
@@ -234,7 +239,7 @@ public class RecordGLSurfaceView extends GLSurfaceView {
     }
 
     public void changeRecordingState(boolean isRecording) {
-        MyLog.d(TAG, "changeRecordingState: was " + mRecordingEnabled + " now " + isRecording);
+        LogUtils.d(TAG, "changeRecordingState: was " + mRecordingEnabled + " now " + isRecording);
         mRecordingEnabled = isRecording;
     }
 
@@ -244,5 +249,16 @@ public class RecordGLSurfaceView extends GLSurfaceView {
 
     public boolean isRecordingEnabled() {
         return mRecordingEnabled;
+    }
+
+    private void makeRecorderFPS (long beginTime) {
+        long renderTime = System.currentTimeMillis() - beginTime;
+        if (renderTime >= 0 && renderTime < RENDER_ENCODE_INTERVAL) {
+            try {
+                Thread.sleep(RENDER_ENCODE_INTERVAL - renderTime);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

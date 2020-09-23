@@ -1,7 +1,7 @@
-package com.cgwang1580.openglessamples;
+package com.cgwang1580.glview;
 
 import com.cgwang1580.multimotionhelper.MotionStateGL;
-import com.cgwang1580.utils.MyLog;
+import com.cgwang1580.utils.LogUtils;
 
 public class NativeFunctionHelper {
 
@@ -16,7 +16,7 @@ public class NativeFunctionHelper {
     public int Init () {
         mProcessorHandle = CreateProcessorJNI();
         if (0 == mProcessorHandle) {
-            MyLog.e(TAG, "Init error");
+            LogUtils.e(TAG, "Init error");
             return ERROR_JNI;
         }
         return InitProcessorResourceJNI(mProcessorHandle);

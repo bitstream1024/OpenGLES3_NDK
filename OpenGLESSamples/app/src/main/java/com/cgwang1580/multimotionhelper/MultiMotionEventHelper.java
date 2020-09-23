@@ -1,7 +1,7 @@
 package com.cgwang1580.multimotionhelper;
 
 import android.view.MotionEvent;
-import com.cgwang1580.utils.MyLog;
+import com.cgwang1580.utils.LogUtils;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +59,7 @@ public class MultiMotionEventHelper {
         init();
     }
     private void init () {
-        MyLog.d(TAG, "init");
+        LogUtils.d(TAG, "init");
         mPointerNum = 0;
         mLastTime = 0;
         mPointList = new ArrayList<>();
@@ -86,10 +86,10 @@ public class MultiMotionEventHelper {
             mPointerNum = event.getPointerCount();
             //MyLog.d(TAG, "onTouchEvent mPointerNum = " + mPointerNum);
             int actionMask = event.getActionMasked();
-            MyLog.d(TAG, "onTouchEvent actionMask = " + actionMask);
+            LogUtils.d(TAG, "onTouchEvent actionMask = " + actionMask);
             switch (actionMask) {
                 case MotionEvent.ACTION_DOWN:
-                    MyLog.d(TAG, "onTouchEvent ACTION_DOWN x_ori = x_ori = " + x_now + ", y_ori = " + y_now);
+                    LogUtils.d(TAG, "onTouchEvent ACTION_DOWN x_ori = x_ori = " + x_now + ", y_ori = " + y_now);
                     actionId = event.getActionIndex();
                     pointId = event.getPointerId(actionId);
                     if (0 == pointArrayNum) {
@@ -135,7 +135,7 @@ public class MultiMotionEventHelper {
                     pointId = event.getPointerId(actionId);
                     x_now = event.getX(pointId);
                     y_now = event.getY(pointId);
-                    MyLog.d(TAG, "onTouchEvent ACTION_POINTER_DOWN pointId = " + pointId +
+                    LogUtils.d(TAG, "onTouchEvent ACTION_POINTER_DOWN pointId = " + pointId +
                             " actionId = " + actionId + " x_now = " + x_now + " y_now" + y_now);
                     MotionPoint motionPoint = new MotionPoint(pointId, x_now, y_now);
                     if (pointId + 1 > mPointList.size()) {
@@ -150,7 +150,7 @@ public class MultiMotionEventHelper {
                 case MotionEvent.ACTION_POINTER_UP:
                     actionId = event.getActionIndex();
                     pointId = event.getPointerId(actionId);
-                    MyLog.d(TAG, "onTouchEvent ACTION_POINTER_UP pointId = " + pointId + " actionId = " + actionId);
+                    LogUtils.d(TAG, "onTouchEvent ACTION_POINTER_UP pointId = " + pointId + " actionId = " + actionId);
                     mPointList.get(pointId).setZero();
                     mTempPointList [pointId].setZero();
                     break;
@@ -165,7 +165,7 @@ public class MultiMotionEventHelper {
     public MotionStateGL getMotionStateGL (int windowWidth, int windowHeight) {
         mMotionStateGL.setZero();
         if (2 == mPointerNum && 0 != windowWidth && 0 != windowHeight && !bSkipSetMotionState) {
-            MyLog.d(TAG, "mTempPointList (" + mTempPointList[0].delta_x + " " + mTempPointList[0].delta_y
+            LogUtils.d(TAG, "mTempPointList (" + mTempPointList[0].delta_x + " " + mTempPointList[0].delta_y
                     + " " + mTempPointList[1].delta_x + " " + mTempPointList[1].delta_y);
             if (mTempPointList[0].delta_x * mTempPointList[1].delta_x > 0 && mTempPointList[0].delta_y * mTempPointList[1].delta_y > 0) {
                 // means translate

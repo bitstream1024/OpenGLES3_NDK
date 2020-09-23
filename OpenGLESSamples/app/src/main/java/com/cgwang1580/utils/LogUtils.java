@@ -2,7 +2,7 @@ package com.cgwang1580.utils;
 
 import android.util.Log;
 
-public class MyLog {
+public class LogUtils {
 
     static private boolean bShowLog = true;
 

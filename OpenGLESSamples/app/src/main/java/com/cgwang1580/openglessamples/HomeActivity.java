@@ -10,7 +10,7 @@ import android.widget.Toast;
 import com.cgwang1580.permission.PermissionHelper;
 import com.cgwang1580.permission.PermissionInterface;
 import com.cgwang1580.utils.CommonDefine;
-import com.cgwang1580.utils.MyLog;
+import com.cgwang1580.utils.LogUtils;
 import com.cgwang1580.utils.SharedPreferenceUtils;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -76,7 +76,7 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 mEffectType = position;
-                MyLog.d(TAG, "onItemSelected mEffectType = " + mEffectType);
+                LogUtils.d(TAG, "onItemSelected mEffectType = " + mEffectType);
             }
 
             @Override

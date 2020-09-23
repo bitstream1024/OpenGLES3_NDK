@@ -25,6 +25,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    repositories {
+        flatDir {
+            dirs "libs"
+        }
+    }
     sourceSets {
         main {
             // let gradle pack the shared library into apk
