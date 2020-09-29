@@ -60,7 +60,7 @@ public class GLViewActivity extends AppCompatActivity {
         LogUtils.d(TAG, "onResume");
         super.onResume();
         int retCode = mNativeFunctionHelper.Init();
-        if (retCode != CommonDefine.ERROR_OK) {
+        if (retCode != CommonDefine.ReturnCode.ERROR_OK) {
             LogUtils.e(TAG, "onResume mNativeFunctionHelper Init failed");
             Toast.makeText(this, "Init error", Toast.LENGTH_SHORT).show();
             return;
@@ -76,9 +76,10 @@ public class GLViewActivity extends AppCompatActivity {
         super.onPause();
         if (null != myGLSurfaceView) {
             myGLSurfaceView.MyGLSurfacePause ();
-            myGLSurfaceView = null;
         }
         mNativeFunctionHelper.DestroyProcessor();
+        myGLSurfaceView.pause();
+        myGLSurfaceView = null;
     }
 
     @Override
@@ -90,13 +91,14 @@ public class GLViewActivity extends AppCompatActivity {
     public void InitGLSurfaceView (Context context) {
         LogUtils.d(TAG, "InitGLSurfaceView");
         myGLSurfaceView = new MyGLSurfaceView(context, mEffectType, mNativeFunctionHelper);
+        myGLSurfaceView.resume();
     }
 
     private void initUI (int effectType) {
         LogUtils.d(TAG, "initUI");
         //setNavigationColor ();
-        List<String> effectList = new ArrayList<String>(Arrays.asList("Triangle", "SimpleTexture", "TextureFBO",
-                "HardwareBuffer", "Transform", "Render3D", "TriangleFBO", "Render3DMesh"));
+        List<String> effectList = new ArrayList<>(Arrays.asList("Triangle", "SimpleTexture", "TextureFBO",
+                "HardwareBuffer", "Transform", "Render3D", "TriangleFBO", "Render3DMesh", "DrawTexture"));
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);

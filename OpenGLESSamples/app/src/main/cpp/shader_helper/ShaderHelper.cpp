@@ -6,7 +6,7 @@
 ShaderHelper::ShaderHelper(const char* vertexShaderCode, const char* fragmentShaderCode):
 		m_nShaderState(ERROR_OK), m_nProgramId(0)
 {
-	LOGD("Shader_Helper");
+	LOGD("ShaderHelper");
 	unsigned int vertexShader, fragmentShader;
 	int result = 0;
 	char infoLog[MY_MAX_PATH * 2] = { 0 };
@@ -19,7 +19,7 @@ ShaderHelper::ShaderHelper(const char* vertexShaderCode, const char* fragmentSha
 		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &result);
 		if (!result) {
 			glGetShaderInfoLog(vertexShader, MY_MAX_PATH * 2, NULL, infoLog);
-			LOGE ("glCompileShader vertexShader error, %s", infoLog);
+			LOGE ("ShaderHelper glCompileShader vertexShader error, %s", infoLog);
 			m_nShaderState = ERROR_GL_STATE;
 			break;
 		}
@@ -32,7 +32,7 @@ ShaderHelper::ShaderHelper(const char* vertexShaderCode, const char* fragmentSha
 		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &result);
 		if (!result) {
 			glGetShaderInfoLog(fragmentShader, MY_MAX_PATH * 2, NULL, infoLog);
-			LOGE ("glCompileShader fragmentShader error, %s ", infoLog);
+			LOGE ("ShaderHelper glCompileShader fragmentShader error, %s ", infoLog);
 			m_nShaderState = ERROR_GL_STATE;
 			break;
 		}
@@ -46,7 +46,7 @@ ShaderHelper::ShaderHelper(const char* vertexShaderCode, const char* fragmentSha
 		glGetProgramiv(m_nProgramId, GL_LINK_STATUS, &result);
 		if (!result) {
 			glGetProgramInfoLog(m_nProgramId, MY_MAX_PATH * 2, NULL, infoLog);
-			LOGE ("glLinkProgram progreamId error, %s ", infoLog);
+			LOGE ("ShaderHelper glLinkProgram progreamId error, %s ", infoLog);
 			m_nShaderState = ERROR_GL_STATE;
 			break;
 		}
@@ -66,6 +66,11 @@ int ShaderHelper::getShaderHelperState ()
 
 void ShaderHelper::use() {
 	glUseProgram(m_nProgramId);
+}
+
+void ShaderHelper::useNone()
+{
+	glUseProgram(GL_NONE);
 }
 
 int ShaderHelper::getAttribLocation(const std::string &name) const

@@ -42,6 +42,8 @@ if (_pVal_) {    \
 		}\
 	}
 
+#define GL_CHECK_ERROR()	DrawHelper::CheckGLError(__FILE__, __LINE__)
+
 class DrawHelper
 {
 public:
@@ -68,9 +70,37 @@ public:
 
 	static void CheckGLError(const char *TAG)
 	{
-		GLenum error = glGetError();
-		if (0 != error)
-			LOGE("%s CheckGLError error_code = %d", TAG, error);
+		GLenum errorCode = glGetError();
+		if (GL_NO_ERROR != errorCode) {
+			std::string errorInfo = "";
+			switch (errorCode) {
+				case GL_INVALID_ENUM: 					errorInfo = "GL_INVALID_ENUM";	break;
+				case GL_INVALID_VALUE: 					errorInfo = "GL_INVALID_VALUE";	break;
+				case GL_INVALID_OPERATION: 				errorInfo = "GL_INVALID_OPERATION";	break;
+				case GL_OUT_OF_MEMORY: 					errorInfo = "GL_OUT_OF_MEMORY";	break;
+				case GL_INVALID_FRAMEBUFFER_OPERATION: 	errorInfo = "GL_INVALID_FRAMEBUFFER_OPERATION";	break;
+				default:								break;
+			}
+			LOGE("%s CheckGLError errorCode = %d, errorInfo = %s", TAG, errorCode, errorInfo.c_str());
+		}
+	}
+
+	static void CheckGLError(const char * file, int line, const char *TAG)
+	{
+		GLenum errorCode = glGetError();
+		if (GL_NO_ERROR != errorCode) {
+			std::string errorInfo = "";
+			switch (errorCode) {
+				case GL_INVALID_ENUM: 					errorInfo = "GL_INVALID_ENUM";	break;
+				case GL_INVALID_VALUE: 					errorInfo = "GL_INVALID_VALUE";	break;
+				case GL_INVALID_OPERATION: 				errorInfo = "GL_INVALID_OPERATION";	break;
+				case GL_OUT_OF_MEMORY: 					errorInfo = "GL_OUT_OF_MEMORY";	break;
+				case GL_INVALID_FRAMEBUFFER_OPERATION: 	errorInfo = "GL_INVALID_FRAMEBUFFER_OPERATION";	break;
+				default:								break;
+			}
+			LOGE("file: %s, line: %d, %s CheckGLError errorCode = %d, errorInfo = %s", file, line,
+					TAG, errorCode, errorInfo.c_str());
+		}
 	}
 
 	static void CheckEGLError(const char *TAG)
@@ -110,6 +140,20 @@ public:
 		OpenImageHelper::ExchangeImageCoordinateY(&myImageInfo);
 		OpenImageHelper::SaveImageToPng(&myImageInfo, sPath.c_str());
 		OpenImageHelper::FreeMyImageInfo(&myImageInfo);
+	}
+
+	static void ViewportFitInOut (const int viewportIn[4], const int texWidth, int texHeight, int viewportOut[4])
+	{
+		LOGD("DrawHelper::ViewportFitInOut viewportIn (%d,%d,%d,%d) texWidth=%d texHeight=%d", viewportIn[0],
+				viewportIn[1], viewportIn[2], viewportIn[3], texWidth, texHeight);
+		float ratio = 1.f * texHeight /texWidth;
+		int viewHeight = static_cast<int>(viewportIn[2] * ratio);
+		viewportOut[0] = viewportIn[0];
+		viewportOut[1] = (viewportIn[3] - viewHeight)/2;
+		viewportOut[2] = viewportIn[2];
+		viewportOut[3] = viewHeight;
+		LOGD("DrawHelper::ViewportFitInOut viewportOut (%d,%d,%d,%d)", viewportOut[0], viewportOut[1],
+				viewportOut[2], viewportOut[3]);
 	}
 };
 

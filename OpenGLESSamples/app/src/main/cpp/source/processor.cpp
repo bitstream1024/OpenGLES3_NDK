@@ -13,7 +13,7 @@
 #include "unistd.h"
 #include "draw_utils.h"
 
-int CreateSampleAndShaderByDrawType (const PHandle pProcessorHandle, DrawType drawType)
+int CreateSampleAndShaderByDrawType (const PHandle pProcessorHandle, SampleType drawType)
 {
 	LOGD("CreateSampleAndShaderByDrawType drawType = %d", drawType);
 	CAL_TIME_COST("CreateSampleAndShaderByDrawType")
@@ -69,6 +69,11 @@ int CreateSampleAndShaderByDrawType (const PHandle pProcessorHandle, DrawType dr
 				MyProcessorHandle->m_pSampleRender3DMesh = new SampleRender3DMesh ();
 			}
 			break;
+		case eDraw_Texture:
+			MyProcessorHandle->m_pSampleTexture = (SampleTexture*)SampleFactory::CreateSample(drawType);
+			MyProcessorHandle->m_pSampleTexture->SetImageInfo(MyProcessorHandle->lpMyImageInfo);
+			MyProcessorHandle->m_pSampleTexture->Create();
+			break;
 		default:
 			LOGD("CreateSampleAndShaderByDrawType nDrawType = %d is unsupported", drawType);
 			break;
@@ -76,7 +81,7 @@ int CreateSampleAndShaderByDrawType (const PHandle pProcessorHandle, DrawType dr
 	return ERROR_OK;
 }
 
-int DestroySampleAndShaderByDrawType (const PHandle pProcessorHandle, DrawType drawType)
+int DestroySampleAndShaderByDrawType (const PHandle pProcessorHandle, SampleType drawType)
 {
 	LOGD("DestroySampleAndShaderByDrawType drawType = %d", drawType);
 	CHECK_NULL_INPUT(pProcessorHandle)
@@ -125,6 +130,12 @@ int DestroySampleAndShaderByDrawType (const PHandle pProcessorHandle, DrawType d
 			break;
 		case eDraw_Render3DMesh:
 			SafeDelete(MyProcessorHandle->m_pSampleRender3DMesh);
+			break;
+		case eDraw_Texture:
+			if (nullptr != MyProcessorHandle->m_pSampleTexture) {
+				MyProcessorHandle->m_pSampleTexture->Destroy();
+				SafeDelete(MyProcessorHandle->m_pSampleTexture)
+			}
 			break;
 		default:
 			LOGD("onDrawFrame nDrawType = %d is unsupported", drawType);
@@ -185,7 +196,7 @@ int SetupResource (PHandle const pProcessorHandle)
 
 int DestroyProcessor (PHandle *ppProcessorHandle)
 {
-	LOGD("SetupResource pProcessorHandle = %p", *ppProcessorHandle);
+	LOGD("DestroyProcessor pProcessorHandle = %p", *ppProcessorHandle);
 
 	CHECK_NULL_INPUT (*ppProcessorHandle)
 	auto MyProcessorHandle = (LPProcessorHandle)(*ppProcessorHandle);
@@ -216,7 +227,7 @@ int onSurfaceCreated (PHandle const pProcessorHandle, const int effectType)
 
 	/// set which sample you want to get
 	LOGD("onSurfaceCreated effectType = %d", effectType);
-	MyProcessorHandle->m_eDrawType = (DrawType) effectType;
+	MyProcessorHandle->m_eDrawType = (SampleType) effectType;
 	int ret = CreateSampleAndShaderByDrawType(MyProcessorHandle, MyProcessorHandle->m_eDrawType);
 	LOGD("CreateSampleAndShaderByDrawType ret = %d", ret);
 
@@ -234,7 +245,7 @@ int onDrawFrame (PHandle const pProcessorHandle)
 {
 	LOGD("processor onDrawFrame begin");
 
-	LOGD("onDrawFrame pProcessorHandle = %p", pProcessorHandle);
+	//LOGD("onDrawFrame pProcessorHandle = %p", pProcessorHandle);
 
 	CHECK_NULL_INPUT (pProcessorHandle)
 	auto MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
@@ -242,7 +253,7 @@ int onDrawFrame (PHandle const pProcessorHandle)
 
 	int ret = ERROR_OK;
 
-	DrawType nDrawType = MyProcessorHandle->m_eDrawType;
+	SampleType nDrawType = MyProcessorHandle->m_eDrawType;
 	switch (nDrawType)
 	{
 		case eDraw_Triangle:
@@ -283,6 +294,11 @@ int onDrawFrame (PHandle const pProcessorHandle)
 				MyProcessorHandle->m_MotionState.setZero();
 				ret = MyProcessorHandle->m_pSampleRender3DMesh->OnDrawFrame();
 				LOGD("onDrawFrame m_pSampleRender3DMesh OnDrawFrame ret = %d", ret);
+			}
+			break;
+		case eDraw_Texture:
+			if (MyProcessorHandle->m_pSampleTexture) {
+				MyProcessorHandle->m_pSampleTexture->DrawFrame();
 			}
 			break;
 		default:

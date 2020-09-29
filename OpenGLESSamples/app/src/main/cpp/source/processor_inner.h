@@ -7,11 +7,13 @@
 #include "ShaderHelper.h"
 #include "processor.h"
 #include <string>
+#include <SampleTexture.h>
 #include "AHardwareBufferHelper.h"
 #include "SampleTransform.h"
 #include "SampleRender3D.h"
 #include "SampleDrawFBO.h"
 #include "SampleRender3DMesh.h"
+#include "SampleFactory.h"
 
 #define TEST_IMAGE_PATH_0	"/sdcard/OpenGLESTest/television.png"
 #define TEST_IMAGE_PATH_1	"/sdcard/OpenGLESTest/testlib.png"
@@ -33,21 +35,9 @@ typedef struct __shader_set_
 	ShaderHelper *pShaderHelper;
 }ShaderSet, *LPShaderSet;
 
-typedef enum
-{
-	eDraw_Triangle = 0,
-	eDraw_SimpleTexture,
-	eDraw_TextureFBO,
-	eDraw_HardwareBuffer,
-	eDraw_Transform,
-	eDraw_Render3D,
-	eDraw_TriangleFBO,
-	eDraw_Render3DMesh,
-}DrawType;
-
 typedef struct __tag_processor_handle
 {
-	DrawType m_eDrawType;
+	SampleType m_eDrawType;
 	int mRenderTime;
 	MotionState m_MotionState;
 	ShaderSet mShaderSetTriangle;
@@ -61,5 +51,6 @@ typedef struct __tag_processor_handle
 	SampleRender3D *m_pSampleRender3D;
 	SampleDrawFBO * m_pSampleDrawFBO;
 	SampleRender3DMesh *m_pSampleRender3DMesh;
+	SampleTexture *m_pSampleTexture;
 } ProcessorHandle, *LPProcessorHandle;
 

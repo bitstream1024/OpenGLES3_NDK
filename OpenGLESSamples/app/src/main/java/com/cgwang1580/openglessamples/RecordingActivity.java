@@ -42,7 +42,7 @@ public class RecordingActivity extends AppCompatActivity {
         LogUtils.d(TAG, "onResume");
         super.onResume();
         int retCode = mNativeFunctionHelper.Init();
-        if (retCode != CommonDefine.ERROR_OK) {
+        if (retCode != CommonDefine.ReturnCode.ERROR_OK) {
             LogUtils.e(TAG, "onResume mNativeFunctionHelper Init failed");
             Toast.makeText(this, "Init error", Toast.LENGTH_SHORT).show();
             return;

@@ -5,12 +5,16 @@
 #pragma once
 
 #include <MotionState.h>
+#include <vector>
+#include <common.h>
+#include <ShaderHelper.h>
 #include "GLES3/gl3.h"
 #include "glm/glm.hpp"
 
 class SampleBase
 {
 public:
+
 	SampleBase ();
 	~SampleBase();
 	void CreateGLBuffer ();
@@ -29,9 +33,8 @@ public:
 
 private:
 	GLuint m_TextureId;
-
 	MotionState m_MotionState;
-};
 
+};
 
 

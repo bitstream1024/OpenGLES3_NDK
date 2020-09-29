@@ -39,6 +39,7 @@ include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/shader_helper
         ${CMAKE_CURRENT_SOURCE_DIR}/render3d
         ${CMAKE_CURRENT_SOURCE_DIR}/model
+        ${CMAKE_CURRENT_SOURCE_DIR}/glutil
 )
 
 link_directories(
@@ -52,6 +53,7 @@ set(LIST_SRC_FILES opengles-sample-jni.cpp)
 list(APPEND LIST_SRC_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/shader_helper/ShaderHelper.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/draw/SampleBase.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/draw/SampleTexture.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/draw/draw_utils.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/source/processor.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/draw/AHardwareBufferHelper.cpp
@@ -59,6 +61,7 @@ list(APPEND LIST_SRC_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/draw/SampleRender3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/draw/SampleDrawFBO.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/draw/SampleRender3DMesh.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/glutil/ScreenRect.cpp
         )
 
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffunction-sections")

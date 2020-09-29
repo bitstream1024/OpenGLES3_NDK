@@ -121,7 +121,7 @@ public class RecordGLSurfaceView extends GLSurfaceView {
             mEGLConfig = conVideoEncoderConfig;
             mEGLSet = new EGLSet(mEGLConfig);
             int ret = mNativeFunctionHelper.OnSurfaceCreatedByType(mDrawType);
-            if (ret != CommonDefine.ERROR_OK) {
+            if (ret != CommonDefine.ReturnCode.ERROR_OK) {
                 LogUtils.e(TAG, "onSurfaceCreatedByTypeJNI error");
                 return;
             }
@@ -134,7 +134,7 @@ public class RecordGLSurfaceView extends GLSurfaceView {
         @Override
         public void onSurfaceChanged(GL10 gl, int width, int height) {
             int ret = mNativeFunctionHelper.OnSurfaceChanged(width, height);
-            if (ret != CommonDefine.ERROR_OK) {
+            if (ret != CommonDefine.ReturnCode.ERROR_OK) {
                 LogUtils.e(TAG, "onSurfaceChangedJNI error");
             }
             mWindowWith = width;
@@ -186,7 +186,7 @@ public class RecordGLSurfaceView extends GLSurfaceView {
             }
 
             int ret = mNativeFunctionHelper.OnDrawFrame();
-            if (ret != CommonDefine.ERROR_OK) {
+            if (ret != CommonDefine.ReturnCode.ERROR_OK) {
                 LogUtils.e(TAG, "onDrawFrameJNI error");
                 return;
             }

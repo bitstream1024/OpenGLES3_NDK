@@ -8,13 +8,12 @@ import android.os.Handler;
 import android.os.Message;
 import com.cgwang1580.multimotionhelper.MotionStateGL;
 import com.cgwang1580.openglessamples.R;
+import com.cgwang1580.utils.CommonDefine;
 import com.cgwang1580.utils.LogUtils;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
-
-import static com.cgwang1580.utils.CommonDefine.ERROR_OK;
 
 public class MyGLSurfaceView implements GLSurfaceView.Renderer{
     private final String TAG = this.getClass().getName();
@@ -66,18 +65,17 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
         }
     }
 
-    protected void MyGLSurfaceResume () {
+    public void resume () {
         if (null != mGLSurfaceView) {
-            mGLSurfaceView.queueEvent(new Runnable() {
-                @Override
-                public void run() {
-                    if (!bGLStateReady) {
-                        GLSurfaceCreated();
-                    }
-                }
-            });
+            mGLSurfaceView.onResume();
         }
     }
+    public void pause () {
+        if (null != mGLSurfaceView) {
+            mGLSurfaceView.onPause();
+        }
+    }
+
 
     public void MyGLSurfacePause () {
         if (null != mGLSurfaceView) {
@@ -87,10 +85,10 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
                     GLSurfaceDestroyed();
                 }
             });
-            if (mRenderHandler != null) {
+            /*if (mRenderHandler != null) {
                 // todo: should not in main thread
                 mRenderHandler.waitUntilDestroy();
-            }
+            }*/
             mRenderCount = 0;
         }
     }
@@ -149,35 +147,42 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
     @Override
     public void onDrawFrame(GL10 gl) {
         LogUtils.d(TAG, "onDrawFrame");
-        MotionStateGL motionStateGL = getMotionState();
-        int ret = mNativeFunctionHelper.SetMotionState(motionStateGL);
-        LogUtils.d(TAG, "SetMotionState ret = " + ret);
-        ret = mNativeFunctionHelper.OnDrawFrame();
-        LogUtils.d(TAG, "onDrawFrameJNI ret = " + ret);
-        mRenderCount = mRenderCount + 1;
-        if (bGLStateReady) {
-            requestRender();
+        if (!bGLStateReady) {
+            return;
         }
+        MotionStateGL motionStateGL = getMotionState();
+        int retCode = mNativeFunctionHelper.SetMotionState(motionStateGL);
+        if (CommonDefine.ReturnCode.ERROR_OK != retCode) {
+            LogUtils.d(TAG, "SetMotionState ret = " + retCode);
+            return;
+        }
+        retCode = mNativeFunctionHelper.OnDrawFrame();
+        if (CommonDefine.ReturnCode.ERROR_OK != retCode) {
+            LogUtils.d(TAG, "onDrawFrameJNI ret = " + retCode);
+            return;
+        }
+        mRenderCount = mRenderCount + 1;
+        requestRender();
     }
 
     public void GLSurfaceCreated () {
         LogUtils.d(TAG, "GLSurfaceCreated");
         int ret = mNativeFunctionHelper.OnSurfaceCreatedByType(mDrawType);
         LogUtils.d(TAG, "onSurfaceCreatedJNI ret = " + ret);
-        bGLStateReady = (ret == ERROR_OK);
+        bGLStateReady = (ret == CommonDefine.ReturnCode.ERROR_OK);
         if (bGLStateReady) {
             mRenderHandler.sendMessage(mRenderHandler.obtainMessage(MSG_SURFACE_CREATED));
-            mRenderHandler.setGLState(bGLStateReady);
+            //mRenderHandler.setGLState(bGLStateReady);
         }
     }
 
     public void GLSurfaceDestroyed() {
         LogUtils.d(TAG, "GLSurfaceDestroyed");
+        bGLStateReady = false;
         int ret = mNativeFunctionHelper.OnSurfaceDestroyed();
         LogUtils.d(TAG, "onSurfaceDestroyedJNI ret = " + ret);
-        bGLStateReady = false;
-        mRenderHandler.setGLState(false);
-        mRenderHandler.notifyAfterDestroy();
+        //mRenderHandler.setGLState(false);
+        //mRenderHandler.notifyAfterDestroy();
     }
 
     @SuppressLint("HandlerLeak")
