@@ -33,7 +33,6 @@ private:
     GLuint mTextureAlpha;
     ShaderHelper *m_pShaderHelper;
 
-
     const char *yuv_vertex_shader =
             GLES_VERSION_STRING
     R"(
@@ -62,14 +61,14 @@ void main()
 {
     vec3 yuv;
     yuv.x = texture (y_texture, v_texCoord).r;
-    yuv.x = texture (uv_texture, v_texCoord).a - 0.5;
-    yuv.x = texture (uv_texture, v_texCoord).a - 0.5;
-    mat3 matYuv2Rgb = mat3(
+    yuv.y = texture (uv_texture, v_texCoord).a - 0.5;
+    yuv.z = texture (uv_texture, v_texCoord).a - 0.5;
+    mat3 matNV21ToRgb = mat3(
         1.f,     1.f,     1.f,
         0.f, 	-0.344f,  1.770f,
         1.403f, -0.714f, 0.f
     );
-    vec3 rgb = matYuv2Rgb * yuv;
+    vec3 rgb = matNV21ToRgb * yuv;
 	FragColor = vec4 (rgb, 1.f);
 }
 )";

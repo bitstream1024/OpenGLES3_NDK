@@ -21,9 +21,11 @@ SampleDrawYUV::~SampleDrawYUV() {
 }
 
 RESULT SampleDrawYUV::OnDrawFrame() {
-    LOGD("SampleDrawYUV::OnDrawFrame start");
+    LOGD("SampleDrawYUV::OnDrawFrame begin");
+    GL_CHECK_ERROR("SampleDrawYUV::OnDrawFrame begin");
+
     m_pShaderHelper->use();
-    DrawHelper::CheckGLError("SampleDrawYUV::OnDrawFrame use");
+    GL_CHECK_ERROR("SampleDrawYUV::OnDrawFrame use");
 
     glActiveTexture(GL_TEXTURE0);
     DrawHelper::CheckGLError("SampleDrawYUV::OnDrawFrame glActiveTexture");
@@ -46,9 +48,10 @@ RESULT SampleDrawYUV::OnDrawFrame() {
     DrawHelper::CheckGLError("SampleDrawYUV::OnDrawFrame glDrawElements");
     glBindVertexArray(GL_NONE);
 
-    glActiveTexture(GL_NONE);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, GL_NONE);
 
+    GL_CHECK_ERROR("SampleDrawYUV::OnDrawFrame end");
     return 0;
 }
 
@@ -81,19 +84,20 @@ RESULT SampleDrawYUV::SetImageYuvResource(MyImageInfo *const pSrcImage) {
 
 RESULT SampleDrawYUV::createShader() {
     LOGD("SampleDrawYUV::createShader begin");
+    GL_CHECK_ERROR("SampleDrawYUV::createShader begin");
+
     RESULT retCode = ERROR_OK;
     do {
-        if (m_pShaderHelper) {
-            SafeDelete(m_pShaderHelper);
-        }
         m_pShaderHelper = new ShaderHelper (yuv_vertex_shader, yuv_fragment_shader);
-        if (!m_pShaderHelper || ERROR_OK != m_pShaderHelper->getShaderHelperState()) {
+        //m_pShaderHelper = new ShaderHelper (vShaderStr, fShaderStr);
+        if (nullptr == m_pShaderHelper || ERROR_OK != m_pShaderHelper->getShaderHelperState()) {
             LOGE("SampleDrawYUV::createShader error");
             retCode = m_pShaderHelper->getShaderHelperState();
             break;
         }
     } while(false);
 
+    GL_CHECK_ERROR("SampleDrawYUV::createShader end");
     return retCode;
 }
 
@@ -104,6 +108,7 @@ void SampleDrawYUV::destroyShader() {
 
 RESULT SampleDrawYUV::createGLBuffer() {
     LOGD("SampleDrawYUV::createGLBuffer begin");
+    GL_CHECK_ERROR("SampleDrawYUV::createGLBuffer begin");
 
     unsigned int srcWidth = m_YUVImage.width;
     unsigned int srcHeight = m_YUVImage.height;
@@ -175,8 +180,10 @@ RESULT SampleDrawYUV::createGLBuffer() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_NONE);
     DrawHelper::CheckGLError("SampleDrawYUV::createGLBuffer glBindBuffer GL_NONE");
 
+    int size = sizeof(vbo);
+    int sizeu = sizeof(GLuint);
     SafeDeleteGLBuffers(sizeof(vbo)/ sizeof(GLuint), vbo)
-
+    GL_CHECK_ERROR("SampleDrawYUV::createGLBuffer end");
     return ERROR_OK;
 }
 
