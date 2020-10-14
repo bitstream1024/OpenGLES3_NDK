@@ -16,7 +16,8 @@ typedef enum
 	eDraw_Render3D,
 	eDraw_TriangleFBO,
 	eDraw_Render3DMesh,
-	eDraw_Texture
+	eDraw_Texture,
+	eDraw_YUV
 }SampleType;
 
 class SampleFactory {
@@ -41,6 +42,8 @@ public:
 				return new SampleRender3DMesh ();
 			case eDraw_Texture:
 				return new SampleTexture();
+			case eDraw_YUV:
+				return new SampleDrawYUV();
 			default:
 				break;
 		}

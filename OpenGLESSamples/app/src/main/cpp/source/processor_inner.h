@@ -8,6 +8,7 @@
 #include "processor.h"
 #include <string>
 #include <SampleTexture.h>
+#include <SampleDrawYUV.h>
 #include "AHardwareBufferHelper.h"
 #include "SampleTransform.h"
 #include "SampleRender3D.h"
@@ -52,5 +53,6 @@ typedef struct __tag_processor_handle
 	SampleDrawFBO * m_pSampleDrawFBO;
 	SampleRender3DMesh *m_pSampleRender3DMesh;
 	SampleTexture *m_pSampleTexture;
+	SampleDrawYUV *m_pSampleRenderYUV;
 } ProcessorHandle, *LPProcessorHandle;
 

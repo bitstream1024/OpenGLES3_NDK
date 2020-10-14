@@ -10,5 +10,6 @@
         <item>TriangleFBO</item>
         <item>Render3DMesh</item>
         <item>DrawTexture</item>
+        <item>RenderYUV</item>
     </string-array>
 </resources>

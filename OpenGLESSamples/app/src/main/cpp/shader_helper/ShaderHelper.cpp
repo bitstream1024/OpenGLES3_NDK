@@ -50,7 +50,6 @@ ShaderHelper::ShaderHelper(const char* vertexShaderCode, const char* fragmentSha
 			m_nShaderState = ERROR_GL_STATE;
 			break;
 		}
-
 		// delete shader.cpp
 		glDeleteShader(vertexShader);
 		glDeleteShader(fragmentShader);

@@ -6,6 +6,7 @@
 #include "LogAndroid.h"
 #include "GLES3/gl3.h"
 #include <string>
+#include <SampleDrawYUV.h>
 #include "MyDefineUtils.h"
 #include "OpenImageHelper.h"
 #include "SampleRender3D.h"
@@ -73,6 +74,13 @@ int CreateSampleAndShaderByDrawType (const PHandle pProcessorHandle, SampleType 
 			MyProcessorHandle->m_pSampleTexture = (SampleTexture*)SampleFactory::CreateSample(drawType);
 			MyProcessorHandle->m_pSampleTexture->SetImageInfo(MyProcessorHandle->lpMyImageInfo);
 			MyProcessorHandle->m_pSampleTexture->Create();
+            break;
+		case eDraw_YUV:
+			if (!MyProcessorHandle->m_pSampleRenderYUV) {
+				MyProcessorHandle->m_pSampleRenderYUV = (SampleDrawYUV*)SampleFactory::CreateSample(drawType);
+				MyProcessorHandle->m_pSampleRenderYUV->SetImageYuvResource(MyProcessorHandle->lpMyImageInfo_YUV);
+				MyProcessorHandle->m_pSampleRenderYUV->InitSample();
+			}
 			break;
 		default:
 			LOGD("CreateSampleAndShaderByDrawType nDrawType = %d is unsupported", drawType);
@@ -136,6 +144,10 @@ int DestroySampleAndShaderByDrawType (const PHandle pProcessorHandle, SampleType
 				MyProcessorHandle->m_pSampleTexture->Destroy();
 				SafeDelete(MyProcessorHandle->m_pSampleTexture)
 			}
+		case eDraw_YUV:
+			if (MyProcessorHandle->m_pSampleRenderYUV)
+				MyProcessorHandle->m_pSampleRenderYUV->UnInitSample();
+			SafeDelete(MyProcessorHandle->m_pSampleRenderYUV)
 			break;
 		default:
 			LOGD("onDrawFrame nDrawType = %d is unsupported", drawType);
@@ -298,7 +310,11 @@ int onDrawFrame (PHandle const pProcessorHandle)
 			break;
 		case eDraw_Texture:
 			if (MyProcessorHandle->m_pSampleTexture) {
-				MyProcessorHandle->m_pSampleTexture->DrawFrame();
+                MyProcessorHandle->m_pSampleTexture->DrawFrame();
+            }
+		case eDraw_YUV:
+			if (MyProcessorHandle->m_pSampleRenderYUV) {
+				MyProcessorHandle->m_pSampleRenderYUV->OnDrawFrame();
 			}
 			break;
 		default:
@@ -311,7 +327,8 @@ int onDrawFrame (PHandle const pProcessorHandle)
 	return ret;
 }
 
-int getTextureFromFrameBuffer (PHandle const pProcessorHandle) {
+int getTextureFromFrameBuffer (PHandle const pProcessorHandle)
+{
 	LOGD("getTextureFromFrameBuffer");
 	if (nullptr == pProcessorHandle) {
 		return -1;

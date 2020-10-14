@@ -98,7 +98,7 @@ public class GLViewActivity extends AppCompatActivity {
         LogUtils.d(TAG, "initUI");
         //setNavigationColor ();
         List<String> effectList = new ArrayList<>(Arrays.asList("Triangle", "SimpleTexture", "TextureFBO",
-                "HardwareBuffer", "Transform", "Render3D", "TriangleFBO", "Render3DMesh", "DrawTexture"));
+                "HardwareBuffer", "Transform", "Render3D", "TriangleFBO", "Render3DMesh", "DrawTexture", "RenderYUV"));
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
