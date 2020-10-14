@@ -7,6 +7,7 @@
 #include "ShaderHelper.h"
 #include "processor.h"
 #include <string>
+#include <SampleDrawYUV.h>
 #include "AHardwareBufferHelper.h"
 #include "SampleTransform.h"
 #include "SampleRender3D.h"
@@ -43,6 +44,7 @@ typedef enum
 	eDraw_Render3D,
 	eDraw_TriangleFBO,
 	eDraw_Render3DMesh,
+	eDraw_YUV
 }DrawType;
 
 typedef struct __tag_processor_handle
@@ -61,5 +63,6 @@ typedef struct __tag_processor_handle
 	SampleRender3D *m_pSampleRender3D;
 	SampleDrawFBO * m_pSampleDrawFBO;
 	SampleRender3DMesh *m_pSampleRender3DMesh;
+	SampleDrawYUV *m_pSampleRenderYUV;
 } ProcessorHandle, *LPProcessorHandle;
 

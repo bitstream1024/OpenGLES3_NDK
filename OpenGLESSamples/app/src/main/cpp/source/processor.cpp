@@ -6,6 +6,7 @@
 #include "LogAndroid.h"
 #include "GLES3/gl3.h"
 #include <string>
+#include <SampleDrawYUV.h>
 #include "MyDefineUtils.h"
 #include "OpenImageHelper.h"
 #include "SampleRender3D.h"
@@ -69,6 +70,13 @@ int CreateSampleAndShaderByDrawType (const PHandle pProcessorHandle, DrawType dr
 				MyProcessorHandle->m_pSampleRender3DMesh = new SampleRender3DMesh ();
 			}
 			break;
+		case eDraw_YUV:
+			if (!MyProcessorHandle->m_pSampleRenderYUV) {
+				MyProcessorHandle->m_pSampleRenderYUV = new SampleDrawYUV();
+				MyProcessorHandle->m_pSampleRenderYUV->SetImageYuvResource(MyProcessorHandle->lpMyImageInfo_YUV);
+				MyProcessorHandle->m_pSampleRenderYUV->InitSample();
+			}
+			break;
 		default:
 			LOGD("CreateSampleAndShaderByDrawType nDrawType = %d is unsupported", drawType);
 			break;
@@ -125,6 +133,11 @@ int DestroySampleAndShaderByDrawType (const PHandle pProcessorHandle, DrawType d
 			break;
 		case eDraw_Render3DMesh:
 			SafeDelete(MyProcessorHandle->m_pSampleRender3DMesh);
+			break;
+		case eDraw_YUV:
+			if (MyProcessorHandle->m_pSampleRenderYUV)
+				MyProcessorHandle->m_pSampleRenderYUV->UnInitSample();
+			SafeDelete(MyProcessorHandle->m_pSampleRenderYUV)
 			break;
 		default:
 			LOGD("onDrawFrame nDrawType = %d is unsupported", drawType);
@@ -283,6 +296,11 @@ int onDrawFrame (PHandle const pProcessorHandle)
 				MyProcessorHandle->m_MotionState.setZero();
 				ret = MyProcessorHandle->m_pSampleRender3DMesh->OnDrawFrame();
 				LOGD("onDrawFrame m_pSampleRender3DMesh OnDrawFrame ret = %d", ret);
+			}
+			break;
+		case eDraw_YUV:
+			if (MyProcessorHandle->m_pSampleRenderYUV) {
+				MyProcessorHandle->m_pSampleRenderYUV->OnDrawFrame();
 			}
 			break;
 		default:

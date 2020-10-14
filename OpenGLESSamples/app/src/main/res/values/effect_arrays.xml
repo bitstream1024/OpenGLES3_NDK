@@ -9,5 +9,6 @@
         <item>Render3D</item>
         <item>TriangleFBO</item>
         <item>Render3DMesh</item>
+        <item>RenderYUV</item>
     </string-array>
 </resources>

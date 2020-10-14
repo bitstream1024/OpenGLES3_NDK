@@ -121,7 +121,7 @@ public:
 	{
 		CAL_TIME_COST("OpenImageHelper::CopyMyImageInfo");
 		if (nullptr == pDstImage || nullptr == pDstImage->buffer[0] || nullptr == pSrcImage
-			|| pSrcImage->buffer[0] || pSrcImage->width != pDstImage->width
+			|| nullptr == pSrcImage->buffer[0] || pSrcImage->width != pDstImage->width
 			|| pSrcImage->height != pDstImage->height) {
 			LOGE("OpenImageHelper::CopyMyImageInfo input error");
 			return ERROR_INPUT;

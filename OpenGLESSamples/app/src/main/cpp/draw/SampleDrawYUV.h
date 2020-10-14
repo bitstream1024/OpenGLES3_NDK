@@ -17,6 +17,8 @@ public:
     SampleDrawYUV ();
     ~SampleDrawYUV();
     RESULT OnDrawFrame ();
+    RESULT InitSample ();
+    void UnInitSample ();
     RESULT SetImageYuvResource (MyImageInfo *const pSrcImage);
 
 private:
@@ -62,12 +64,13 @@ void main()
     yuv.x = texture (y_texture, v_texCoord).r;
     yuv.x = texture (uv_texture, v_texCoord).a - 0.5;
     yuv.x = texture (uv_texture, v_texCoord).a - 0.5;
-    mat3 matYuv2Rgb = {
-        1.0,    1.0,    1.0,
-        0.0, 	-0.344, 1.770,
-        1.403,  -0.714, 0.0
-    };
-	FragColor = matYuv2Rgb * yuv;
+    mat3 matYuv2Rgb = mat3(
+        1.f,     1.f,     1.f,
+        0.f, 	-0.344f,  1.770f,
+        1.403f, -0.714f, 0.f
+    );
+    vec3 rgb = matYuv2Rgb * yuv;
+	FragColor = vec4 (rgb, 1.f);
 }
 )";
 

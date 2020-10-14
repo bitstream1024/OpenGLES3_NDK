@@ -12,6 +12,7 @@ SampleDrawYUV::SampleDrawYUV() {
     mTextureAlpha = GL_NONE;
     m_pShaderHelper = nullptr;
     OpenImageHelper::ZeroMyImageInfo(&m_YUVImage);
+    initMVPMatrix ();
 }
 
 SampleDrawYUV::~SampleDrawYUV() {
@@ -20,7 +21,47 @@ SampleDrawYUV::~SampleDrawYUV() {
 }
 
 RESULT SampleDrawYUV::OnDrawFrame() {
+    LOGD("SampleDrawYUV::OnDrawFrame start");
+    m_pShaderHelper->use();
+    DrawHelper::CheckGLError("SampleDrawYUV::OnDrawFrame use");
+
+    glActiveTexture(GL_TEXTURE0);
+    DrawHelper::CheckGLError("SampleDrawYUV::OnDrawFrame glActiveTexture");
+    glBindTexture(GL_TEXTURE_2D, mTextureLumin);
+    DrawHelper::CheckGLError("SampleDrawYUV::OnDrawFrame glBindTexture");
+    m_pShaderHelper->setInt("y_texture", 0);
+    DrawHelper::CheckGLError("SampleDrawYUV::OnDrawFrame setInt y_texture");
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, mTextureAlpha);
+    m_pShaderHelper->setInt("uv_texture", 1);
+    DrawHelper::CheckGLError("SampleDrawYUV::OnDrawFrame setInt uv_texture");
+
+    glm::mat4 mvp = m_Projection * m_View * m_Model;
+    m_pShaderHelper->setMat4("mvp", mvp);
+    DrawHelper::CheckGLError("SampleDrawYUV::OnDrawFrame setMat4");
+
+    glBindVertexArray(m_VAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
+    DrawHelper::CheckGLError("SampleDrawYUV::OnDrawFrame glDrawElements");
+    glBindVertexArray(GL_NONE);
+
+    glActiveTexture(GL_NONE);
+    glBindTexture(GL_TEXTURE_2D, GL_NONE);
+
     return 0;
+}
+
+RESULT SampleDrawYUV::InitSample() {
+    LOGV("SampleDrawYUV::InitSample begin");
+    createShader();
+    createGLBuffer();
+    return ERROR_OK;
+}
+
+void SampleDrawYUV::UnInitSample () {
+    destroyGLBuffer();
+    destroyShader();
 }
 
 RESULT SampleDrawYUV::SetImageYuvResource(MyImageInfo *const pSrcImage) {
@@ -33,20 +74,19 @@ RESULT SampleDrawYUV::SetImageYuvResource(MyImageInfo *const pSrcImage) {
     m_YUVImage.height = pSrcImage->height;
     m_YUVImage.format = pSrcImage->format;
     memcpy(m_YUVImage.channel, pSrcImage->channel, 4 * sizeof(int));
+    OpenImageHelper::AllocMyImageInfo(&m_YUVImage);
     OpenImageHelper::CopyMyImageInfo(&m_YUVImage, pSrcImage);
     return 0;
 }
 
-
-
-
 RESULT SampleDrawYUV::createShader() {
-    LOGD("SampleDrawYUV::createShader");
+    LOGD("SampleDrawYUV::createShader begin");
     RESULT retCode = ERROR_OK;
     do {
-        if (!m_pShaderHelper) {
-            m_pShaderHelper = new ShaderHelper (yuv_vertex_shader, yuv_fragment_shader);
+        if (m_pShaderHelper) {
+            SafeDelete(m_pShaderHelper);
         }
+        m_pShaderHelper = new ShaderHelper (yuv_vertex_shader, yuv_fragment_shader);
         if (!m_pShaderHelper || ERROR_OK != m_pShaderHelper->getShaderHelperState()) {
             LOGE("SampleDrawYUV::createShader error");
             retCode = m_pShaderHelper->getShaderHelperState();
@@ -63,7 +103,7 @@ void SampleDrawYUV::destroyShader() {
 }
 
 RESULT SampleDrawYUV::createGLBuffer() {
-    LOGD("SampleDrawYUV::createGLBuffer");
+    LOGD("SampleDrawYUV::createGLBuffer begin");
 
     unsigned int srcWidth = m_YUVImage.width;
     unsigned int srcHeight = m_YUVImage.height;
@@ -91,7 +131,7 @@ RESULT SampleDrawYUV::createGLBuffer() {
          1.f,  1.f, 0.f,
         -1.f,  1.f, 0.f
     };
-    const std::vector <GLfloat> texcoords {
+    const std::vector <GLfloat> texCoords {
         0.f, 0.f,
         1.f, 0.f,
         1.f, 1.f,
@@ -109,7 +149,7 @@ RESULT SampleDrawYUV::createGLBuffer() {
     DrawHelper::CheckGLError("SampleDrawYUV::createGLBuffer vbo[0]");
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * texcoords.size(), &texcoords[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * texCoords.size(), &texCoords[0], GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
     DrawHelper::CheckGLError("SampleDrawYUV::createGLBuffer vbo[1]");
 
@@ -117,9 +157,23 @@ RESULT SampleDrawYUV::createGLBuffer() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indices.size(), &indices[0], GL_STATIC_DRAW);
     DrawHelper::CheckGLError("SampleDrawYUV::createGLBuffer vbo[2]");
 
+    int pos = 0;
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glEnableVertexAttribArray(pos);
+    glVertexAttribPointer (pos, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (void*)0);
+    DrawHelper::CheckGLError("SampleDrawYUV::createGLBuffer glVertexAttribPointer 0");
+
+    pos = 1;
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+    glEnableVertexAttribArray(pos);
+    glVertexAttribPointer(pos, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void*)0);
+    DrawHelper::CheckGLError("SampleDrawYUV::createGLBuffer glVertexAttribPointer 1");
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
     glBindVertexArray(GL_NONE);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_NONE);
-    DrawHelper::CheckGLError("SampleDrawYUV::createGLBuffer GL_NONE");
+    DrawHelper::CheckGLError("SampleDrawYUV::createGLBuffer glBindBuffer GL_NONE");
 
     SafeDeleteGLBuffers(sizeof(vbo)/ sizeof(GLuint), vbo)
 
@@ -127,7 +181,7 @@ RESULT SampleDrawYUV::createGLBuffer() {
 }
 
 void SampleDrawYUV::destroyGLBuffer() {
-    LOGD("SampleDrawYUV::destroyGLBuffer");
+    LOGD("SampleDrawYUV::destroyGLBuffer begin");
     SafeDeleteGLArrays(1, &m_VAO)
 }
 
