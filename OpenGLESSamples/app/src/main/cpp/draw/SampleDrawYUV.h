@@ -62,7 +62,7 @@ void main()
     vec3 yuv;
     yuv.x = texture (y_texture, v_texCoord).r;
     yuv.y = texture (uv_texture, v_texCoord).a - 0.5;
-    yuv.z = texture (uv_texture, v_texCoord).a - 0.5;
+    yuv.z = texture (uv_texture, v_texCoord).r - 0.5;
     mat3 matNV21ToRgb = mat3(
         1.f,     1.f,     1.f,
         0.f, 	-0.344f,  1.770f,
