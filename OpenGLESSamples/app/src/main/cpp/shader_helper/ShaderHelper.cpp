@@ -1,3 +1,4 @@
+#include <DrawHelper.h>
 #include "common.h"
 #include "glm/ext.hpp"
 #include "LogAndroid.h"
@@ -15,6 +16,7 @@ ShaderHelper::ShaderHelper(const char* vertexShaderCode, const char* fragmentSha
 		vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertexShader, 1, &vertexShaderCode, NULL);
 		glCompileShader(vertexShader);
+        GL_CHECK_ERROR("ShaderHelper::ShaderHelper glCompileShader vertexShader");
 		// get compile shader.cpp result
 		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &result);
 		if (!result) {
@@ -28,7 +30,8 @@ ShaderHelper::ShaderHelper(const char* vertexShaderCode, const char* fragmentSha
 		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(fragmentShader, 1, &fragmentShaderCode, NULL);
 		glCompileShader(fragmentShader);
-		// get compile shader.cpp result
+        GL_CHECK_ERROR("ShaderHelper::ShaderHelper glCompileShader fragmentShader");
+        // get compile shader.cpp result
 		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &result);
 		if (!result) {
 			glGetShaderInfoLog(fragmentShader, MY_MAX_PATH * 2, NULL, infoLog);
@@ -42,7 +45,8 @@ ShaderHelper::ShaderHelper(const char* vertexShaderCode, const char* fragmentSha
 		glAttachShader(m_nProgramId, vertexShader);
 		glAttachShader(m_nProgramId, fragmentShader);
 		glLinkProgram(m_nProgramId);
-		// get link result
+        GL_CHECK_ERROR("ShaderHelper::ShaderHelper glLinkProgram");
+        // get link result
 		glGetProgramiv(m_nProgramId, GL_LINK_STATUS, &result);
 		if (!result) {
 			glGetProgramInfoLog(m_nProgramId, MY_MAX_PATH * 2, NULL, infoLog);
@@ -50,7 +54,6 @@ ShaderHelper::ShaderHelper(const char* vertexShaderCode, const char* fragmentSha
 			m_nShaderState = ERROR_GL_STATE;
 			break;
 		}
-
 		// delete shader.cpp
 		glDeleteShader(vertexShader);
 		glDeleteShader(fragmentShader);

@@ -48,6 +48,15 @@ private:
 	}
 
 public:
+
+	static void ZeroMyImageInfo (LPMyImageInfo lpMyImageInfo) {
+		LOGD("OpenImageHelper::ZeroSetImage");
+		if (nullptr == lpMyImageInfo) {
+			return;
+		}
+		memset(lpMyImageInfo, 0, sizeof(MyImageInfo));
+	}
+
 	/**
 	 * Alloc MyImageInfo, buffer of image should be null
 	 * @param lpMyImageInfo
@@ -99,6 +108,26 @@ public:
 		CHECK_NULL_INPUT(lpMyImageInfo)
 		SafeFree(lpMyImageInfo->buffer[0]);
 		memset(lpMyImageInfo, 0, sizeof(MyImageInfo));
+		return ERROR_OK;
+	}
+
+	/**
+	 * Copy MyImageInfo
+	 * @param pDstImage
+	 * @param pSrcImage
+	 * @return
+	 */
+	static int CopyMyImageInfo (LPMyImageInfo pDstImage, MyImageInfo *const pSrcImage)
+	{
+		CAL_TIME_COST("OpenImageHelper::CopyMyImageInfo");
+		if (nullptr == pDstImage || nullptr == pDstImage->buffer[0] || nullptr == pSrcImage
+			|| nullptr == pSrcImage->buffer[0] || pSrcImage->width != pDstImage->width
+			|| pSrcImage->height != pDstImage->height) {
+			LOGE("OpenImageHelper::CopyMyImageInfo input error");
+			return ERROR_INPUT;
+		}
+		long lSize = CalMyImageBufferLength(pSrcImage);
+		memcpy(pDstImage->buffer[0], pSrcImage->buffer[0], lSize);
 		return ERROR_OK;
 	}
 

@@ -42,7 +42,7 @@ if (_pVal_) {    \
 		}\
 	}
 
-#define GL_CHECK_ERROR()	DrawHelper::CheckGLError(__FILE__, __LINE__)
+#define GL_CHECK_ERROR(_info_)	DrawHelper::CheckGLError(__FILE__, __LINE__, _info_)
 
 class DrawHelper
 {
