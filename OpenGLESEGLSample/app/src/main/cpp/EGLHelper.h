@@ -22,6 +22,8 @@ public:
 	int Init(int usage = 0, ANativeWindow *const pWindow = nullptr); // usage: 0 for render, 1 for encode
 	int UnInit ();
 	int Draw ();
+	bool SwapBuffers();
+	void SetPresentationTime(long nsecs);
 	int SetRecordWindow (ANativeWindow * const pWindow);
 	int SetImageData (const int imgWidth, const int imgHeight, const unsigned char* pImgData);
 
@@ -44,6 +46,7 @@ private:
 	EGLContext m_EGLContext;
 	bool m_bEGLEnvReady;
 	ANativeWindow *m_pRecordWindow;
+	PFNEGLPRESENTATIONTIMEANDROIDPROC m_pPresentTimeFunc;
 
 	GLuint m_VAO;
 	GLuint m_VBO;
@@ -53,6 +56,8 @@ private:
 	GLuint m_FBOTexture;
 	ShaderHelper* m_pShaderHelperNormal;
 	ShaderHelper* m_pShaderHelperFBO;
+
+	long m_lBeginTime;
 
 	int m_ImgWidth;
 	int m_ImgHeight;

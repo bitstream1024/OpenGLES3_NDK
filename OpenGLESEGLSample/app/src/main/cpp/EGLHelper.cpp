@@ -40,9 +40,10 @@ const char *triangle_vertex_shader0 =
 		GLES_VERSION_STRING
 R"(
 layout (location = 0) in vec3 aPos;
+uniform mat4 mvp;
 void main()
 {
-	gl_Position = vec4(aPos, 1.0);
+	gl_Position = mvp * vec4(aPos, 1.0);
 }
 )";
 
@@ -118,7 +119,9 @@ EGLHelper::EGLHelper():
 		m_pShaderHelperNormal (nullptr),
 		m_pShaderHelperFBO (nullptr),
 		m_pRecordWindow(nullptr),
-		m_bEGLEnvReady(false)
+		m_bEGLEnvReady(false),
+		m_pPresentTimeFunc(nullptr),
+		m_lBeginTime(0)
 {
 	m_VAO = GL_NONE;
 	/*for (auto val : m_VBO)
@@ -135,6 +138,17 @@ EGLHelper::EGLHelper():
 EGLHelper::~EGLHelper()
 {
 
+}
+
+bool EGLHelper::SwapBuffers() {
+	return eglSwapBuffers(m_EGLDisplay, m_EGLSurface);
+}
+
+void EGLHelper::SetPresentationTime(long nsecs) {
+
+	if (!m_pPresentTimeFunc) {
+		m_pPresentTimeFunc(m_EGLDisplay, m_EGLSurface, nsecs);
+	}
 }
 
 int EGLHelper::Draw()
@@ -208,7 +222,7 @@ int EGLHelper::CreateEGLEnv(int usage, ANativeWindow *const pWindow)
 			break;
 		}
 
-		// 4.创建渲染表面EGLSurface，使用elgCreatePbufferSurface创建屏幕外渲染
+		// 4.创建渲染表面 EGLSurface，使用 elgCreatePbufferSurface 创建屏幕外渲染
 		// surface attributes
 		// the surface size is set to the input frame size
 		const EGLint surfaceAttr[] = {
@@ -216,8 +230,8 @@ int EGLHelper::CreateEGLEnv(int usage, ANativeWindow *const pWindow)
 				EGL_HEIGHT,1,
 				EGL_NONE
 		};
-		// 这里也可以使用eglCreateWindowSurface传入一个native window用于绘制，这个window可以是java层
-		// 的GLSurfaceView，TextureView或者SurfaceView
+		// 这里也可以使用 eglCreateWindowSurface 传入一个 native window 用于绘制，这个 window 可以是java层
+		// 的 GLSurfaceView，TextureView 或者 SurfaceView
 		if (0 == usage) {
 			m_EGLSurface = eglCreatePbufferSurface(m_EGLDisplay, m_EGLConfig, surfaceAttr);
 		} else {
@@ -280,6 +294,8 @@ int EGLHelper::CreateEGLEnv(int usage, ANativeWindow *const pWindow)
 			retCode = ERROR_EGL_STATE;
 			break;
 		}
+
+		m_pPresentTimeFunc = (PFNEGLPRESENTATIONTIMEANDROIDPROC)eglGetProcAddress("eglPresentationTimeANDROID");
 
 		m_bEGLEnvReady = true;
 
@@ -456,32 +472,32 @@ void EGLHelper::destroyGLBuffer ()
 int EGLHelper::drawFBO()
 {
 	LOGD("EGLHelper::drawFBO");
+
+	if (0 == m_lBeginTime) {
+		m_lBeginTime = MyTimeUtils::getCurrentTime();
+	}
+
+	float rotateAngle = (MyTimeUtils::getCurrentTime() - m_lBeginTime) * 0.5f;
+	glm::mat4 mvp(1.f);
+	mvp = glm::rotate(glm::mat4(1.f), glm::radians(rotateAngle), glm::vec3(0, 0, 1.f));
+
 	// draw FBO
 	m_pShaderHelperNormal->use();
-	DrawHelper::CheckGLError("OnDrawFrame use");
+	m_pShaderHelperNormal->setMat4("mvp", mvp);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
+	glClearColor(0.f, 0.f, 0.f, 1.f);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	glBindVertexArray(m_VAO);
-	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
-	DrawHelper::CheckGLError("OnDrawFrame glDrawElements");
 	glBindVertexArray(GL_NONE);
 	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
 
-	/*GLint viewport[4]{0};
-	glGetIntegerv(GL_VIEWPORT, viewport);
-	SRECT sRect {0};
-	sRect.left = viewport[0];sRect.top = viewport[1];sRect.right = viewport[2];sRect.bottom = viewport[3];
-	char sPath[MAX_PATH]{0};
-	sprintf(sPath, "/sdcard/OpenGLESTest/testDrawFBO_%04d_%dx%d.png", m_FrameID, sRect.right - sRect.left,
-			sRect.bottom - sRect.top);
-	DrawHelper::SaveRenderImage(sRect, GL_RGBA, sPath);*/
-
 	glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-
+	glClearColor(0.f, 0.f, 0.f, 1.f);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	// draw FBO texture to screen
 	m_pShaderHelperFBO->use();
-	glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-	DrawHelper::CheckGLError("OnDrawFrame glBindFramebuffer");
+	m_pShaderHelperFBO->setMat4("mvp", glm::mat4(mvp));
 	glClear (GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 	glBindTexture(GL_TEXTURE_2D, m_FBOTexture);
 	DrawHelper::CheckGLError("OnDrawFrame glBindTexture");

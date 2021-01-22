@@ -90,16 +90,17 @@ int MediaCodecHelper::PrepareEncoder(int width, int height, int fps, const std::
 
 		int mfd = -1;
 		FILE *fp = fopen(path.c_str(), "wb");
-		if (nullptr != fp)
+		if (nullptr != fp) {
 			mfd = fileno(fp);
-		else
-			LOGE("PrepareEncoder fopen failed");
-		if (nullptr == m_pMediaMuxer)
-		{
-			m_pMediaMuxer = AMediaMuxer_new (mfd, AMEDIAMUXER_OUTPUT_FORMAT_MPEG_4);
+			if (nullptr == m_pMediaMuxer)
+			{
+				m_pMediaMuxer = AMediaMuxer_new (mfd, AMEDIAMUXER_OUTPUT_FORMAT_MPEG_4);
+			}
+			fclose(fp);
 		}
-
-		fclose(fp);
+		else {
+			LOGE("PrepareEncoder fopen failed");
+		}
 	} while (false);
 
 	return ret;
@@ -162,6 +163,7 @@ void MediaCodecHelper::DrainEncoder(bool eof)
 
 		if (status == AMEDIACODEC_INFO_TRY_AGAIN_LATER) {
 			if (!eof) {
+				LOGD("DrainEncoder video no output available, AMEDIACODEC_INFO_TRY_AGAIN_LATER");
 				break;
 			}else{
 				LOGD("DrainEncoder video no output available, spinning to await EOS");
