@@ -1,18 +1,20 @@
-#include <jni.h>
+#include "native-jni.h"
 #include <string>
 #include <LogAndroid.h>
 #include <common.h>
 #include <MyDefineUtils.h>
 #include <MediaCodecHelper.h>
 #include "EGLHelper.h"
+#include "audio/OpenSLESHelper.h"
 
 int m_ImgBufferLength = 0;
 unsigned char* m_pImgData = nullptr;
 bool bNeedEnocode = true;
 
-extern "C"
-JNIEXPORT jint JNICALL
-Java_com_example_opengleseglsample_NativeEGLHelper_Init(JNIEnv *env, jobject clazz)
+OpenSLESHelper m_SLESHelper;
+
+///---------------------------------- NativeEGLHelper function ------------------------------------///
+extern "C" jint Java_com_example_opengleseglsample_NativeEGLHelper_Init(JNIEnv *env, jobject clazz)
 {
     // TODO: implement Init()
     int retCode = 0;
@@ -27,9 +29,7 @@ Java_com_example_opengleseglsample_NativeEGLHelper_Init(JNIEnv *env, jobject cla
     return retCode;
 }
 
-extern "C"
-JNIEXPORT jint JNICALL
-Java_com_example_opengleseglsample_NativeEGLHelper_UnInit(JNIEnv *env, jobject clazz)
+extern "C" jint Java_com_example_opengleseglsample_NativeEGLHelper_UnInit(JNIEnv *env, jobject clazz)
 {
     // TODO: implement UnInit()
     int retCode = 0;
@@ -45,9 +45,7 @@ Java_com_example_opengleseglsample_NativeEGLHelper_UnInit(JNIEnv *env, jobject c
     return retCode;
 }
 
-extern "C"
-JNIEXPORT jint JNICALL
-Java_com_example_opengleseglsample_NativeEGLHelper_Draw(JNIEnv *env, jobject clazz)
+extern "C" jint Java_com_example_opengleseglsample_NativeEGLHelper_Draw(JNIEnv *env, jobject clazz)
 {
     // TODO: implement Draw()
     int retCode = 0;
@@ -73,9 +71,7 @@ Java_com_example_opengleseglsample_NativeEGLHelper_Draw(JNIEnv *env, jobject cla
     return retCode;
 }
 
-extern "C"
-JNIEXPORT jint JNICALL
-Java_com_example_opengleseglsample_NativeEGLHelper_SetImageData(JNIEnv *env, jobject clazz,
+extern "C" jint Java_com_example_opengleseglsample_NativeEGLHelper_SetImageData(JNIEnv *env, jobject clazz,
         jbyteArray data, jint img_width, jint img_height, jint format)
 {
     // TODO: implement SetImageData()
@@ -107,4 +103,47 @@ Java_com_example_opengleseglsample_NativeEGLHelper_SetImageData(JNIEnv *env, job
         LOGD ("Java_com_example_opengleseglsample_NativeEGLHelper_SetImageData Draw ret = %d", retCode);
     }
     return retCode;
+}
+
+
+
+
+///---------------------------------- OpenSLESActivity function ------------------------------------///
+extern "C" jint Java_com_example_opengleseglsample_OpenSLESActivity_createSLEngine(JNIEnv *env, jobject thiz)
+{
+	const std::string TAG = "Java_com_example_opengleseglsample_OpenSLESActivity_createSLEngine";
+	int nRet = m_SLESHelper.createSLEngine();
+	LOGD("%s createSLEngine nRet = %d", TAG.c_str(), nRet);
+	return nRet;
+}
+
+extern "C" jboolean Java_com_example_opengleseglsample_OpenSLESActivity_createAssetAudioPlayer(JNIEnv *env,
+		jobject thiz, jobject asset_manager, jstring file_name)
+{
+	const std::string TAG = "Java_com_example_opengleseglsample_OpenSLESActivity_createAssetAudioPlayer";
+	if (!env) {
+		LOGE("%s env is nullptr", TAG.c_str());
+		return JNI_FALSE;
+	}
+	// convert Java string to UTF-8
+	const char* utf8Name = env->GetStringUTFChars(file_name, 0);
+	if (!utf8Name) {
+		return JNI_FALSE;
+	}
+
+	int nRet = m_SLESHelper.createSLPlayerWithAssets(env, asset_manager, utf8Name);
+	env->ReleaseStringUTFChars(file_name, utf8Name);
+	return 0 == nRet;
+}
+
+extern "C" void Java_com_example_opengleseglsample_OpenSLESActivity_setPlayingAssetAudioPlayerState(JNIEnv *env,
+																									jobject thiz, jboolean b_play)
+{
+	const std::string TAG = "Java_com_example_opengleseglsample_OpenSLESActivity_setPlayingAssetAudioPlayerState";
+	m_SLESHelper.setSLPlayerState(b_play);
+}
+
+extern "C" void Java_com_example_opengleseglsample_OpenSLESActivity_destroySLEngine(JNIEnv *env, jobject thiz)
+{
+	m_SLESHelper.destroySLEngine();
 }

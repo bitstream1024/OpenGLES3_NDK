@@ -11,11 +11,21 @@ set(TARGET_ARCH_FLAG ${ANDROID_ABI})
 set(TARGET_ABI ${TARGET_ARCH_FLAG})
 message(STATUS "TARGET_ABI is ${TARGET_ABI}")
 
-set(TARGET_LIB_NAME eglutils)
+set(TARGET_LIB_NAME mediahelper)
 
-FILE(GLOB PROCESSOR_SRC_FILES *.cpp)
+# set obeo project dir
+set (OBOE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/oboe)
+
+# add OBOE_DIR to subdirectory
+add_subdirectory(${OBOE_DIR} ./oboe)
+
+#FILE(GLOB PROCESSOR_SRC_FILES *.cpp)
+set(PROCESSOR_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/EGLHelper.cpp)
+LIST(APPEND PROCESSOR_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/native-jni.cpp)
 LIST(APPEND PROCESSOR_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/shader_helper/ShaderHelper.cpp)
 LIST(APPEND PROCESSOR_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/media/MediaCodecHelper.cpp)
+LIST(APPEND PROCESSOR_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/audio/NativeAudioHelper.cpp)
+LIST(APPEND PROCESSOR_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/audio/OpenSLESHelper.cpp)
 
 link_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../OpenGLESCommon/libpng/lib/${TARGET_ABI}
@@ -34,6 +44,8 @@ target_include_directories( ${TARGET_LIB_NAME} PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/shader_helper
         ${CMAKE_CURRENT_SOURCE_DIR}/media
         )
+target_include_directories(${TARGET_LIB_NAME} PUBLIC
+        ${OBOE_DIR}/include)
 
 target_link_libraries( ${TARGET_LIB_NAME}
         EGL
@@ -43,6 +55,8 @@ target_link_libraries( ${TARGET_LIB_NAME}
         OpenMAXAL
         android
         log
+        oboe
+        OpenSLES
         )
 
 add_custom_command(

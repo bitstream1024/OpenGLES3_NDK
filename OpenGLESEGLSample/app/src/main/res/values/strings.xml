@@ -1,5 +1,13 @@
 <resources>
     <string name="app_name">EGLSample</string>
-    <string name="click_to_show_surface">Click to show surface</string>
+
+<!--    value for HomeActivity-->
+    <string name="glprocessor_activity">GLProcessorActivity</string>
+    <string name="opensles_activity">OpenSLESActivity</string>
     <string name="homeactivity">HomeActivity</string>
+
+
+<!--    value for OpenSLESActivity-->
+    <string name="play_background">play background music</string>
+    <string name="record">record audio</string>
 </resources>

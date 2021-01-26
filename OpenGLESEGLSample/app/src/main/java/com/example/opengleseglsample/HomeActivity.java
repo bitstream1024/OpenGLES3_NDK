@@ -20,6 +20,11 @@ public class HomeActivity extends AppCompatActivity {
 
     private boolean bPermissionOK = false;
 
+    // Used to load the library on application startup.
+    static {
+        System.loadLibrary("mediahelper");
+    }
+
     @Override
     protected void onCreate (Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,12 +68,25 @@ public class HomeActivity extends AppCompatActivity {
 
     private void init () {
 
-        findViewById(R.id.home_text_view).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.home_btn_glactivity).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startGLActivity ();
             }
         });
+    }
+
+    public void onClick (View view) {
+        switch (view.getId()) {
+            case R.id.home_btn_glactivity:
+                startGLActivity();
+                break;
+            case R.id.home_btn_openslactivity:
+                startOpenSLESActivity();
+                break;
+            default:
+                break;
+        }
     }
 
     private void startGLActivity () {
@@ -81,4 +99,7 @@ public class HomeActivity extends AppCompatActivity {
         }*/
     }
 
+    private void startOpenSLESActivity() {
+        startActivity(new Intent(this, OpenSLESActivity.class));
+    }
 }

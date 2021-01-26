@@ -24,6 +24,8 @@
 
         <activity android:name=".GLProcessorActivity" />
 
+        <activity android:name=".OpenSLESActivity" />
+
     </application>
 
 </manifest>

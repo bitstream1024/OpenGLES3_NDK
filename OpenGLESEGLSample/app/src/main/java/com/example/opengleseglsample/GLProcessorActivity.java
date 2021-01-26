@@ -9,11 +9,6 @@ import android.widget.Toast;
 
 public class GLProcessorActivity extends AppCompatActivity {
 
-    // Used to load the 'native-lib' library on application startup.
-    static {
-        System.loadLibrary("eglutils");
-    }
-
     private final static String TAG = "MainActivity";
 
     NativeEGLHelper mNativeEGLHelper = new NativeEGLHelper();

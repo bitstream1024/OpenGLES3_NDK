@@ -1,0 +1,3 @@
+[submodule "OpenGLESEGLSample/app/src/main/cpp/oboe"]
+	path = OpenGLESEGLSample/app/src/main/cpp/oboe
+	url = https://github.com/google/oboe
