@@ -14,6 +14,13 @@
 #define	CHECK_SL_ERROR_VOID(_tag_, _ret_)	if (SL_RESULT_SUCCESS != _ret_) {LOGE("SL_RESULT %s: error _ret_ = %d", _tag_, _ret_);}
 #define CHECK_NULL_RETURN(_p_, _ret_)	if (!_p_) {return _ret_;}
 
+#define RECORDING_SAMPLE_RATE				44100
+#define RECORDING_CHANNELS					1
+#define RECORDING_DATA_BIT					16
+// 控制音频录制时每个缓存大小的系数
+#define RECORDING_EACH_SAMPLE_SIZE_FACTOR	0.1f
+#define RECORDING_FILE_FOLDER				"/sdcard/AudioVideoTest"
+
 static void bqRecorderCallback (SLAndroidSimpleBufferQueueItf slBQItf, void *pContext) {
 	LOGD("bqRecorderCallback begin");
 	if (nullptr == pContext) {
@@ -21,17 +28,27 @@ static void bqRecorderCallback (SLAndroidSimpleBufferQueueItf slBQItf, void *pCo
 		return;
 	}
 	auto pHelper = static_cast<OpenSLESHelper*>(pContext);
-	FdAudioRecorder* const pRecorder = pHelper->getFdAudioRecorder();
+	auto pRecorder = pHelper->getFdAudioRecorder();
 	SLresult result;
 	std::lock_guard<std::mutex> lock (pHelper->m_SLAudioRecordLock);
 	/// todo: write pcm data here
-	FileUtils::WriteDateToFile(pRecorder->pRecordBuffer, pRecorder->lBufferSize, pRecorder->filePath.c_str(), true);
-	memset(pRecorder->pRecordBuffer, 0, pRecorder->lBufferSize);
+	//FileUtils::WriteDateToFile(pRecorder->pRecordBufferArray[pRecorder->nBufferIndex], pRecorder->lBufferSize, pRecorder->filePath.c_str(), true);
+	FileUtils::WriteDataWithFile(pRecorder->pRecordBufferArray[pRecorder->nBufferIndex], pRecorder->lBufferSize, pRecorder->pFile);
+
+	pRecorder->nBufferIndex = 1 - pRecorder->nBufferIndex;
+	// 更新 buffer index，交换缓存用于存储音频数据
+	memset(pRecorder->pRecordBufferArray[pRecorder->nBufferIndex], 0, pRecorder->lBufferSize);
 
 	if (pRecorder->bRecording) {
+		LOGD("bqRecorderCallback fdRecorderBufferQueue Enqueue nBufferIndex = %d", pRecorder->nBufferIndex);
 		// 保存 pcm 数据结束之后，判断是否仍在录制，是就继续请求获取录制数据，类似 GLSurfaceView 的 requestRender 方法
-		result = (*pRecorder->fdRecorderBufferQueue)->Enqueue(pRecorder->fdRecorderBufferQueue, pRecorder->pRecordBuffer, pRecorder->lBufferSize);
+		result = (*pRecorder->fdRecorderBufferQueue)->Enqueue(pRecorder->fdRecorderBufferQueue,
+															  pRecorder->pRecordBufferArray[pRecorder->nBufferIndex], pRecorder->lBufferSize);
 		CHECK_SL_ERROR_VOID("bqRecorderCallback fdRecorderBufferQueue Enqueue", result)
+	} else {
+		// 如果外部点击停止录制，则设置 stop 状态
+		result = (*pRecorder->fdRecorderRecord)->SetRecordState(pRecorder->fdRecorderRecord, SL_RECORDSTATE_STOPPED);
+		CHECK_SL_ERROR_VOID("bqRecorderCallback fdRecorderRecord SetRecordState", result)
 	}
 }
 
@@ -283,26 +300,38 @@ void OpenSLESHelper::startRecording()
 {
 	LOGD("OpenSLESHelper::startRecording begin");
 	SLresult result;
-	//std::lock_guard<std::mutex> lock (m_SLAudioLock);
 
 	// 如果已经处于录制状态，先停止录制，并清除 buffer
-	result = (*m_AudioRecorder.fdRecorderRecord)->SetRecordState(m_AudioRecorder.fdRecorderRecord, SL_RECORDSTATE_STOPPED);
-	CHECK_SL_ERROR_VOID("OpenSLESHelper::startRecording fdRecorderRecord SetRecordState", result)
-	result = (*m_AudioRecorder.fdRecorderBufferQueue)->Clear(m_AudioRecorder.fdRecorderBufferQueue);
-	CHECK_SL_ERROR_VOID("OpenSLESHelper::startRecording fdRecorderBufferQueue Clear", result)
-
-	// 分配 audio 录制缓存
-	if (nullptr == m_AudioRecorder.pRecordBuffer) {
-		m_AudioRecorder.lBufferSize = sizeof(unsigned char) * RECORDING_DATA_BIT/8 * RECORDING_CHANNELS
-				* RECORDING_SAMPLE_RATE * RECORDING_EACH_SAMPLE_TIME;
-		m_AudioRecorder.pRecordBuffer = static_cast<unsigned char*>(malloc(m_AudioRecorder.lBufferSize));
-		if (nullptr == m_AudioRecorder.pRecordBuffer){
-			LOGE("OpenSLESHelper::startRecording no memory");
-			return;
-		}
+	SLuint32 nRecordState;
+	(*m_AudioRecorder.fdRecorderRecord)->GetRecordState(m_AudioRecorder.fdRecorderRecord, &nRecordState);
+	if (SL_RECORDSTATE_RECORDING == nRecordState) {
+		result = (*m_AudioRecorder.fdRecorderRecord)->SetRecordState(m_AudioRecorder.fdRecorderRecord, SL_RECORDSTATE_STOPPED);
+		CHECK_SL_ERROR_VOID("OpenSLESHelper::startRecording fdRecorderRecord SetRecordState", result)
+		result = (*m_AudioRecorder.fdRecorderBufferQueue)->Clear(m_AudioRecorder.fdRecorderBufferQueue);
+		CHECK_SL_ERROR_VOID("OpenSLESHelper::startRecording fdRecorderBufferQueue Clear", result)
 	}
 
-	m_AudioRecorder.filePath = "/sdcard/AudioVideoTest/audio_opensl_" + std::to_string(MyTimeUtils::getCurrentTime()) + ".pcm";
+	// 分配 audio 录制缓存
+	m_AudioRecorder.lBufferSize = sizeof(unsigned char) * RECORDING_DATA_BIT / 8 * RECORDING_CHANNELS
+								  * RECORDING_SAMPLE_RATE * RECORDING_EACH_SAMPLE_SIZE_FACTOR;
+
+	if (nullptr == m_AudioRecorder.pRecordBufferArray[0]) {
+		m_AudioRecorder.pRecordBufferArray[0] = static_cast<unsigned char*>(malloc(m_AudioRecorder.lBufferSize));
+	}
+	if (nullptr == m_AudioRecorder.pRecordBufferArray[1]) {
+		m_AudioRecorder.pRecordBufferArray[1] = static_cast<unsigned char*>(malloc(m_AudioRecorder.lBufferSize));
+	}
+	if (nullptr == m_AudioRecorder.pRecordBufferArray[0] || nullptr == m_AudioRecorder.pRecordBufferArray[1]) {
+		LOGE("OpenSLESHelper::startRecording no memory");
+		return;
+	}
+
+	char path[MAX_PATH * 2] {0};
+	if (nullptr != m_AudioRecorder.pFile) {
+		fclose(m_AudioRecorder.pFile);
+		m_AudioRecorder.pFile = nullptr;
+	}
+	m_AudioRecorder.pFile = fopen(path, "ab+");
 	std::lock_guard<std::mutex> lock (m_SLAudioRecordLock);
 	// 设置录制开启状态（OpenSL ES 也是一个状态机，通过改变状态来执行操作）
 	result = (*m_AudioRecorder.fdRecorderRecord)->SetRecordState(m_AudioRecorder.fdRecorderRecord, SL_RECORDSTATE_RECORDING);
@@ -310,9 +339,10 @@ void OpenSLESHelper::startRecording()
 	m_AudioRecorder.bRecording = true;
 
 	// 在设置完录制状态后一定需要先 Enqueue 一次，这样的话才会开始采集回调
+	m_AudioRecorder.nBufferIndex = 0;
 	result = (*m_AudioRecorder.fdRecorderBufferQueue)->Enqueue(m_AudioRecorder.fdRecorderBufferQueue,
-			m_AudioRecorder.pRecordBuffer, m_AudioRecorder.lBufferSize);
-	CHECK_SL_ERROR_VOID("OpenSLESHelper::startRecording fdRecorderRecord SetRecordState", result)
+			m_AudioRecorder.pRecordBufferArray[m_AudioRecorder.nBufferIndex], m_AudioRecorder.lBufferSize);
+	CHECK_SL_ERROR_VOID("OpenSLESHelper::startRecording fdRecorderBufferQueue Enqueue", result)
 }
 
 void OpenSLESHelper::stopRecording()
@@ -320,7 +350,6 @@ void OpenSLESHelper::stopRecording()
 	LOGD("OpenSLESHelper::stopRecording begin");
 	std::lock_guard<std::mutex> lock (m_SLAudioRecordLock);
 	if (nullptr != m_AudioRecorder.fdRecorderRecord) {
-		(*m_AudioRecorder.fdRecorderRecord)->SetRecordState(m_AudioRecorder.fdRecorderRecord, SL_RECORDSTATE_STOPPED);
 		m_AudioRecorder.bRecording = false;
 	}
 }
@@ -331,7 +360,12 @@ void OpenSLESHelper::destroySLRecorder()
 	if (nullptr != m_AudioRecorder.fdRecorderRecord) {
 		(*m_AudioRecorder.fdRecorderObject)->Destroy(m_AudioRecorder.fdRecorderObject);
 		m_AudioRecorder.fdRecorderObject = nullptr;
-		SafeFree (m_AudioRecorder.pRecordBuffer)
+		SafeFree(m_AudioRecorder.pRecordBufferArray[0])
+		SafeFree(m_AudioRecorder.pRecordBufferArray[1])
+		if (nullptr != m_AudioRecorder.pFile) {
+			fclose(m_AudioRecorder.pFile);
+			m_AudioRecorder.pFile = nullptr;
+		}
 		memset(&m_AudioRecorder, 0, sizeof(FdAudioRecorder));
 	}
 }

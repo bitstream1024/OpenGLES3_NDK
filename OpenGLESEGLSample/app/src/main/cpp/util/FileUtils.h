@@ -26,4 +26,12 @@ public:
 			fclose(fp);
 		}
 	}
+
+	static void WriteDataWithFile(void* const data, const unsigned long &length, FILE* const fp) {
+		if (nullptr == data || 0 == length || nullptr == fp) {
+			return;
+		}
+
+		fwrite(data, 1, length, fp);
+	}
 };

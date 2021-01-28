@@ -2,7 +2,7 @@
 // Created by chauncy on 2021/1/25.
 //
 
-#include "NativeAudioHelper.h"
+#include "OboeHelper.h"
 #include <LogAndroid.h>
 #include <math.h>
 
@@ -11,9 +11,9 @@
 #define CHECK_OBOE_ERROR(_ret_)		if (oboe::Result::OK != _ret_) {return;}
 
 
-oboe::DataCallbackResult NativeAudioHelper::AudioDataCallback::onAudioReady(oboe::AudioStream *oboeStream, void *audioData, int32_t numFrames)
+oboe::DataCallbackResult OboeHelper::AudioDataCallback::onAudioReady(oboe::AudioStream *oboeStream, void *audioData, int32_t numFrames)
 {
-	LOGD ("oboe::DataCallbackResult NativeAudioHelper::AudioDataCallback::onAudioReady begin");
+	LOGD ("oboe::DataCallbackResult OboeHelper::AudioDataCallback::onAudioReady begin");
 	auto *floatData = static_cast<float *>(audioData);
 	float phase = 0.f;
 	int channelCount = 0;
@@ -32,17 +32,17 @@ oboe::DataCallbackResult NativeAudioHelper::AudioDataCallback::onAudioReady(oboe
 	return oboe::DataCallbackResult::Continue;
 }
 
-NativeAudioHelper::AudioDataCallback::AudioDataCallback(void *pAudioHelper)
+OboeHelper::AudioDataCallback::AudioDataCallback(void *pAudioHelper)
 {
-	m_pNativeAudioHelperHolder = (NativeAudioHelper*)pAudioHelper;
+	m_pNativeAudioHelperHolder = (OboeHelper*)pAudioHelper;
 }
 
-NativeAudioHelper::AudioDataCallback::~AudioDataCallback()
+OboeHelper::AudioDataCallback::~AudioDataCallback()
 {
 
 }
 
-NativeAudioHelper::NativeAudioHelper():
+OboeHelper::OboeHelper():
 m_pAudioStreamBuilder(nullptr),
 m_pAudioDataCallback(nullptr),
 m_pAudioStream(nullptr),
@@ -52,14 +52,14 @@ m_nChannelCount(2)
 
 }
 
-NativeAudioHelper::~NativeAudioHelper()
+OboeHelper::~OboeHelper()
 {
 
 }
 
-void NativeAudioHelper::startAudio()
+void OboeHelper::startAudio()
 {
-	LOGD("NativeAudioHelper::startAudio begin");
+	LOGD("OboeHelper::startAudio begin");
 	if (!m_pAudioStreamBuilder) {
 		m_pAudioStreamBuilder = new oboe::AudioStreamBuilder();
 		CHECK_NULL(m_pAudioStreamBuilder)
@@ -76,16 +76,16 @@ void NativeAudioHelper::startAudio()
 	->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::Medium)
 	->setCallback(pCallback)
 	->openStream(m_pAudioStream);
-	LOGD("NativeAudioHelper::startAudio openStream result = %d",result);
+	LOGD("OboeHelper::startAudio openStream result = %d",result);
 	CHECK_OBOE_ERROR(result)
 
 	result = m_pAudioStream->requestStart();
-	LOGD("NativeAudioHelper::startAudio requestStart result = %d",result);
+	LOGD("OboeHelper::startAudio requestStart result = %d",result);
 }
 
-void NativeAudioHelper::StopAudio()
+void OboeHelper::StopAudio()
 {
-	LOGD("NativeAudioHelper::StopAudio");
+	LOGD("OboeHelper::StopAudio");
 
 	std::lock_guard<std::mutex> lock (m_AudioLock);
 	if (m_pAudioStream) {

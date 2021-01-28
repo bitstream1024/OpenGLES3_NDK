@@ -7,7 +7,7 @@
 #include <oboe/Oboe.h>
 #include <oboe/AudioStreamCallback.h>
 
-class NativeAudioHelper
+class OboeHelper
 {
 private:
 	class AudioDataCallback : public oboe::AudioStreamCallback {
@@ -18,13 +18,13 @@ private:
 		oboe::DataCallbackResult onAudioReady(oboe::AudioStream *oboeStream, void *audioData, int32_t numFrames);
 
 	private:
-		NativeAudioHelper*		m_pNativeAudioHelperHolder;
+		OboeHelper*		m_pNativeAudioHelperHolder;
 	};
 
 
 public:
-	NativeAudioHelper();
-	~NativeAudioHelper();
+	OboeHelper();
+	~OboeHelper();
 
 	void startAudio();
 	void StopAudio();

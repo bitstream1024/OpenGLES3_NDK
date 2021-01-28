@@ -8,11 +8,6 @@
 #include <SLES/OpenSLES_Android.h>
 #include <mutex>
 
-#define RECORDING_SAMPLE_RATE		44100
-#define RECORDING_CHANNELS			1
-#define RECORDING_DATA_BIT			16
-#define RECORDING_EACH_SAMPLE_TIME	0.1f
-
 typedef struct _tag_sl_audio_player
 {
 	SLObjectItf 	fdPlayerObject;
@@ -27,10 +22,14 @@ typedef struct _tag_sl_audio_recorder
 	SLObjectItf 					fdRecorderObject;
 	SLRecordItf 					fdRecorderRecord;
 	SLAndroidSimpleBufferQueueItf 	fdRecorderBufferQueue;
+	// recording buffer size
 	unsigned long 					lBufferSize;
-	unsigned char*					pRecordBuffer;
+	// two buffers to save audio data one by one，like double PBO in OpenGL
+	unsigned char*					pRecordBufferArray[2];
+	unsigned char 					nBufferIndex;
 	bool 							bRecording;
 	std::string 					filePath;
+	FILE 							*pFile;
 } FdAudioRecorder, *LPFdAudioRecorder;
 
 class OpenSLESHelper
@@ -54,6 +53,7 @@ public:
 	std::mutex								m_SLAudioRecordLock;
 
 private:
+	// OpenSL ES audio engine
 	SLObjectItf 							m_EngineObject;
 	SLEngineItf 							m_EngineEngine;
 
