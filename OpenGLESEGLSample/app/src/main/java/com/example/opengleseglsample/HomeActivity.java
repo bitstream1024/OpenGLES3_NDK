@@ -16,7 +16,7 @@ public class HomeActivity extends AppCompatActivity {
     private final String TAG  = this.getClass().getName();
 
     private final static String[]PermissionList = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE};
+            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO};
 
     private boolean bPermissionOK = false;
 

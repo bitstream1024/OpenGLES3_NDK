@@ -14,8 +14,13 @@ public class OpenSLESActivity  extends AppCompatActivity {
     private final String TAG = this.getClass().getName();
 
     private boolean bReady = false;
+    // audio player state
     private boolean bPlayerCreated = false;
-    private boolean bPlay = false;
+    private boolean bPlaying = false;
+
+    // audio recorder state
+    private boolean bRecorderCreated = false;
+    private boolean bRecording = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -26,7 +31,7 @@ public class OpenSLESActivity  extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        int nRet = createSLEngine();
+        int nRet = nativeCreateSLEngine();
         MyLog.d(TAG, "createSLEngine nRet = " + nRet);
     }
 
@@ -34,12 +39,12 @@ public class OpenSLESActivity  extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         // stop play
-        setPlayingAssetAudioPlayerState(false);
+        nativeSetPlayingAssetAudioPlayerState(false);
     }
 
     @Override
     protected void onDestroy() {
-        destroySLEngine();
+        nativeDestroySLEngine();
         super.onDestroy();
     }
 
@@ -57,27 +62,33 @@ public class OpenSLESActivity  extends AppCompatActivity {
     }
 
     private void setAudioPlayerState() {
-        bPlay = !bPlay;
+        bPlaying = !bPlaying;
         if (!bPlayerCreated) {
             String musicName = "background.mp3";
-            createAssetAudioPlayer(this.getAssets(), musicName);
+            nativeCreateAssetAudioPlayer(this.getAssets(), musicName);
             bPlayerCreated = true;
         }
-        setPlayingAssetAudioPlayerState(bPlay);
+        nativeSetPlayingAssetAudioPlayerState(bPlaying);
     }
 
     private void setAudioRecordState() {
-        bPlay = !bPlay;
-        if (!bPlayerCreated) {
-            String musicName = "background.mp3";
-            createAssetAudioPlayer(this.getAssets(), musicName);
+        bRecording = !bRecording;
+        if (!bRecorderCreated) {
+            nativeCreateAudioRecorder();
             bPlayerCreated = true;
         }
-        setPlayingAssetAudioPlayerState(bPlay);
+        if (bRecording) {
+            nativeStartRecording();
+        } else {
+            nativeStopRecording();
+        }
     }
 
-    public native int createSLEngine();
-    public native boolean createAssetAudioPlayer(AssetManager assetManager, String fileName);
-    public native void setPlayingAssetAudioPlayerState(boolean bPlay);
-    public native void destroySLEngine();
+    public native int nativeCreateSLEngine();
+    public native boolean nativeCreateAssetAudioPlayer(AssetManager assetManager, String fileName);
+    public native void nativeSetPlayingAssetAudioPlayerState(boolean bPlay);
+    public native void nativeCreateAudioRecorder();
+    public native void nativeStartRecording();
+    public native void nativeStopRecording();
+    public native void nativeDestroySLEngine();
 }

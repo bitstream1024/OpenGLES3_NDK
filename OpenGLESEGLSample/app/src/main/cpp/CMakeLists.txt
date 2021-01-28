@@ -43,6 +43,7 @@ target_include_directories( ${TARGET_LIB_NAME} PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../OpenGLESCommon/glrender
         ${CMAKE_CURRENT_SOURCE_DIR}/shader_helper
         ${CMAKE_CURRENT_SOURCE_DIR}/media
+        ${CMAKE_CURRENT_SOURCE_DIR}/util
         )
 target_include_directories(${TARGET_LIB_NAME} PUBLIC
         ${OBOE_DIR}/include)
