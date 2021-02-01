@@ -9,9 +9,9 @@
 class FileUtils {
 
 public:
-	static void WriteDateToFile(void* const data, const unsigned long &length, const char *const path, const bool &bAdd = false) {
+	static void WriteDateToFile(void* const data, const unsigned long &bufferLen, const char *const path, const bool &bAdd = false) {
 
-		if (nullptr == data || 0 == length || nullptr == path) {
+		if (nullptr == data || 0 == bufferLen || nullptr == path) {
 			return;
 		}
 
@@ -22,16 +22,28 @@ public:
 			fp = fopen (path, "wb");
 		}
 		if (fp) {
-			fwrite(data, 1, length, fp);
+			fwrite(data, 1, bufferLen, fp);
 			fclose(fp);
 		}
 	}
 
-	static void WriteDataWithFile(void* const data, const unsigned long &length, FILE* const fp) {
-		if (nullptr == data || 0 == length || nullptr == fp) {
+	static void WriteDataWithFile(void* const data, const unsigned long &bufferLen, FILE* const fp) {
+		if (nullptr == data || 0 == bufferLen || nullptr == fp) {
 			return;
 		}
+		fwrite(data, 1, bufferLen, fp);
+	}
 
-		fwrite(data, 1, length, fp);
+	static void ReadDataFromFile(void* dstData, unsigned long &bufferLen, FILE* const fp) {
+		if (nullptr == dstData || nullptr == fp) {
+			return;
+		}
+		if (!feof(fp)) {
+			size_t lSize = fread(dstData, 1, bufferLen, fp);
+			// if lSize < bufferLen, means read to the end
+			if (lSize < bufferLen) {
+				bufferLen = lSize;
+			}
+		}
 	}
 };

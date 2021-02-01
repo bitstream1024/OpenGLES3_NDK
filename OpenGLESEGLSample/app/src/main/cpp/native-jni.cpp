@@ -122,6 +122,12 @@ Java_com_example_opengleseglsample_OpenSLESActivity_nativeCreateSLEngine(JNIEnv 
 	return nRet;
 }
 
+extern "C" void
+Java_com_example_opengleseglsample_OpenSLESActivity_nativeDestroySLEngine(JNIEnv *env, jobject thiz)
+{
+	m_SLESHelper.destroySLEngine();
+}
+
 extern "C" jboolean
 Java_com_example_opengleseglsample_OpenSLESActivity_nativeCreateAssetAudioPlayer(JNIEnv *env,
 		jobject thiz, jobject asset_manager, jstring file_name)
@@ -169,7 +175,19 @@ Java_com_example_opengleseglsample_OpenSLESActivity_nativeStopRecording(JNIEnv *
 }
 
 extern "C" void
-Java_com_example_opengleseglsample_OpenSLESActivity_nativeDestroySLEngine(JNIEnv *env, jobject thiz)
+Java_com_example_opengleseglsample_OpenSLESActivity_nativeCreatePcmPlayer(JNIEnv *env, jobject thiz)
 {
-	m_SLESHelper.destroySLEngine();
+	m_SLESHelper.createPcmPlayer();
+}
+
+extern "C" void
+Java_com_example_opengleseglsample_OpenSLESActivity_nativeStartPcmPlayer(JNIEnv *env, jobject thiz)
+{
+	m_SLESHelper.startPlayPcmData("");
+}
+
+extern "C" void
+Java_com_example_opengleseglsample_OpenSLESActivity_nativeStopPcmPlayer(JNIEnv *env, jobject thiz)
+{
+	m_SLESHelper.stopPcmPlayer();
 }

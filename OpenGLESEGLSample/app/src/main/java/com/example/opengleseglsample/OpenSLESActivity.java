@@ -1,5 +1,6 @@
 package com.example.opengleseglsample;
 
+import android.annotation.SuppressLint;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.view.View;
@@ -21,6 +22,10 @@ public class OpenSLESActivity  extends AppCompatActivity {
     // audio recorder state
     private boolean bRecorderCreated = false;
     private boolean bRecording = false;
+
+    // pcm player state
+    private boolean bPcmPlayerCreated = false;
+    private boolean bPcmPlaying = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -48,6 +53,7 @@ public class OpenSLESActivity  extends AppCompatActivity {
         super.onDestroy();
     }
 
+    @SuppressLint("NonConstantResourceId")
     public void OnClick (View view) {
         switch (view.getId()) {
             case R.id.btn_play_background_music:
@@ -55,6 +61,9 @@ public class OpenSLESActivity  extends AppCompatActivity {
                 break;
             case R.id.btn_record_audio:
                 setAudioRecordState();
+                break;
+            case R.id.btn_play_pcm:
+                setPcmPlayerState();
                 break;
             default:
                 break;
@@ -84,11 +93,31 @@ public class OpenSLESActivity  extends AppCompatActivity {
         }
     }
 
+    private void setPcmPlayerState() {
+        bPcmPlaying = !bPcmPlaying;
+        if (!bPcmPlayerCreated) {
+            nativeCreatePcmPlayer();
+            bPcmPlayerCreated = true;
+        }
+        if (bPcmPlaying) {
+            nativeStartPcmPlayer();
+        } else {
+            nativeStopPcmPlayer();
+        }
+    }
+
     public native int nativeCreateSLEngine();
+
     public native boolean nativeCreateAssetAudioPlayer(AssetManager assetManager, String fileName);
     public native void nativeSetPlayingAssetAudioPlayerState(boolean bPlay);
+
     public native void nativeCreateAudioRecorder();
     public native void nativeStartRecording();
     public native void nativeStopRecording();
+
+    public native void nativeCreatePcmPlayer();
+    public native void nativeStartPcmPlayer();
+    public native void nativeStopPcmPlayer();
+
     public native void nativeDestroySLEngine();
 }

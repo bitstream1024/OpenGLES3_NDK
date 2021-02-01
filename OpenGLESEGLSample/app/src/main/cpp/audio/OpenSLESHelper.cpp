@@ -18,9 +18,10 @@
 #define RECORDING_CHANNELS					1
 #define RECORDING_DATA_BIT					16
 // 控制音频录制时每个缓存大小的系数
-#define RECORDING_EACH_SAMPLE_SIZE_FACTOR	0.1f
+#define RECORDING_EACH_SAMPLE_SIZE_FACTOR	0.2f
 #define RECORDING_FILE_FOLDER				"/sdcard/AudioVideoTest"
 
+/** callback function for audio recorder*/
 static void bqRecorderCallback (SLAndroidSimpleBufferQueueItf slBQItf, void *pContext) {
 	LOGD("bqRecorderCallback begin");
 	if (nullptr == pContext) {
@@ -30,9 +31,8 @@ static void bqRecorderCallback (SLAndroidSimpleBufferQueueItf slBQItf, void *pCo
 	auto pHelper = static_cast<OpenSLESHelper*>(pContext);
 	auto pRecorder = pHelper->getFdAudioRecorder();
 	SLresult result;
-	std::lock_guard<std::mutex> lock (pHelper->m_SLAudioRecordLock);
+	std::lock_guard<std::mutex> lock (pHelper->m_SLAudioRecorderLock);
 	/// todo: write pcm data here
-	//FileUtils::WriteDateToFile(pRecorder->pRecordBufferArray[pRecorder->nBufferIndex], pRecorder->lBufferSize, pRecorder->filePath.c_str(), true);
 	FileUtils::WriteDataWithFile(pRecorder->pRecordBufferArray[pRecorder->nBufferIndex], pRecorder->lBufferSize, pRecorder->pFile);
 
 	pRecorder->nBufferIndex = 1 - pRecorder->nBufferIndex;
@@ -52,6 +52,31 @@ static void bqRecorderCallback (SLAndroidSimpleBufferQueueItf slBQItf, void *pCo
 	}
 }
 
+/** callback function for pcm player*/
+static void bqPcmPlayerCallback(SLAndroidSimpleBufferQueueItf slBQItf, void* pContext) {
+	LOGD("bqPcmPlayerCallback begin");
+	if (nullptr == pContext) {
+		LOGE("bqPcmPlayerCallback null error");
+		return;
+	}
+	auto pHelper = static_cast<OpenSLESHelper*>(pContext);
+	auto pPlayer = pHelper->getFdPcmPlayer();
+	// 清空上一帧缓存
+	memset(pPlayer->pPlayerBufferArray[pPlayer->nBufferIndex], 0, pPlayer->lBufferSize);
+	// 将数据读入新的缓存中
+	pPlayer->nBufferIndex = 1 - pPlayer->nBufferIndex;
+	unsigned long readSize = pPlayer->lBufferSize;
+	FileUtils::ReadDataFromFile(pPlayer->pPlayerBufferArray[pPlayer->nBufferIndex], readSize, pPlayer->pFile);
+	SLresult result;
+
+	std::lock_guard<std::mutex> lock(pHelper->m_SLAudioPlayerLock);
+	if (readSize != 0 && pPlayer->bPlaying) {
+		// 将从文件中读取的 pcm 数据塞给播放器
+		result = (*pPlayer->fdSimpleBufferQueue)->Enqueue(pPlayer->fdSimpleBufferQueue, pPlayer->pPlayerBufferArray[pPlayer->nBufferIndex], readSize);
+		CHECK_SL_ERROR_VOID("bqPcmPlayerCallback fdSimpleBufferQueue Enqueue", result)
+	}
+}
+
 OpenSLESHelper::OpenSLESHelper():
 		m_EngineObject(nullptr),
 		m_EngineEngine(nullptr),
@@ -61,7 +86,8 @@ OpenSLESHelper::OpenSLESHelper():
 	LOGD("OpenSLESHelper::OpenSLESHelper begin");
 	ReverbSettings = SL_I3DL2_ENVIRONMENT_PRESET_STONECORRIDOR;
 
-	memset(&m_AudioPlayer, 0, sizeof(m_AudioPlayer));
+	memset(&m_AssetsAudioPlayer, 0, sizeof(m_AssetsAudioPlayer));
+	memset(&m_PcmAudioPlayer, 0, sizeof(m_PcmAudioPlayer));
 	memset(&m_AudioRecorder, 0, sizeof(m_AudioRecorder));
 }
 
@@ -90,21 +116,19 @@ int OpenSLESHelper::createSLEngine()
 	CHECK_SL_ERROR("OpenSLESHelper::createSLEngine m_EngineObject GetInterface", result)
 	CHECK_NULL_RETURN(m_EngineEngine, result)
 
-	// 创建混音器
-	/*const SLInterfaceID ids[1] = {SL_IID_ENVIRONMENTALREVERB};
+	// 创建混音器，用于创建播放器
+	const SLInterfaceID ids[1] = {SL_IID_ENVIRONMENTALREVERB};
 	const SLboolean req[1] = {SL_BOOLEAN_FALSE};
 	result = (*m_EngineEngine)->CreateOutputMix(m_EngineEngine, &m_OutputMixObject, 1, ids, req);
-	CHECK_SL_ERROR("OpenSLESHelper::createSLEngine CreateOutputMix", result)
+	CHECK_SL_ERROR_VOID("OpenSLESHelper::createSLEngine CreateOutputMix", result)
 	CHECK_NULL_RETURN(m_OutputMixObject, result)
 
 	// 实例化 m_OutputMixObject
 	result = (*m_OutputMixObject)->Realize(m_OutputMixObject, SL_BOOLEAN_FALSE);
-	CHECK_SL_ERROR("OpenSLESHelper::createSLEngine m_OutputMixObject Realize", result)
+	CHECK_SL_ERROR_VOID("OpenSLESHelper::createSLEngine m_OutputMixObject Realize", result)
 
-	// 获取音频混合方法接口
-	result = (*m_OutputMixObject)->GetInterface(m_OutputMixObject, SL_IID_ENVIRONMENTALREVERB, &m_OutputMixEnvironmentalReverb);
-	//CHECK_SL_ERROR("OpenSLESHelper::createSLEngine m_OutputMixObject GetInterface", result)
-	//CHECK_NULL_RETURN(m_OutputMixEnvironmentalReverb, result)
+	// 获取混音器方法接口
+	/*result = (*m_OutputMixObject)->GetInterface(m_OutputMixObject, SL_IID_ENVIRONMENTALREVERB, &m_OutputMixEnvironmentalReverb);
 	if (SL_RESULT_SUCCESS == result) {
 		const auto* settings =(const SLEnvironmentalReverbSettings*) &ReverbSettings;
 		result = (*m_OutputMixEnvironmentalReverb)->SetEnvironmentalReverbProperties(m_OutputMixEnvironmentalReverb, settings);
@@ -119,6 +143,7 @@ void OpenSLESHelper::destroySLEngine()
 
 	destroySLPlayer();
 	destroySLRecorder();
+	destroyPcmPlayer();
 
 	if (nullptr != m_EngineObject) {
 		(*m_EngineObject)->Destroy(m_EngineObject);
@@ -165,25 +190,25 @@ int OpenSLESHelper::createSLPlayerWithAssets(JNIEnv *env, jobject asset_manager,
 
 	SLresult result;
 	// 创建 audio player 实例
-	result = (*m_EngineEngine)->CreateAudioPlayer(m_EngineEngine, &m_AudioPlayer.fdPlayerObject, &audioSrc, &audioSnk, 3, ids, req);
+	result = (*m_EngineEngine)->CreateAudioPlayer(m_EngineEngine, &m_AssetsAudioPlayer.fdPlayerObject, &audioSrc, &audioSnk, 3, ids, req);
 	CHECK_SL_ERROR("OpenSLESHelper::createSLPlayerWithAssets CreateAudioPlayer", result)
 
 	// 实例化 audio player
-	result = (*m_AudioPlayer.fdPlayerObject)->Realize(m_AudioPlayer.fdPlayerObject, SL_BOOLEAN_FALSE);
+	result = (*m_AssetsAudioPlayer.fdPlayerObject)->Realize(m_AssetsAudioPlayer.fdPlayerObject, SL_BOOLEAN_FALSE);
 	CHECK_SL_ERROR("OpenSLESHelper::createSLPlayerWithAssets m_PlayerObject Realize", result)
 
 	// 获得 audio player 接口方法
-	result = (*m_AudioPlayer.fdPlayerObject)->GetInterface(m_AudioPlayer.fdPlayerObject, SL_IID_PLAY, &m_AudioPlayer.fdPlayerPlay);
+	result = (*m_AssetsAudioPlayer.fdPlayerObject)->GetInterface(m_AssetsAudioPlayer.fdPlayerObject, SL_IID_PLAY, &m_AssetsAudioPlayer.fdPlayerPlay);
 	CHECK_SL_ERROR("OpenSLESHelper::createSLPlayerWithAssets SL_IID_PLAY GetInterface", result)
-	result = (*m_AudioPlayer.fdPlayerObject)->GetInterface(m_AudioPlayer.fdPlayerObject, SL_IID_SEEK, &m_AudioPlayer.fdPlayerSeek);
+	result = (*m_AssetsAudioPlayer.fdPlayerObject)->GetInterface(m_AssetsAudioPlayer.fdPlayerObject, SL_IID_SEEK, &m_AssetsAudioPlayer.fdPlayerSeek);
 	CHECK_SL_ERROR("OpenSLESHelper::createSLPlayerWithAssets SL_IID_SEEK GetInterface", result)
-	result = (*m_AudioPlayer.fdPlayerObject)->GetInterface(m_AudioPlayer.fdPlayerObject, SL_IID_MUTESOLO, &m_AudioPlayer.fdPlayerMuteSolo);
+	result = (*m_AssetsAudioPlayer.fdPlayerObject)->GetInterface(m_AssetsAudioPlayer.fdPlayerObject, SL_IID_MUTESOLO, &m_AssetsAudioPlayer.fdPlayerMuteSolo);
 	CHECK_SL_ERROR("OpenSLESHelper::createSLPlayerWithAssets SL_IID_MUTESOLO GetInterface", result)
-	result = (*m_AudioPlayer.fdPlayerObject)->GetInterface(m_AudioPlayer.fdPlayerObject, SL_IID_VOLUME, &m_AudioPlayer.fdPlayerVolume);
+	result = (*m_AssetsAudioPlayer.fdPlayerObject)->GetInterface(m_AssetsAudioPlayer.fdPlayerObject, SL_IID_VOLUME, &m_AssetsAudioPlayer.fdPlayerVolume);
 	CHECK_SL_ERROR("OpenSLESHelper::createSLPlayerWithAssets SL_IID_VOLUME GetInterface", result)
 
 	// 设置 loop
-	result = (*m_AudioPlayer.fdPlayerSeek)->SetLoop(m_AudioPlayer.fdPlayerSeek, SL_BOOLEAN_TRUE, 0, SL_TIME_UNKNOWN);
+	result = (*m_AssetsAudioPlayer.fdPlayerSeek)->SetLoop(m_AssetsAudioPlayer.fdPlayerSeek, SL_BOOLEAN_TRUE, 0, SL_TIME_UNKNOWN);
 	CHECK_SL_ERROR("OpenSLESHelper::createSLPlayerWithAssets fdPlayerSeek SetLoop", result)                
 
 	return 0;
@@ -192,8 +217,8 @@ int OpenSLESHelper::createSLPlayerWithAssets(JNIEnv *env, jobject asset_manager,
 void OpenSLESHelper::setSLPlayerState(bool bPlay)
 {
 	LOGD("OpenSLESHelper::setSLPlayerState bPlay = %d", bPlay);
-	if (m_AudioPlayer.fdPlayerPlay) {
-		SLresult result = (*m_AudioPlayer.fdPlayerPlay)->SetPlayState(m_AudioPlayer.fdPlayerPlay,
+	if (m_AssetsAudioPlayer.fdPlayerPlay) {
+		SLresult result = (*m_AssetsAudioPlayer.fdPlayerPlay)->SetPlayState(m_AssetsAudioPlayer.fdPlayerPlay,
 				bPlay ? SL_PLAYSTATE_PLAYING : SL_PLAYSTATE_PAUSED);
 		LOGD("OpenSLESHelper::setSLPlayerState SetPlayState result = %d", result);
 	}
@@ -202,9 +227,9 @@ void OpenSLESHelper::setSLPlayerState(bool bPlay)
 void OpenSLESHelper::destroySLPlayer()
 {
 	LOGD("OpenSLESHelper::destroySLPlayer begin");
-	if (nullptr != m_AudioPlayer.fdPlayerObject) {
-		(*m_AudioPlayer.fdPlayerObject)->Destroy(m_AudioPlayer.fdPlayerObject);
-		memset(&m_AudioPlayer, 0, sizeof(m_AudioPlayer));
+	if (nullptr != m_AssetsAudioPlayer.fdPlayerObject) {
+		(*m_AssetsAudioPlayer.fdPlayerObject)->Destroy(m_AssetsAudioPlayer.fdPlayerObject);
+		memset(&m_AssetsAudioPlayer, 0, sizeof(m_AssetsAudioPlayer));
 	}
 }
 
@@ -254,6 +279,7 @@ int OpenSLESHelper::createSLRecorder()
 			channelMask,
 			SL_BYTEORDER_LITTLEENDIAN
 	};
+	m_PcmFormat = format_pcm;
 	SLDataSink audioSnk = {
 			&loc_bq,
 			&format_pcm
@@ -325,14 +351,17 @@ void OpenSLESHelper::startRecording()
 		LOGE("OpenSLESHelper::startRecording no memory");
 		return;
 	}
+	memset(m_AudioRecorder.pRecordBufferArray[0], 0, sizeof(m_AudioRecorder.lBufferSize));
+	memset(m_AudioRecorder.pRecordBufferArray[1], 0, sizeof(m_AudioRecorder.lBufferSize));
 
-	char path[MAX_PATH * 2] {0};
 	if (nullptr != m_AudioRecorder.pFile) {
 		fclose(m_AudioRecorder.pFile);
 		m_AudioRecorder.pFile = nullptr;
 	}
+	char path[MAX_PATH * 2] {0};
+	sprintf(path, "%s/audio_opengles_%lld", RECORDING_FILE_FOLDER, MyTimeUtils::getCurrentTime());
 	m_AudioRecorder.pFile = fopen(path, "ab+");
-	std::lock_guard<std::mutex> lock (m_SLAudioRecordLock);
+	std::lock_guard<std::mutex> lock (m_SLAudioRecorderLock);
 	// 设置录制开启状态（OpenSL ES 也是一个状态机，通过改变状态来执行操作）
 	result = (*m_AudioRecorder.fdRecorderRecord)->SetRecordState(m_AudioRecorder.fdRecorderRecord, SL_RECORDSTATE_RECORDING);
 	CHECK_SL_ERROR_VOID("OpenSLESHelper::startRecording fdRecorderRecord SetRecordState", result)
@@ -348,7 +377,7 @@ void OpenSLESHelper::startRecording()
 void OpenSLESHelper::stopRecording()
 {
 	LOGD("OpenSLESHelper::stopRecording begin");
-	std::lock_guard<std::mutex> lock (m_SLAudioRecordLock);
+	std::lock_guard<std::mutex> lock (m_SLAudioRecorderLock);
 	if (nullptr != m_AudioRecorder.fdRecorderRecord) {
 		m_AudioRecorder.bRecording = false;
 	}
@@ -367,5 +396,146 @@ void OpenSLESHelper::destroySLRecorder()
 			m_AudioRecorder.pFile = nullptr;
 		}
 		memset(&m_AudioRecorder, 0, sizeof(FdAudioRecorder));
+	}
+}
+
+void OpenSLESHelper::createPcmPlayer()
+{
+	LOGD("OpenSLESHelper::createPcmPlayer begin");
+
+	if (nullptr == m_OutputMixObject) {
+		LOGE("OpenSLESHelper::createPcmPlayer m_OutputMixObject is nullptr");
+		return;
+	}
+
+	// todo: 配置音频格式, 这里使用创建 AudioRecorder 时配置的音频格式
+	SLDataFormat_PCM format_pcm = {
+			SL_DATAFORMAT_PCM,
+			RECORDING_CHANNELS,
+			SL_SAMPLINGRATE_44_1,
+			SL_PCMSAMPLEFORMAT_FIXED_16,
+			SL_PCMSAMPLEFORMAT_FIXED_16,
+			SL_SPEAKER_FRONT_CENTER,
+			SL_BYTEORDER_LITTLEENDIAN
+	};;
+	SLDataLocator_AndroidSimpleBufferQueue android_queue = {
+			SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,
+			2
+	};
+	SLDataSource audioSrc = {
+			&android_queue,
+			&format_pcm
+	};
+	// 设置 data sink
+	SLDataLocator_OutputMix loc_outmix = {SL_DATALOCATOR_OUTPUTMIX, m_OutputMixObject};
+	SLDataSink audioSnk = {
+			&loc_outmix,
+			nullptr
+	};
+
+	SLresult result;
+	// 创建 audio player 实例
+	const SLInterfaceID ids[1] = {SL_IID_BUFFERQUEUE};
+	const SLboolean req[1] = {SL_BOOLEAN_TRUE};
+	result = (*m_EngineEngine)->CreateAudioPlayer(m_EngineEngine, &m_PcmAudioPlayer.fdPlayerObject,
+			&audioSrc, &audioSnk, sizeof(ids)/sizeof(SLInterfaceID), ids, req);
+	CHECK_SL_ERROR_VOID("OpenSLESHelper::createPcmPlayer CreateAudioPlayer", result)
+
+	// 实例化 audio player
+	result = (*m_PcmAudioPlayer.fdPlayerObject)->Realize(m_PcmAudioPlayer.fdPlayerObject, SL_BOOLEAN_FALSE);
+	CHECK_SL_ERROR_VOID("OpenSLESHelper::createPcmPlayer m_PlayerObject Realize", result)
+
+	// 获得 audio player 接口方法
+	result = (*m_PcmAudioPlayer.fdPlayerObject)->GetInterface(m_PcmAudioPlayer.fdPlayerObject, SL_IID_PLAY, &m_PcmAudioPlayer.fdPlayerPlay);
+	CHECK_SL_ERROR_VOID("OpenSLESHelper::createPcmPlayer SL_IID_PLAY GetInterface", result)
+	result = (*m_PcmAudioPlayer.fdPlayerObject)->GetInterface(m_PcmAudioPlayer.fdPlayerObject, SL_IID_ANDROIDSIMPLEBUFFERQUEUE, &m_PcmAudioPlayer.fdSimpleBufferQueue);
+	CHECK_SL_ERROR_VOID("OpenSLESHelper::createPcmPlayer SL_IID_ANDROIDSIMPLEBUFFERQUEUE GetInterface", result)
+
+	// 注册 player 回调函数
+	result = (*m_PcmAudioPlayer.fdSimpleBufferQueue)->RegisterCallback(m_PcmAudioPlayer.fdSimpleBufferQueue, bqPcmPlayerCallback, this);
+	CHECK_SL_ERROR_VOID("OpenSLESHelper::createPcmPlayer fdSimpleBufferQueue RegisterCallback", result)
+}
+
+FdAudioPlayer *OpenSLESHelper::getFdPcmPlayer()
+{
+	return &m_PcmAudioPlayer;
+}
+
+void OpenSLESHelper::startPlayPcmData(std::string pcmPath)
+{
+	LOGD("OpenSLESHelper::startPlayPcmData begin, pcmPath = %s", pcmPath.c_str());
+	SLresult result;
+
+	// 分配缓存，用于获取从 pcm 文件中读取的数据内容，借用音频录制时的计算方式
+	m_PcmAudioPlayer.lBufferSize = sizeof(unsigned char) * RECORDING_DATA_BIT / 8 * RECORDING_CHANNELS
+								  * RECORDING_SAMPLE_RATE * RECORDING_EACH_SAMPLE_SIZE_FACTOR;
+	if (nullptr == m_PcmAudioPlayer.pPlayerBufferArray[0]) {
+		m_PcmAudioPlayer.pPlayerBufferArray[0] = static_cast<unsigned char*>(malloc(m_PcmAudioPlayer.lBufferSize));
+	}
+	if (nullptr == m_PcmAudioPlayer.pPlayerBufferArray[1]) {
+		m_PcmAudioPlayer.pPlayerBufferArray[1] = static_cast<unsigned char*>(malloc(m_PcmAudioPlayer.lBufferSize));
+	}
+	if (nullptr == m_PcmAudioPlayer.pPlayerBufferArray[0] || nullptr == m_PcmAudioPlayer.pPlayerBufferArray[1]) {
+		LOGE("OpenSLESHelper::startPlayPcmData no memory");
+		return;
+	}
+	memset(m_PcmAudioPlayer.pPlayerBufferArray[0], 0, m_PcmAudioPlayer.lBufferSize);
+	memset(m_PcmAudioPlayer.pPlayerBufferArray[1], 0, m_PcmAudioPlayer.lBufferSize);
+
+	m_PcmAudioPlayer.nBufferIndex = 0;
+	if (nullptr != m_PcmAudioPlayer.pFile) {
+		fclose(m_PcmAudioPlayer.pFile);
+		m_PcmAudioPlayer.pFile = nullptr;
+	}
+	if (pcmPath.empty()) {
+		char testPath [MAX_PATH * 2] {0};
+		sprintf(testPath, "%s/audio_opensl_1611801325117.pcm", RECORDING_FILE_FOLDER);
+		m_PcmAudioPlayer.pFile = fopen(testPath, "rb");
+	} else {
+		m_PcmAudioPlayer.pFile = fopen(pcmPath.c_str(), "rb");
+	}
+	// 先读取一帧 pcm 数据进来
+	unsigned long lSize = m_PcmAudioPlayer.lBufferSize;
+	FileUtils::ReadDataFromFile(m_PcmAudioPlayer.pPlayerBufferArray[m_PcmAudioPlayer.nBufferIndex],
+			lSize, m_PcmAudioPlayer.pFile);
+
+	std::lock_guard<std::mutex> lock (m_SLAudioPlayerLock);
+	if (nullptr != m_PcmAudioPlayer.fdPlayerObject) {
+		result = (*m_PcmAudioPlayer.fdPlayerPlay)->SetPlayState(m_PcmAudioPlayer.fdPlayerPlay, SL_PLAYSTATE_PLAYING);
+		CHECK_SL_ERROR_VOID("OpenSLESHelper::startPlayPcmData SetPlayState", result)
+
+		result = (*m_PcmAudioPlayer.fdSimpleBufferQueue)->Enqueue(m_PcmAudioPlayer.fdSimpleBufferQueue,
+				m_PcmAudioPlayer.pPlayerBufferArray[m_PcmAudioPlayer.nBufferIndex], lSize);
+		CHECK_SL_ERROR_VOID("OpenSLESHelper::startPlayPcmData fdSimpleBufferQueue Enqueue", result)
+
+		m_PcmAudioPlayer.bPlaying = true;
+	}
+}
+
+void OpenSLESHelper::stopPcmPlayer()
+{
+	LOGD("OpenSLESHelper::stopPcmPlayer begin");
+	SLresult result;
+	std::lock_guard<std::mutex> lock (m_SLAudioPlayerLock);
+	if (nullptr != m_PcmAudioPlayer.fdPlayerObject) {
+		result = (*m_PcmAudioPlayer.fdPlayerPlay)->SetPlayState(m_PcmAudioPlayer.fdPlayerPlay, SL_PLAYSTATE_STOPPED);
+		CHECK_SL_ERROR_VOID("OpenSLESHelper::stopPcmPlayer SetPlayState", result)
+		m_PcmAudioPlayer.bPlaying = false;
+	}
+}
+
+void OpenSLESHelper::destroyPcmPlayer()
+{
+	LOGD("OpenSLESHelper::destroyPcmPlayer begin");
+	SafeFree(m_PcmAudioPlayer.pPlayerBufferArray[0])
+	SafeFree(m_PcmAudioPlayer.pPlayerBufferArray[1])
+	if (nullptr != m_PcmAudioPlayer.pFile) {
+		fclose(m_PcmAudioPlayer.pFile);
+		m_PcmAudioPlayer.pFile = nullptr;
+	}
+	if (nullptr != m_PcmAudioPlayer.fdPlayerObject) {
+		(*m_PcmAudioPlayer.fdPlayerPlay)->SetPlayState(m_PcmAudioPlayer.fdPlayerPlay, SL_PLAYSTATE_STOPPED);
+		(*m_PcmAudioPlayer.fdPlayerObject)->Destroy(m_PcmAudioPlayer.fdPlayerObject);
+		memset(&m_PcmAudioPlayer, 0, sizeof(m_PcmAudioPlayer));
 	}
 }

@@ -10,4 +10,5 @@
 <!--    value for OpenSLESActivity-->
     <string name="play_background">play background music</string>
     <string name="record">record audio</string>
+    <string name="play_pcm">play pcm from file</string>
 </resources>

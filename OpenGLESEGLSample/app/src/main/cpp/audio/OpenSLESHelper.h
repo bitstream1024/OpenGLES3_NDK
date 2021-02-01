@@ -10,11 +10,19 @@
 
 typedef struct _tag_sl_audio_player
 {
-	SLObjectItf 	fdPlayerObject;
-	SLPlayItf 		fdPlayerPlay;
-	SLSeekItf 		fdPlayerSeek;
-	SLMuteSoloItf 	fdPlayerMuteSolo;
-	SLVolumeItf 	fdPlayerVolume;
+	SLObjectItf 					fdPlayerObject;
+	SLPlayItf 						fdPlayerPlay;
+	SLSeekItf 						fdPlayerSeek;
+	SLMuteSoloItf 					fdPlayerMuteSolo;
+	SLVolumeItf 					fdPlayerVolume;
+
+	// for pcm data audio player
+	SLAndroidSimpleBufferQueueItf	fdSimpleBufferQueue;
+	unsigned long 					lBufferSize;
+	unsigned char*					pPlayerBufferArray[2];
+	unsigned char 					nBufferIndex;
+	bool 							bPlaying;
+	FILE*							pFile;
 } FdAudioPlayer, *LPFdAudioPlayer;
 
 typedef struct _tag_sl_audio_recorder
@@ -28,8 +36,7 @@ typedef struct _tag_sl_audio_recorder
 	unsigned char*					pRecordBufferArray[2];
 	unsigned char 					nBufferIndex;
 	bool 							bRecording;
-	std::string 					filePath;
-	FILE 							*pFile;
+	FILE* 							pFile;
 } FdAudioRecorder, *LPFdAudioRecorder;
 
 class OpenSLESHelper
@@ -50,20 +57,32 @@ public:
 	void startRecording();
 	void stopRecording();
 	void destroySLRecorder();
-	std::mutex								m_SLAudioRecordLock;
+
+	void createPcmPlayer();
+	FdAudioPlayer* getFdPcmPlayer();
+	void startPlayPcmData(std::string pcmPath);
+	void stopPcmPlayer();
+	void destroyPcmPlayer();
+
+	std::mutex								m_SLAudioRecorderLock;
+	std::mutex								m_SLAudioPlayerLock;
 
 private:
-	// OpenSL ES audio engine
+	// OpenSL ES audio object and engine
 	SLObjectItf 							m_EngineObject;
 	SLEngineItf 							m_EngineEngine;
 
 	SLObjectItf 							m_OutputMixObject;
 	SLEnvironmentalReverbItf				m_OutputMixEnvironmentalReverb;
 
-	FdAudioPlayer 							m_AudioPlayer;
+	FdAudioPlayer 							m_AssetsAudioPlayer;
+	FdAudioPlayer 							m_PcmAudioPlayer;
 	FdAudioRecorder							m_AudioRecorder;
 
 	SLEnvironmentalReverbSettings			ReverbSettings;
+
+	// define audio format
+	SLDataFormat_PCM						m_PcmFormat;
 };
 
 
