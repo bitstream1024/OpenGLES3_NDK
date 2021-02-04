@@ -5,6 +5,7 @@
 #pragma once
 
 #include "common.h"
+#include <stdlib.h>
 
 #define MAX_PATH		256
 #define MAX_CONTENT		512

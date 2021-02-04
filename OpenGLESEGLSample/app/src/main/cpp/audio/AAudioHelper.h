@@ -12,8 +12,6 @@ public:
 	static AAudioHelper* getInstance();
 	void startRecording();
 	void stopRecording();
-	bool isFirstDataCallback();
-	void updateFirstDataCallbackState(bool bFirst);
 
 private:
 	AAudioHelper();
@@ -22,9 +20,11 @@ private:
 	static void errorCallback (AAudioStream *stream, void *userData, aaudio_result_t error);
 	void drainRecordingStream(AAudioStream* stream, void *audioData, int32_t numFrames);
 
-	//AAudioStreamBuilder* 	m_pRecordingStreamBuilder;
-	AAudioStream* 		 	m_pRecordingStream;
-	bool 					m_bFirstDataCallback;
+	AAudioStream* 		 			m_pRecordingStream;
+	FILE*							m_pFile;
+	unsigned char*					m_pData;
+	size_t 							m_BufferSize;
+	unsigned int 					m_BytesPerData;
 };
 
 

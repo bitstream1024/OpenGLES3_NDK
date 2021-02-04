@@ -151,7 +151,7 @@ void MediaCodecHelper::DrainEncoder(bool eof)
 	LOGD("MediaCodecHelper::DrainEncoder");
 	if (eof) {
 		ssize_t ret = AMediaCodec_signalEndOfInputStream(m_pMediaCodec);
-		LOGD("DrainEncoder ret = %d", ret);
+		LOGD("DrainEncoder ret = %ld", ret);
 	}
 
 	while (true) 

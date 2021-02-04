@@ -3,6 +3,8 @@
 //
 
 #include <LogAndroid.h>
+#include <MyDefineUtils.h>
+#include <FileUtils.h>
 #include "AAudioHelper.h"
 
 #define MY_TIMEOUT_NANOS							100 * 1000000	// 100 ms
@@ -20,26 +22,17 @@ aaudio_data_callback_result_t AAudioHelper::audioCallback(AAudioStream *stream, 
 		LOGE("audioCallback error");
 		return -1;
 	}
-	if (pHelper->m_bFirstDataCallback) {
-		pHelper->drainRecordingStream(stream, audioData, numFrames);
-	}
-	pHelper->m_bFirstDataCallback = false;
-
-	aaudio_result_t result = AAUDIO_OK;
 	aaudio_stream_state_t state = AAudioStream_getState(stream);
 	if (AAUDIO_STREAM_STATE_STARTED != state) {
 		LOGE("audioCallback state = %s", AAudio_convertStreamStateToText(state));
+		return AAUDIO_CALLBACK_RESULT_CONTINUE;
 	}
 
-	/*int64_t timeoutNanos = 100 * 1000000;
-	result = AAudioStream_read(stream, audioData, numFrames, timeoutNanos);
-	if (result < 0) {
-		CHECK_AAUDIO_ERROR("audioCallback AAudioStream_read", result);
-	}*/
-
-	if (result != numFrames) {
-		// 如果读取到的帧数和实际音频帧数不一致，需要将剩下的部分音频置为 0，避免杂音干扰
+	if (nullptr != audioData && nullptr != pHelper->m_pData) {
+		// todo：保存 pcm 数据，这里不应直接使用 write 函数，这种耗时操作容易阻塞这个高优先级线程，考虑在线程中做 IO 操作
+		FileUtils::WriteDataWithFile(audioData, numFrames * pHelper->m_BytesPerData, pHelper->m_pFile);
 	}
+
 	return AAUDIO_CALLBACK_RESULT_CONTINUE;
 }
 
@@ -71,7 +64,8 @@ void AAudioHelper::startRecording()
 		return;
 	}
 
-	//AAudioStreamBuilder_setDeviceId(pStreamBuilder, 2);
+	// use default device
+	AAudioStreamBuilder_setDeviceId(pStreamBuilder, AAUDIO_UNSPECIFIED);
 	AAudioStreamBuilder_setFormat(pStreamBuilder, AAUDIO_FORMAT_PCM_I16);
 	AAudioStreamBuilder_setChannelCount(pStreamBuilder, 1);
 	AAudioStreamBuilder_setSampleRate(pStreamBuilder, 44100);
@@ -89,6 +83,37 @@ void AAudioHelper::startRecording()
 		return;
 	}
 	PRINTF_AAUDIO_STATE("AAudioHelper::startRecording AAudioStreamBuilder_openStream", m_pRecordingStream)
+
+	int32_t framesPerBurst = AAudioStream_getFramesPerBurst(m_pRecordingStream);
+	int32_t bufferSize = AAudioStream_getBufferSizeInFrames(m_pRecordingStream);
+	int32_t bufferCapacity = AAudioStream_getBufferCapacityInFrames(m_pRecordingStream);
+	int32_t sampleRate = AAudioStream_getSampleRate(m_pRecordingStream);
+	LOGD("AAudioHelper::startRecording framesPerBurst = %d, bufferSize = %d, bufferCapacity = %d, sampleRate = %d",
+			framesPerBurst, bufferSize, bufferCapacity, sampleRate);
+	int32_t channelCount = AAudioStream_getChannelCount(m_pRecordingStream);
+	aaudio_format_t format = AAudioStream_getFormat(m_pRecordingStream);
+	if (AAUDIO_FORMAT_PCM_I16 == format) {
+		m_BytesPerData = 2;
+	} else if (AAUDIO_FORMAT_PCM_FLOAT == format) {
+		m_BytesPerData = 4;
+	}
+	/*m_BufferSize = bytesPerData * channelCount * sampleRate;
+	// malloc for audio buffer data
+	m_pData = (unsigned char*) malloc(m_BufferSize);
+	if (nullptr == m_pData) {
+		LOGE("AAudioHelper::startRecording m_pData is nullptr");
+		return;
+	}
+	memset(m_pData, 0, m_BufferSize);*/
+	char path [MAX_PATH * 2] {0};
+	sprintf(path, "/sdcard/AudioVideoTest/audio_aaudio_%lld.pcm", MyTimeUtils::getCurrentTime());
+	if (nullptr == m_pFile) {
+		m_pFile = fopen(path, "ab+");
+		if (nullptr == m_pFile) {
+			LOGE("AAudioHelper::startRecording m_pFile is nullptr");
+			return;
+		}
+	}
 
 	result = AAudioStream_requestStart(m_pRecordingStream);
 	CHECK_AAUDIO_ERROR_VOID("AAudioHelper::startRecording AAudioStream_requestStart", result)
@@ -115,11 +140,19 @@ void AAudioHelper::stopRecording()
 		CHECK_AAUDIO_ERROR_VOID(AAudio_convertResultToText(result), result)
 		m_pRecordingStream = nullptr;
 	}
+	if (nullptr != m_pFile) {
+		fclose(m_pFile);
+		m_pFile = nullptr;
+	}
+	SafeFree(m_pData)
 }
 
 AAudioHelper::AAudioHelper():
 		m_pRecordingStream(nullptr),
-		m_bFirstDataCallback(true)
+		m_pFile(nullptr),
+		m_pData(nullptr),
+		m_BufferSize(0),
+		m_BytesPerData(0)
 {
 	LOGD("AAudioHelper::AAudioHelper()");
 }
@@ -136,14 +169,4 @@ void AAudioHelper::drainRecordingStream(AAudioStream* stream, void *audioData, i
 			clearFrames = AAudioStream_read (stream, audioData, numFrames, 0);
 		}
 	} while(clearFrames > 0);
-}
-
-bool AAudioHelper::isFirstDataCallback()
-{
-	return this->m_bFirstDataCallback;
-}
-
-void AAudioHelper::updateFirstDataCallbackState(bool bFirst)
-{
-	this->m_bFirstDataCallback = bFirst;
 }
