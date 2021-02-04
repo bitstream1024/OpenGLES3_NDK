@@ -26,6 +26,8 @@ LIST(APPEND PROCESSOR_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/shader_helper/Shader
 LIST(APPEND PROCESSOR_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/media/MediaCodecHelper.cpp)
 LIST(APPEND PROCESSOR_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/audio/OboeHelper.cpp)
 LIST(APPEND PROCESSOR_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/audio/OpenSLESHelper.cpp)
+LIST(APPEND PROCESSOR_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/audio/AAudioHelper.cpp)
+LIST(APPEND PROCESSOR_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/audio/AAduioWaveMaker.cpp)
 
 link_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../OpenGLESCommon/libpng/lib/${TARGET_ABI}
@@ -57,6 +59,7 @@ target_link_libraries( ${TARGET_LIB_NAME}
         android
         log
         oboe
+        aaudio
         OpenSLES
         )
 

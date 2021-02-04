@@ -1,14 +1,20 @@
 <resources>
     <string name="app_name">EGLSample</string>
 
-<!--    value for HomeActivity-->
+    <!--value for HomeActivity-->
+    <string name="homeactivity">HomeActivity</string>
     <string name="glprocessor_activity">GLProcessorActivity</string>
     <string name="opensles_activity">OpenSLESActivity</string>
-    <string name="homeactivity">HomeActivity</string>
+    <string name="aaudio_activity">AAudioActivity</string>
+    <string name="aaudio_maker_activity">AAudioMakerActivity</string>
 
 
-<!--    value for OpenSLESActivity-->
+    <!--value for OpenSLESActivity-->
     <string name="play_background">play background music</string>
     <string name="record">record audio</string>
     <string name="play_pcm">play pcm from file</string>
+
+    <!--value for AAudioMakerActivity-->
+    <string name="play_audio_maker">tap anywhere to make sound</string>
+
 </resources>

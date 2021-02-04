@@ -6,7 +6,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 
 
-import com.example.utils.MyLog;
+import com.example.utils.DebugLog;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -29,7 +29,7 @@ public class PermissionHelper {
         mPermissionInterface = permissionInterface;
         boolean bHasPermission = true;
         for (int i = 0; i < permissionList.length; ++i) {
-            MyLog.d(TAG, permissionList[i]);
+            DebugLog.d(TAG, permissionList[i]);
             if (ContextCompat.checkSelfPermission(context, permissionList[i]) != PackageManager.PERMISSION_GRANTED
                     || PermissionChecker.checkSelfPermission(context, permissionList[i]) != PackageManager.PERMISSION_GRANTED) {
                 bHasPermission = false;

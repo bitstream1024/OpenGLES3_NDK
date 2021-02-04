@@ -1,6 +1,7 @@
 package com.example.opengleseglsample;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -76,6 +77,7 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
+    @SuppressLint("NonConstantResourceId")
     public void onClick (View view) {
         switch (view.getId()) {
             case R.id.home_btn_glactivity:
@@ -83,6 +85,12 @@ public class HomeActivity extends AppCompatActivity {
                 break;
             case R.id.home_btn_openslactivity:
                 startOpenSLESActivity();
+                break;
+            case R.id.home_btn_aaudioactivity:
+                startAAudioActivity();
+                break;
+            case R.id.home_btn_aaudiomakeractivity:
+                startAAudioMakerActivity();
                 break;
             default:
                 break;
@@ -101,5 +109,13 @@ public class HomeActivity extends AppCompatActivity {
 
     private void startOpenSLESActivity() {
         startActivity(new Intent(this, OpenSLESActivity.class));
+    }
+
+    private void startAAudioActivity() {
+        startActivity(new Intent(this, AAudioActivity.class));
+    }
+
+    private void startAAudioMakerActivity() {
+        startActivity(new Intent(this, AAudioMakerActivity.class));
     }
 }

@@ -30,4 +30,15 @@ JNIEXPORT void JNICALL Java_com_example_opengleseglsample_OpenSLESActivity_nativ
 JNIEXPORT void JNICALL Java_com_example_opengleseglsample_OpenSLESActivity_nativeCreatePcmPlayer(JNIEnv *env, jobject thiz);
 JNIEXPORT void JNICALL Java_com_example_opengleseglsample_OpenSLESActivity_nativeCreatePcmPlayer(JNIEnv *env, jobject thiz);
 JNIEXPORT void JNICALL Java_com_example_opengleseglsample_OpenSLESActivity_nativeStopPcmPlayer(JNIEnv *env, jobject thiz);
+
+
+///---------------------------------- AAudioActivity function ------------------------------------///
+JNIEXPORT void JNICALL Java_com_example_opengleseglsample_AAudioActivity_nativeSetRecordingState(JNIEnv *env, jobject thiz, jboolean b_recording);
+
+
+///---------------------------------- AAudioWaveMakerActivity function ------------------------------------///
+JNIEXPORT void JNICALL Java_com_example_opengleseglsample_AAudioMakerActivity_nativeStartEngine(JNIEnv *env, jobject thiz);
+JNIEXPORT void JNICALL Java_com_example_opengleseglsample_AAudioMakerActivity_nativeStopEngine(JNIEnv *env, jobject thiz);
+JNIEXPORT void JNICALL Java_com_example_opengleseglsample_AAudioMakerActivity_nativeTouchEvent(JNIEnv *env, jobject thiz, jint action);
+
 }

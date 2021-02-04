@@ -489,7 +489,8 @@ void OpenSLESHelper::startPlayPcmData(std::string pcmPath)
 	}
 	if (pcmPath.empty()) {
 		char testPath [MAX_PATH * 2] {0};
-		sprintf(testPath, "%s/audio_opensl_1611801325117.pcm", RECORDING_FILE_FOLDER);
+		sprintf(testPath, "%s/myfile", RECORDING_FILE_FOLDER);
+		//sprintf(testPath, "%s/audio_opensl_1611801325117.pcm", RECORDING_FILE_FOLDER);
 		m_PcmAudioPlayer.pFile = fopen(testPath, "rb");
 	} else {
 		m_PcmAudioPlayer.pFile = fopen(pcmPath.c_str(), "rb");

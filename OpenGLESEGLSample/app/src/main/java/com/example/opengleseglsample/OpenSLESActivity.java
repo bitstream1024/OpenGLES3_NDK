@@ -5,7 +5,7 @@ import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.view.View;
 
-import com.example.utils.MyLog;
+import com.example.utils.DebugLog;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -37,7 +37,7 @@ public class OpenSLESActivity  extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         int nRet = nativeCreateSLEngine();
-        MyLog.d(TAG, "createSLEngine nRet = " + nRet);
+        DebugLog.d(TAG, "createSLEngine nRet = " + nRet);
     }
 
     @Override
