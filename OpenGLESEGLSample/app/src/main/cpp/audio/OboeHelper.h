@@ -5,7 +5,6 @@
 #pragma once
 
 #include <oboe/Oboe.h>
-#include <oboe/AudioStreamCallback.h>
 
 class OboeHelper
 {
@@ -23,21 +22,25 @@ private:
 
 
 public:
+	static OboeHelper* getInstance();
+
+	void startRecording();
+	void stopRecording();
+	void release();
+
+private:
 	OboeHelper();
 	~OboeHelper();
 
-	void startAudio();
-	void StopAudio();
-
-private:
 	oboe::AudioStreamBuilder 				*m_pAudioStreamBuilder;
 	AudioDataCallback 						*m_pAudioDataCallback;
-	std::shared_ptr<oboe::AudioStream> 		m_pAudioStream;
+	oboe::AudioStream* 						m_pAudioStream;
 	std::mutex								m_AudioLock;
 
 	// audio parameters
 	float 									m_fPhase;
 	int 									m_nChannelCount;
+	FILE*									m_pFile;
 };
 
 

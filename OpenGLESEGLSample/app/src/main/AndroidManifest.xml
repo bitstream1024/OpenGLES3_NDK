@@ -29,6 +29,7 @@
         <activity android:name=".OpenSLESActivity" />
         <activity android:name=".AAudioActivity" />
         <activity android:name=".AAudioMakerActivity" />
+        <activity android:name=".OboeActivity" />
 
     </application>
 

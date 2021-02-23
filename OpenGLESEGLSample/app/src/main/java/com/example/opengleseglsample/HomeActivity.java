@@ -92,19 +92,17 @@ public class HomeActivity extends AppCompatActivity {
             case R.id.home_btn_aaudiomakeractivity:
                 startAAudioMakerActivity();
                 break;
+            case R.id.home_btn_oboeactivity:
+                startOboeActivity();
+                break;
             default:
                 break;
         }
     }
 
     private void startGLActivity () {
-//        if (bPermissionOK) {
-            Intent intent = new Intent(this, GLProcessorActivity.class);
-            startActivity(intent);
-//        }
-        /*else {
-            Toast.makeText(HomeActivity.this, "Please ammit permission", Toast.LENGTH_SHORT).show();
-        }*/
+        Intent intent = new Intent(this, GLProcessorActivity.class);
+        startActivity(intent);
     }
 
     private void startOpenSLESActivity() {
@@ -117,5 +115,9 @@ public class HomeActivity extends AppCompatActivity {
 
     private void startAAudioMakerActivity() {
         startActivity(new Intent(this, AAudioMakerActivity.class));
+    }
+
+    private void startOboeActivity() {
+        startActivity(new Intent(this, OboeActivity.class));
     }
 }

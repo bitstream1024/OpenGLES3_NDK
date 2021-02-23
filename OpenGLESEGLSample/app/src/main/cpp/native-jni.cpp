@@ -8,6 +8,7 @@
 #include "audio/OpenSLESHelper.h"
 #include "audio/AAudioHelper.h"
 #include "audio/AAduioWaveMaker.h"
+#include "audio/OboeHelper.h"
 
 #define AMOTION_EVENT_ACTION_DOWN	0
 #define AMOTION_EVENT_ACTION_UP		1
@@ -243,3 +244,14 @@ Java_com_example_opengleseglsample_AAudioMakerActivity_nativeTouchEvent(JNIEnv *
 	}
 }
 
+extern "C" void
+Java_com_example_opengleseglsample_OboeActivity_nativeSetRecordingState(JNIEnv *env, jobject thiz, jboolean b_playing)
+{
+	// TODO: implement nativeSetRecordingState()
+	bool bRecording = b_playing;
+	if (bRecording) {
+		OboeHelper::getInstance()->startRecording();
+	} else {
+		OboeHelper::getInstance()->stopRecording();
+	}
+}

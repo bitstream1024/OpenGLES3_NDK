@@ -41,4 +41,7 @@ JNIEXPORT void JNICALL Java_com_example_opengleseglsample_AAudioMakerActivity_na
 JNIEXPORT void JNICALL Java_com_example_opengleseglsample_AAudioMakerActivity_nativeStopEngine(JNIEnv *env, jobject thiz);
 JNIEXPORT void JNICALL Java_com_example_opengleseglsample_AAudioMakerActivity_nativeTouchEvent(JNIEnv *env, jobject thiz, jint action);
 
+
+///---------------------------------- OboeActivity function ------------------------------------///
+JNIEXPORT void JNICALL Java_com_example_opengleseglsample_OboeActivity_nativeSetRecordingState(JNIEnv *env, jobject thiz, jboolean b_playing);
 }
