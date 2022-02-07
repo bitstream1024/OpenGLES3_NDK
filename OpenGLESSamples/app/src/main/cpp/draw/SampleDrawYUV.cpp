@@ -69,14 +69,14 @@ void SampleDrawYUV::UnInitSample () {
 
 RESULT SampleDrawYUV::SetImageYuvResource(MyImageInfo *const pSrcImage) {
     LOGD("SampleDrawYUV::SetImageYuvResource");
-    if (nullptr == pSrcImage || nullptr == pSrcImage->buffer[0]) {
+    if (nullptr == pSrcImage || nullptr == pSrcImage->ppBuffer[0]) {
         LOGE("SampleDrawYUV::SetImageYuvResource pSrcImage error");
         return ERROR_IMAGE;
     }
     m_YUVImage.width = pSrcImage->width;
     m_YUVImage.height = pSrcImage->height;
     m_YUVImage.format = pSrcImage->format;
-    memcpy(m_YUVImage.channel, pSrcImage->channel, 4 * sizeof(int));
+    memcpy(m_YUVImage.wPitch, pSrcImage->wPitch, 4 * sizeof(int));
     OpenImageHelper::AllocMyImageInfo(&m_YUVImage);
     OpenImageHelper::CopyMyImageInfo(&m_YUVImage, pSrcImage);
     return 0;
@@ -118,14 +118,14 @@ RESULT SampleDrawYUV::createGLBuffer() {
     DrawHelper::GetOneTexture(TEXTURE_TARGET, &mTextureLumin);
     glBindTexture(TEXTURE_TARGET, mTextureLumin);
     glTexImage2D(TEXTURE_TARGET, 0, GL_LUMINANCE, srcWidth, srcHeight, 0, GL_LUMINANCE,
-            GL_UNSIGNED_BYTE, m_YUVImage.buffer[0]);
+            GL_UNSIGNED_BYTE, m_YUVImage.ppBuffer[0]);
     DrawHelper::CheckGLError("SampleDrawYUV::createGLBuffer glTexImage2D mTextureLumin");
     glBindTexture(TEXTURE_TARGET, GL_NONE);
 
     DrawHelper::GetOneTexture(TEXTURE_TARGET, &mTextureAlpha);
     glBindTexture(TEXTURE_TARGET, mTextureAlpha);
     glTexImage2D(TEXTURE_TARGET, 0, GL_LUMINANCE_ALPHA, srcWidth>>1, srcHeight>>1,
-            0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, m_YUVImage.buffer[1]);
+            0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, m_YUVImage.ppBuffer[1]);
     DrawHelper::CheckGLError("SampleDrawYUV::createGLBuffer glTexImage2D mTextureAlpha");
     glBindTexture(TEXTURE_TARGET, GL_NONE);
 

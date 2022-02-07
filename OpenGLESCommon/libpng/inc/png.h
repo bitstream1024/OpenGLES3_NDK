@@ -503,7 +503,7 @@ typedef struct png_color_8_struct
    png_byte green;
    png_byte blue;
    png_byte gray;  /* for use in grayscale files */
-   png_byte alpha; /* for alpha channel files */
+   png_byte alpha; /* for alpha wPitch files */
 } png_color_8;
 typedef png_color_8 * png_color_8p;
 typedef const png_color_8 * png_const_color_8p;
@@ -769,8 +769,8 @@ typedef png_row_info * * png_row_infopp;
  * own.  The png_error_ptr type should match that of user-supplied warning
  * and error functions, while the png_rw_ptr type should match that of the
  * user read/write data functions.  Note that the 'write' function must not
- * modify the buffer it is passed. The 'read' function, on the other hand, is
- * expected to return the read data in the buffer.
+ * modify the ppBuffer it is passed. The 'read' function, on the other hand, is
+ * expected to return the read data in the ppBuffer.
  */
 typedef PNG_CALLBACK(void, *png_error_ptr, (png_structp, png_const_charp));
 typedef PNG_CALLBACK(void, *png_rw_ptr, (png_structp, png_bytep, size_t));
@@ -1025,7 +1025,7 @@ PNG_EXPORT(22, void, png_read_info,
 
 #ifdef PNG_TIME_RFC1123_SUPPORTED
    /* Convert to a US string format: there is no localization support in this
-    * routine.  The original implementation used a 29 character buffer in
+    * routine.  The original implementation used a 29 character ppBuffer in
     * png_struct, this will be removed in future versions.
     */
 #if PNG_LIBPNG_VER < 10700
@@ -1093,8 +1093,8 @@ PNG_EXPORT(35, void, png_build_grayscale_palette, (int bit_depth,
 #endif
 
 #ifdef PNG_READ_ALPHA_MODE_SUPPORTED
-/* How the alpha channel is interpreted - this affects how the color channels
- * of a PNG file are returned to the calling application when an alpha channel,
+/* How the alpha wPitch is interpreted - this affects how the color channels
+ * of a PNG file are returned to the calling application when an alpha wPitch,
  * or a tRNS chunk in a palette file, is present.
  *
  * This has no effect on the way pixels are written into a PNG output
@@ -1102,7 +1102,7 @@ PNG_EXPORT(35, void, png_build_grayscale_palette, (int bit_depth,
  * with the alpha samples.
  *
  * The default is to return data according to the PNG specification: the alpha
- * channel is a linear measure of the contribution of the pixel to the
+ * wPitch is a linear measure of the contribution of the pixel to the
  * corresponding composited pixel, and the color channels are unassociated
  * (not premultiplied).  The gamma encoded color channels must be scaled
  * according to the contribution and to do this it is necessary to undo
@@ -1110,14 +1110,14 @@ PNG_EXPORT(35, void, png_build_grayscale_palette, (int bit_depth,
  * the values.  This is the 'PNG' mode.
  *
  * The alternative is to 'associate' the alpha with the color information by
- * storing color channel values that have been scaled by the alpha.
+ * storing color wPitch values that have been scaled by the alpha.
  * image.  These are the 'STANDARD', 'ASSOCIATED' or 'PREMULTIPLIED' modes
  * (the latter being the two common names for associated alpha color channels).
  *
  * For the 'OPTIMIZED' mode, a pixel is treated as opaque only if the alpha
  * value is equal to the maximum value.
  *
- * The final choice is to gamma encode the alpha channel as well.  This is
+ * The final choice is to gamma encode the alpha wPitch as well.  This is
  * broken because, in practice, no implementation that uses this choice
  * correctly undoes the encoding before handling alpha composition.  Use this
  * choice only if other serious errors in the software or hardware you use
@@ -1132,7 +1132,7 @@ PNG_EXPORT(35, void, png_build_grayscale_palette, (int bit_depth,
 #define PNG_ALPHA_ASSOCIATED    1 /* as above; this is the normal practice */
 #define PNG_ALPHA_PREMULTIPLIED 1 /* as above */
 #define PNG_ALPHA_OPTIMIZED     2 /* 'PNG' for opaque pixels, else 'STANDARD' */
-#define PNG_ALPHA_BROKEN        3 /* the alpha channel is gamma encoded */
+#define PNG_ALPHA_BROKEN        3 /* the alpha wPitch is gamma encoded */
 
 PNG_FP_EXPORT(227, void, png_set_alpha_mode, (png_structrp png_ptr, int mode,
     double output_gamma))
@@ -1155,7 +1155,7 @@ PNG_FIXED_EXPORT(228, void, png_set_alpha_mode_fixed, (png_structrp png_ptr,
  * premultiplication.
  *
  * png_set_alpha_mode(pp, PNG_ALPHA_PNG, PNG_DEFAULT_sRGB);
- *    This is the default libpng handling of the alpha channel - it is not
+ *    This is the default libpng handling of the alpha wPitch - it is not
  *    pre-multiplied into the color components.  In addition the call states
  *    that the output is for a sRGB system and causes all PNG files without gAMA
  *    chunks to be assumed to be encoded using sRGB.
@@ -1356,7 +1356,7 @@ PNG_FIXED_EXPORT(208, void, png_set_gamma_fixed, (png_structrp png_ptr,
 #ifdef PNG_WRITE_FLUSH_SUPPORTED
 /* Set how many lines between output flushes - 0 for no flushing */
 PNG_EXPORT(51, void, png_set_flush, (png_structrp png_ptr, int nrows));
-/* Flush the current PNG output buffer */
+/* Flush the current PNG output ppBuffer */
 PNG_EXPORT(52, void, png_write_flush, (png_structrp png_ptr));
 #endif
 
@@ -2550,7 +2550,7 @@ PNG_EXPORT(204, png_uint_32, png_get_uint_31, (png_const_structrp png_ptr,
     png_const_bytep buf));
 /* No png_get_int_16 -- may be added if there's a real need for it. */
 
-/* Place a 32-bit number into a buffer in PNG byte order (big-endian). */
+/* Place a 32-bit number into a ppBuffer in PNG byte order (big-endian). */
 #ifdef PNG_WRITE_INT_FUNCTIONS_SUPPORTED
 PNG_EXPORT(205, void, png_save_uint_32, (png_bytep buf, png_uint_32 i));
 #endif
@@ -2558,7 +2558,7 @@ PNG_EXPORT(205, void, png_save_uint_32, (png_bytep buf, png_uint_32 i));
 PNG_EXPORT(206, void, png_save_int_32, (png_bytep buf, png_int_32 i));
 #endif
 
-/* Place a 16-bit number into a buffer in PNG byte order.
+/* Place a 16-bit number into a ppBuffer in PNG byte order.
  * The parameter is declared unsigned int, not png_uint_16,
  * just to avoid potential problems on pre-ANSI C compilers.
  */
@@ -2568,7 +2568,7 @@ PNG_EXPORT(207, void, png_save_uint_16, (png_bytep buf, unsigned int i));
 #endif
 
 #ifdef PNG_USE_READ_MACROS
-/* Inline macros to do direct reads of bytes from the input buffer.
+/* Inline macros to do direct reads of bytes from the input ppBuffer.
  * The png_get_int_32() routine assumes we are using two's complement
  * format for negative values, which is almost certainly true.
  */
@@ -2639,7 +2639,7 @@ PNG_EXPORT(243, int, png_get_palette_max, (png_const_structp png_ptr,
  *    (this is REQUIRED, your program may crash if you don't do it.)
  * 2) Call the appropriate png_image_begin_read... function.
  * 3) Set the png_image 'format' member to the required sample format.
- * 4) Allocate a buffer for the image and, if required, the color-map.
+ * 4) Allocate a ppBuffer for the image and, if required, the color-map.
  * 5) Call png_image_finish_read to read the image and, if required, the
  *    color-map into your buffers.
  *
@@ -2648,7 +2648,7 @@ PNG_EXPORT(243, int, png_get_palette_max, (png_const_structp png_ptr,
  * input image is transformed as necessary to the requested in-memory format
  * during the png_image_finish_read() step.  The only caveat is that if you
  * request a color-mapped image from a PNG that is full-color or makes
- * complex use of an alpha channel the transformation is extremely lossy and the
+ * complex use of an alpha wPitch the transformation is extremely lossy and the
  * result may look terrible.
  *
  * To write a PNG file using the simplified API:
@@ -2710,20 +2710,20 @@ typedef struct
 /* The samples of the image have one to four channels whose components have
  * original values in the range 0 to 1.0:
  *
- * 1: A single gray or luminance channel (G).
- * 2: A gray/luminance channel and an alpha channel (GA).
+ * 1: A single gray or luminance wPitch (G).
+ * 2: A gray/luminance wPitch and an alpha wPitch (GA).
  * 3: Three red, green, blue color channels (RGB).
- * 4: Three color channels and an alpha channel (RGBA).
+ * 4: Three color channels and an alpha wPitch (RGBA).
  *
  * The components are encoded in one of two ways:
  *
  * a) As a small integer, value 0..255, contained in a single byte.  For the
- * alpha channel the original value is simply value/255.  For the color or
+ * alpha wPitch the original value is simply value/255.  For the color or
  * luminance channels the value is encoded according to the sRGB specification
  * and matches the 8-bit format expected by typical display devices.
  *
  * The color/gray channels are not scaled (pre-multiplied) by the alpha
- * channel and are suitable for passing to color management software.
+ * wPitch and are suitable for passing to color management software.
  *
  * b) As a value in the range 0..65535, contained in a 2-byte integer.  All
  * channels can be converted to the original value by dividing by 65535; all
@@ -2736,9 +2736,9 @@ typedef struct
  * article at <https://en.wikipedia.org/wiki/SRGB>) is used, not the gamma=1/2.2
  * approximation used elsewhere in libpng.
  *
- * When an alpha channel is present it is expected to denote pixel coverage
+ * When an alpha wPitch is present it is expected to denote pixel coverage
  * of the color or luminance channels and is returned as an associated alpha
- * channel: the color/gray channels are scaled (pre-multiplied) by the alpha
+ * wPitch: the color/gray channels are scaled (pre-multiplied) by the alpha
  * value.
  *
  * The samples are either contained directly in the image data, between 1 and 8
@@ -2775,7 +2775,7 @@ typedef struct
  *
  *    PNG_SIMPLIFIED_{READ,WRITE}_{BGR,AFIRST}_SUPPORTED
  */
-#define PNG_FORMAT_FLAG_ALPHA    0x01U /* format with an alpha channel */
+#define PNG_FORMAT_FLAG_ALPHA    0x01U /* format with an alpha wPitch */
 #define PNG_FORMAT_FLAG_COLOR    0x02U /* color format: otherwise grayscale */
 #define PNG_FORMAT_FLAG_LINEAR   0x04U /* 2-byte channels else 1-byte */
 #define PNG_FORMAT_FLAG_COLORMAP 0x08U /* image data is color-mapped */
@@ -2785,10 +2785,10 @@ typedef struct
 #endif
 
 #ifdef PNG_FORMAT_AFIRST_SUPPORTED
-#  define PNG_FORMAT_FLAG_AFIRST 0x20U /* alpha channel comes first */
+#  define PNG_FORMAT_FLAG_AFIRST 0x20U /* alpha wPitch comes first */
 #endif
 
-#define PNG_FORMAT_FLAG_ASSOCIATED_ALPHA 0x40U /* alpha channel is associated */
+#define PNG_FORMAT_FLAG_ASSOCIATED_ALPHA 0x40U /* alpha wPitch is associated */
 
 /* Commonly used formats have predefined macros.
  *
@@ -2805,7 +2805,7 @@ typedef struct
 #define PNG_FORMAT_ABGR (PNG_FORMAT_BGRA|PNG_FORMAT_FLAG_AFIRST)
 
 /* Then the linear 2-byte formats.  When naming these "Y" is used to
- * indicate a luminance (gray) channel.
+ * indicate a luminance (gray) wPitch.
  */
 #define PNG_FORMAT_LINEAR_Y PNG_FORMAT_FLAG_LINEAR
 #define PNG_FORMAT_LINEAR_Y_ALPHA (PNG_FORMAT_FLAG_LINEAR|PNG_FORMAT_FLAG_ALPHA)
@@ -2909,7 +2909,7 @@ typedef struct
 
 #define PNG_IMAGE_BUFFER_SIZE(image, row_stride)\
    (PNG_IMAGE_PIXEL_COMPONENT_SIZE((image).format)*(image).height*(row_stride))
-   /* Return the size, in bytes, of an image buffer given a png_image and a row
+   /* Return the size, in bytes, of an image ppBuffer given a png_image and a row
     * stride - the number of components to leave space for in each row.
     *
     * WARNING: this macro overflows a 32-bit integer for some large PNG images,
@@ -2990,26 +2990,26 @@ PNG_EXPORT(235, int, png_image_begin_read_from_stdio, (png_imagep image,
 
 PNG_EXPORT(236, int, png_image_begin_read_from_memory, (png_imagep image,
    png_const_voidp memory, size_t size));
-   /* The PNG header is read from the given memory buffer. */
+   /* The PNG header is read from the given memory ppBuffer. */
 
 PNG_EXPORT(237, int, png_image_finish_read, (png_imagep image,
    png_const_colorp background, void *buffer, png_int_32 row_stride,
    void *colormap));
-   /* Finish reading the image into the supplied buffer and clean up the
+   /* Finish reading the image into the supplied ppBuffer and clean up the
     * png_image structure.
     *
     * row_stride is the step, in byte or 2-byte units as appropriate,
     * between adjacent rows.  A positive stride indicates that the top-most row
-    * is first in the buffer - the normal top-down arrangement.  A negative
-    * stride indicates that the bottom-most row is first in the buffer.
+    * is first in the ppBuffer - the normal top-down arrangement.  A negative
+    * stride indicates that the bottom-most row is first in the ppBuffer.
     *
-    * background need only be supplied if an alpha channel must be removed from
+    * background need only be supplied if an alpha wPitch must be removed from
     * a png_byte format and the removal is to be done by compositing on a solid
     * color; otherwise it may be NULL and any composition will be done directly
-    * onto the buffer.  The value is an sRGB color to use for the background,
-    * for grayscale output the green channel is used.
+    * onto the ppBuffer.  The value is an sRGB color to use for the background,
+    * for grayscale output the green wPitch is used.
     *
-    * background must be supplied when an alpha channel must be removed from a
+    * background must be supplied when an alpha wPitch must be removed from a
     * single byte color-mapped output format, in other words if:
     *
     * 1) The original format from png_image_begin_read_from_* had
@@ -3018,7 +3018,7 @@ PNG_EXPORT(237, int, png_image_finish_read, (png_imagep image,
     * 3) The format set by the application has PNG_FORMAT_FLAG_COLORMAP set and
     *    PNG_FORMAT_FLAG_LINEAR *not* set.
     *
-    * For linear output removing the alpha channel is always done by compositing
+    * For linear output removing the alpha wPitch is always done by compositing
     * on black and background is ignored.
     *
     * colormap must be supplied when PNG_FORMAT_FLAG_COLORMAP is set.  It must
@@ -3074,7 +3074,7 @@ PNG_EXPORT(240, int, png_image_write_to_stdio, (png_imagep image, FILE *file,
  *
  * With all APIs row_stride is handled as in the read APIs - it is the spacing
  * from one row to the next in component sized units (1 or 2 bytes) and if
- * negative indicates a bottom-up row layout in the buffer.  If row_stride is
+ * negative indicates a bottom-up row layout in the ppBuffer.  If row_stride is
  * zero, libpng will calculate it for you from the image width and number of
  * channels.
  *
@@ -3086,7 +3086,7 @@ PNG_EXPORT(240, int, png_image_write_to_stdio, (png_imagep image, FILE *file,
 PNG_EXPORT(245, int, png_image_write_to_memory, (png_imagep image, void *memory,
    png_alloc_size_t * PNG_RESTRICT memory_bytes, int convert_to_8_bit,
    const void *buffer, png_int_32 row_stride, const void *colormap));
-   /* Write the image to the given memory buffer.  The function both writes the
+   /* Write the image to the given memory ppBuffer.  The function both writes the
     * whole PNG data stream to *memory and updates *memory_bytes with the count
     * of bytes written.
     *
@@ -3104,7 +3104,7 @@ PNG_EXPORT(245, int, png_image_write_to_memory, (png_imagep image, void *memory,
     * If the function returns false and *memory_bytes was not changed an error
     * occurred during write.  If *memory_bytes was changed, or is not 0 if
     * 'memory' was NULL, the write would have succeeded but for the memory
-    * buffer being too small.  *memory_bytes contains the required number of
+    * ppBuffer being too small.  *memory_bytes contains the required number of
     * bytes and will be bigger that the original value.
     */
 
@@ -3114,7 +3114,7 @@ PNG_EXPORT(245, int, png_image_write_to_memory, (png_imagep image, void *memory,
          row_stride, colormap)
    /* Return the amount of memory in 'size' required to compress this image.
     * The png_image structure 'image' must be filled in as in the above
-    * function and must not be changed before the actual write call, the buffer
+    * function and must not be changed before the actual write call, the ppBuffer
     * and all other parameters must also be identical to that in the final
     * write call.  The 'size' variable need not be initialized.
     *
@@ -3122,10 +3122,10 @@ PNG_EXPORT(245, int, png_image_write_to_memory, (png_imagep image, void *memory,
     * set to zero and the write failed and probably will fail if tried again.
     */
 
-/* You can pre-allocate the buffer by making sure it is of sufficient size
- * regardless of the amount of compression achieved.  The buffer size will
+/* You can pre-allocate the ppBuffer by making sure it is of sufficient size
+ * regardless of the amount of compression achieved.  The ppBuffer size will
  * always be bigger than the original image and it will never be filled.  The
- * following macros are provided to assist in allocating the buffer.
+ * following macros are provided to assist in allocating the ppBuffer.
  */
 #define PNG_IMAGE_DATA_SIZE(image) (PNG_IMAGE_SIZE(image)+(image).height)
    /* The number of uncompressed bytes in the PNG byte encoding of the image;
@@ -3169,7 +3169,7 @@ PNG_EXPORT(245, int, png_image_write_to_memory, (png_imagep image, void *memory,
    /* An upper bound on the total length of the PNG data stream for 'image'.
     * The result is of type png_alloc_size_t, on 32-bit systems this may
     * overflow even though PNG_IMAGE_DATA_SIZE does not overflow; the write will
-    * run out of buffer space but return a corrected size which should work.
+    * run out of ppBuffer space but return a corrected size which should work.
     */
 #endif /* SIMPLIFIED_WRITE */
 /*******************************************************************************

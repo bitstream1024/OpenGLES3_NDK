@@ -44,7 +44,7 @@ void SampleDrawFBO::UnInitSample ()
 
 RESULT SampleDrawFBO::OnDrawFrame ()
 {
-	CAL_TIME_COST("SampleDrawFBO::onDrawFrame");
+	AUTO_COUNT_TIME_COST("SampleDrawFBO::onDrawFrame");
 
 	float angle = 0.f;
 	long long currentTime = MyTimeUtils::getCurrentTime();
@@ -347,7 +347,7 @@ void SampleDrawFBO::initMVPMatrix ()
 
 RESULT SampleDrawFBO::OnDrawFrameRect()
 {
-	CAL_TIME_COST("SampleDrawFBO::OnDrawFrameRect")
+	AUTO_COUNT_TIME_COST("SampleDrawFBO::OnDrawFrameRect")
 
 	std::vector <GLfloat> vertex {
 		-0.5f, -0.5f, 0,

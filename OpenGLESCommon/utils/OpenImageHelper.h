@@ -17,9 +17,9 @@ class OpenImageHelper
 
 private:
 	/**
-	 * Calculate image buffer length
+	 * Calculate image ppBuffer length
 	 * @param lpMyImageInfo
-	 * @return Size of image buffer
+	 * @return Size of image ppBuffer
 	 */
 	static long CalMyImageBufferLength (const LPMyImageInfo lpMyImageInfo)
 	{
@@ -33,14 +33,12 @@ private:
 		switch (lpMyImageInfo->format)
 		{
 			case MY_FORMAT_RGB:
-				lSize = 3 * lpMyImageInfo->channel[0] * lpMyImageInfo->height;
-				break;
 			case MY_FORMAT_RGBA:
-				lSize = 4 * lpMyImageInfo->channel[0] * lpMyImageInfo->height;
+				lSize = lpMyImageInfo->wPitch[0] * lpMyImageInfo->height;
 				break;
 			case MY_FORMAT_NV12:
 			case MY_FORMAT_NV21:
-				lSize = (long)(1.5 * lpMyImageInfo->channel[0] * lpMyImageInfo->height);
+				lSize = (long)(lpMyImageInfo->wPitch[0] * lpMyImageInfo->height * 3/2);
 			default:
 				break;
 		}
@@ -58,15 +56,15 @@ public:
 	}
 
 	/**
-	 * Alloc MyImageInfo, buffer of image should be null
+	 * Alloc MyImageInfo, ppBuffer of image should be null
 	 * @param lpMyImageInfo
 	 * @return
 	 */
 	static long AllocMyImageInfo (LPMyImageInfo lpMyImageInfo)
 	{
 		LOGD("AllocMyImageInfo");
-		if (NULL == lpMyImageInfo || 0 == lpMyImageInfo->width || 0 == lpMyImageInfo->channel[0]
-			|| 0 == lpMyImageInfo->height || NULL != lpMyImageInfo->buffer[0])
+		if (NULL == lpMyImageInfo || 0 == lpMyImageInfo->width || 0 == lpMyImageInfo->wPitch[0]
+			|| 0 == lpMyImageInfo->height || NULL != lpMyImageInfo->ppBuffer[0])
 		{
 			LOGE("AllocMyImageInfo lpMyImageInfo wrong");
 			return ERROR_INPUT;
@@ -85,16 +83,16 @@ public:
 		{
 			case MY_FORMAT_RGB:
 			case MY_FORMAT_RGBA:
-				lpMyImageInfo->buffer[0] = (unsigned char *) malloc(lSize);
-				CHECK_MALLOC_BREAK(lpMyImageInfo->buffer[0], &ret, "AllocMyImageInfo MY_FORMAT_RGB MY_FORMAT_RGBA");
-				memset(lpMyImageInfo->buffer[0], 0, lSize);
+				lpMyImageInfo->ppBuffer[0] = (unsigned char *) malloc(lSize);
+				CHECK_MALLOC_BREAK(lpMyImageInfo->ppBuffer[0], &ret, "AllocMyImageInfo MY_FORMAT_RGB MY_FORMAT_RGBA");
+				memset(lpMyImageInfo->ppBuffer[0], 0, lSize);
 				break;
 			case MY_FORMAT_NV12:
 			case MY_FORMAT_NV21:
-				lpMyImageInfo->buffer[0] = (unsigned char*) malloc(lSize);
-				CHECK_MALLOC_BREAK(lpMyImageInfo->buffer[0], &ret, "AllocMyImageInfo MY_FORMAT_NV12 MY_FORMAT_NV21");
-				memset(lpMyImageInfo->buffer[0], 0, lSize);
-				lpMyImageInfo->buffer[1] = lpMyImageInfo->buffer[0] + lpMyImageInfo->channel[0] * lpMyImageInfo->height;
+				lpMyImageInfo->ppBuffer[0] = (unsigned char*) malloc(lSize);
+				CHECK_MALLOC_BREAK(lpMyImageInfo->ppBuffer[0], &ret, "AllocMyImageInfo MY_FORMAT_NV12 MY_FORMAT_NV21");
+				memset(lpMyImageInfo->ppBuffer[0], 0, lSize);
+				lpMyImageInfo->ppBuffer[1] = lpMyImageInfo->ppBuffer[0] + lpMyImageInfo->wPitch[0] * lpMyImageInfo->height;
 				break;
 			default:
 				break;
@@ -106,7 +104,7 @@ public:
 	{
 		LOGD("FreeMyImageInfo");
 		CHECK_NULL_INPUT(lpMyImageInfo)
-		SafeFree(lpMyImageInfo->buffer[0]);
+		SafeFree(lpMyImageInfo->ppBuffer[0]);
 		memset(lpMyImageInfo, 0, sizeof(MyImageInfo));
 		return ERROR_OK;
 	}
@@ -119,15 +117,15 @@ public:
 	 */
 	static int CopyMyImageInfo (LPMyImageInfo pDstImage, MyImageInfo *const pSrcImage)
 	{
-		CAL_TIME_COST("OpenImageHelper::CopyMyImageInfo");
-		if (nullptr == pDstImage || nullptr == pDstImage->buffer[0] || nullptr == pSrcImage
-			|| nullptr == pSrcImage->buffer[0] || pSrcImage->width != pDstImage->width
-			|| pSrcImage->height != pDstImage->height) {
+		AUTO_COUNT_TIME_COST("OpenImageHelper::CopyMyImageInfo");
+		if (nullptr == pDstImage || nullptr == pDstImage->ppBuffer[0] || nullptr == pSrcImage
+            || nullptr == pSrcImage->ppBuffer[0] || pSrcImage->width != pDstImage->width
+            || pSrcImage->height != pDstImage->height) {
 			LOGE("OpenImageHelper::CopyMyImageInfo input error");
 			return ERROR_INPUT;
 		}
 		long lSize = CalMyImageBufferLength(pSrcImage);
-		memcpy(pDstImage->buffer[0], pSrcImage->buffer[0], lSize);
+		memcpy(pDstImage->ppBuffer[0], pSrcImage->ppBuffer[0], lSize);
 		return ERROR_OK;
 	}
 
@@ -160,7 +158,7 @@ public:
 			LOGD("LoadPngFromFile png_image_finish_read ret = %d", ret);
 			CHECK_PNG_RET_BREAK (&ret)
 
-			/*ret = png_image_write_to_file(&image, "/sdcard/testlibpng.png", 0, buffer, 0, NULL);
+			/*ret = png_image_write_to_file(&image, "/sdcard/testlibpng.png", 0, ppBuffer, 0, NULL);
 			LOGD("LoadPngFromFile png_image_write_to_file ret = %d", ret);
 			CHECK_PNG_RET_BREAK (ret)*/
 
@@ -169,10 +167,11 @@ public:
 			lpMyImageInfo->height = static_cast<int>(image.height);
 			if (PNG_FORMAT_RGBA == image.format) {
 				lpMyImageInfo->format = MY_FORMAT_RGBA;
-			} else{
-				lpMyImageInfo->format = MY_FORMAT_RGB;
-			}
-			lpMyImageInfo->channel[0] = lpMyImageInfo->width;
+                lpMyImageInfo->wPitch[0] = lpMyImageInfo->width * 4;
+            } else {
+                lpMyImageInfo->format = MY_FORMAT_RGB;
+                lpMyImageInfo->wPitch[0] = lpMyImageInfo->width * 3;
+            }
 			long lSize = 0;
 			lSize = AllocMyImageInfo(lpMyImageInfo);
 			if (0 == lSize)
@@ -180,7 +179,7 @@ public:
 				LOGE("LoadPngFromFile AllocMyImageInfo error");
 				break;
 			}
-			memcpy(lpMyImageInfo->buffer[0], buffer, PNG_IMAGE_SIZE(image));
+			memcpy(lpMyImageInfo->ppBuffer[0], buffer, PNG_IMAGE_SIZE(image));
 
 		} while(false);
 
@@ -198,20 +197,20 @@ public:
 		if (!lpMyImageInfo)
 			return;
 		if (logInfo)
-			LOGD("%s OpenImageHelper::PrintMyImageInfo width = %d, height = %d, format = %d, channel = (%d, %d, %d, %d), buffer[0] = %p",
-					logInfo, lpMyImageInfo->width, lpMyImageInfo->height, lpMyImageInfo->format, lpMyImageInfo->channel[0],
-					lpMyImageInfo->channel[1], lpMyImageInfo->channel[2], lpMyImageInfo->channel[3], lpMyImageInfo->buffer[0]);
+			LOGD("%s OpenImageHelper::PrintMyImageInfo width = %d, height = %d, format = %d, wPitch = (%d, %d, %d, %d), ppBuffer[0] = %p",
+                 logInfo, lpMyImageInfo->width, lpMyImageInfo->height, lpMyImageInfo->format, lpMyImageInfo->wPitch[0],
+                 lpMyImageInfo->wPitch[1], lpMyImageInfo->wPitch[2], lpMyImageInfo->wPitch[3], lpMyImageInfo->ppBuffer[0]);
 		else
-			LOGD("OpenImageHelper::PrintMyImageInfo width = %d, height = %d, format = %d, channel = (%d, %d, %d, %d), buffer[0] = %p",
-				 lpMyImageInfo->width, lpMyImageInfo->height, lpMyImageInfo->format, lpMyImageInfo->channel[0],
-				 lpMyImageInfo->channel[1], lpMyImageInfo->channel[2], lpMyImageInfo->channel[3], lpMyImageInfo->buffer[0]);
+			LOGD("OpenImageHelper::PrintMyImageInfo width = %d, height = %d, format = %d, wPitch = (%d, %d, %d, %d), ppBuffer[0] = %p",
+                 lpMyImageInfo->width, lpMyImageInfo->height, lpMyImageInfo->format, lpMyImageInfo->wPitch[0],
+                 lpMyImageInfo->wPitch[1], lpMyImageInfo->wPitch[2], lpMyImageInfo->wPitch[3], lpMyImageInfo->ppBuffer[0]);
 	}
 
 	static int SaveImageToYuv (const LPMyImageInfo lpMyImageInfo, const char* sPath)
 	{
-		CAL_TIME_COST("SaveImage")
+		AUTO_COUNT_TIME_COST("SaveImage")
 		CHECK_NULL_INPUT(lpMyImageInfo)
-		CHECK_NULL_INPUT(lpMyImageInfo->buffer[0])
+		CHECK_NULL_INPUT(lpMyImageInfo->ppBuffer[0])
 		CHECK_NULL_INPUT(sPath)
 		LOGD("SaveImageToYuv sPath = %s", sPath);
 
@@ -221,7 +220,7 @@ public:
 		fp = fopen(sPath, "wb");
 		if (fp)
 		{
-			fwrite(lpMyImageInfo->buffer[0], 1, lSize, fp);
+			fwrite(lpMyImageInfo->ppBuffer[0], 1, lSize, fp);
 			fclose(fp);
 		}
 		else
@@ -233,9 +232,9 @@ public:
 
 	static ERROR_CODE SaveImageToPng (const LPMyImageInfo lpMyImageInfo, const char* sPath)
 	{
-		CAL_TIME_COST("SaveImageToPng");
+		AUTO_COUNT_TIME_COST("SaveImageToPng");
 		CHECK_NULL_INPUT(lpMyImageInfo)
-		CHECK_NULL_INPUT(lpMyImageInfo->buffer[0])
+		CHECK_NULL_INPUT(lpMyImageInfo->ppBuffer[0])
 		CHECK_NULL_INPUT(sPath)
 		LOGD("SaveImageToPng sPath = %s", sPath);
 
@@ -251,7 +250,7 @@ public:
 			image.format = PNG_FORMAT_RGB;
 		}
 		image.colormap_entries = 256;
-		png_bytep buffer = lpMyImageInfo->buffer[0];
+		png_bytep buffer = lpMyImageInfo->ppBuffer[0];
 		int png_ret = png_image_write_to_file(&image, sPath, 0, buffer, 0, NULL);
 		LOGD("SaveImageToPng png_image_write_to_file ret = %d", png_ret);
 		if (0 == png_ret)
@@ -265,8 +264,8 @@ public:
 
 	static void ExchangeImageCoordinateY (LPMyImageInfo lpMyImageInfo)
 	{
-		CAL_TIME_COST("ExchangeImageCoordinateY");
-		if (NULL == lpMyImageInfo || NULL == lpMyImageInfo->buffer[0])
+		AUTO_COUNT_TIME_COST("ExchangeImageCoordinateY");
+		if (NULL == lpMyImageInfo || NULL == lpMyImageInfo->ppBuffer[0])
 		{
 			LOGE("ExchangeImageCoordinateY ERROR_INPUT");
 			return;
@@ -285,7 +284,7 @@ public:
 				break;
 		}
 
-		int pitch = lpMyImageInfo->channel[0];
+		int pitch = lpMyImageInfo->wPitch[0];
 		int height = lpMyImageInfo->height;
 		int lineSize = channelNum * pitch;
 		unsigned char *lineBuffer = NULL;
@@ -295,9 +294,9 @@ public:
 		int num = height / 2;
 		for (int i = 0; i < num; ++i)
 		{
-			memcpy(lineBuffer, lpMyImageInfo->buffer[0] + i * lineSize, lineSize);
-			memcpy(lpMyImageInfo->buffer[0] + i * lineSize, (lpMyImageInfo->buffer[0] + (height - i - 1) * lineSize), lineSize);
-			memcpy((lpMyImageInfo->buffer[0] + (height - i - 1) * lineSize), lineBuffer, lineSize);
+			memcpy(lineBuffer, lpMyImageInfo->ppBuffer[0] + i * lineSize, lineSize);
+			memcpy(lpMyImageInfo->ppBuffer[0] + i * lineSize, (lpMyImageInfo->ppBuffer[0] + (height - i - 1) * lineSize), lineSize);
+			memcpy((lpMyImageInfo->ppBuffer[0] + (height - i - 1) * lineSize), lineBuffer, lineSize);
 			memset(lineBuffer, 0, sizeof(lineSize));
 		}
 
@@ -345,12 +344,12 @@ public:
 				break;
 			}
 			lpMyImageInfo->width = atoi(strTemp2[strTemp2.size()-1].c_str());
-			lpMyImageInfo->channel[0] = lpMyImageInfo->width;
+			lpMyImageInfo->wPitch[0] = lpMyImageInfo->width;
 			LOGD("LoadYuvFromFile width = %d", lpMyImageInfo->width);
 			if (MY_FORMAT_RGBA == lpMyImageInfo->format || MY_FORMAT_RGB == lpMyImageInfo->format)
 			{
-				lpMyImageInfo->channel[1] = lpMyImageInfo->width;
-				lpMyImageInfo->channel[2] = lpMyImageInfo->width;
+				lpMyImageInfo->wPitch[1] = lpMyImageInfo->width;
+				lpMyImageInfo->wPitch[2] = lpMyImageInfo->width;
 			}
 
 
@@ -365,7 +364,7 @@ public:
 			fp = fopen(sPath, "rb");
 			if (fp)
 			{
-				fread(lpMyImageInfo->buffer[0], 1, lSize, fp);
+				fread(lpMyImageInfo->ppBuffer[0], 1, lSize, fp);
 				fclose(fp);
 			}
 			else

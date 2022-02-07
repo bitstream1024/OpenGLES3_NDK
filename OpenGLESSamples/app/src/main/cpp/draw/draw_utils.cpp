@@ -154,11 +154,11 @@ int drawTexture (ShaderHelper *pShaderHelper, const LPMyImageInfo lpMyImageInfo)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	if (NULL != lpMyImageInfo->buffer[0]) {
-		glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, lpMyImageInfo->width, lpMyImageInfo->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, lpMyImageInfo->buffer[0]);
+	if (NULL != lpMyImageInfo->ppBuffer[0]) {
+		glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, lpMyImageInfo->width, lpMyImageInfo->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, lpMyImageInfo->ppBuffer[0]);
 		glGenerateMipmap (GL_TEXTURE_2D);
 	} else {
-		LOGE("drawTexture myImageInfo.buffer is NULL");
+		LOGE("drawTexture myImageInfo.ppBuffer is NULL");
 	}
 
 	pShaderHelper->use();
@@ -185,11 +185,11 @@ int drawTexture (ShaderHelper *pShaderHelper, const LPMyImageInfo lpMyImageInfo)
 	myImageInfo.width = width;
 	myImageInfo.height = height;
 	myImageInfo.format = MY_FORMAT_RGBA;
-	myImageInfo.channel[0] = myImageInfo.width;
+	myImageInfo.wPitch[0] = myImageInfo.width;
 	OpenImageHelper::AllocMyImageInfo(&myImageInfo);
 	//glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	START_TIME ("glReadPixels")
-		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, myImageInfo.buffer[0]);
+		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, myImageInfo.ppBuffer[0]);
 	STOP_TIME ("glReadPixels")
 	OpenImageHelper::ExchangeImageCoordinateY(&myImageInfo);
 	OpenImageHelper::SaveImageToPng(&myImageInfo, "/sdcard/OpenGLESTest/texture.png");
@@ -266,11 +266,11 @@ int drawFBO (ShaderHelper *pShaderHelperFBO, ShaderHelper *pShaderHelperNormal, 
 	const GLenum targetRgb = GL_TEXTURE_2D;
 	DrawHelper::GetOneTexture(targetRgb, &textureColorId);
 	glBindTexture(targetRgb, textureColorId);
-	if (NULL != lpMyImageInfo->buffer[0]) {
-		glTexImage2D (targetRgb, 0, GL_RGBA, nImageWidth, nImageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, lpMyImageInfo->buffer[0]);
+	if (NULL != lpMyImageInfo->ppBuffer[0]) {
+		glTexImage2D (targetRgb, 0, GL_RGBA, nImageWidth, nImageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, lpMyImageInfo->ppBuffer[0]);
 		glGenerateMipmap (targetRgb);
 	} else {
-		LOGE("drawTexture myImageInfo.buffer is NULL");
+		LOGE("drawTexture myImageInfo.ppBuffer is NULL");
 	}
 
 	// create a texture as FBO color attachment
@@ -279,17 +279,17 @@ int drawFBO (ShaderHelper *pShaderHelperFBO, ShaderHelper *pShaderHelperNormal, 
 	glTexImage2D (targetRgb, 0, GL_RGBA, nImageWidth, nImageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	glBindTexture(targetRgb, GL_NONE);
 
-	// create frame buffer object
+	// create frame ppBuffer object
 	GLuint FBO;
 	glGenFramebuffers(1, &FBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 	// bind color texture
 	glBindTexture(GL_TEXTURE_2D, textureFboId);
-	// attach a texture to frame buffer object
+	// attach a texture to frame ppBuffer object
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureFboId, 0);
 	glBindTexture(GL_TEXTURE_2D, GL_NONE);
 
-	// check frame buffer state
+	// check frame ppBuffer state
 	GLenum tmpStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (GL_FRAMEBUFFER_COMPLETE != tmpStatus)
 	{
@@ -355,7 +355,7 @@ int drawByHardwareBuffer (const AHardwareBufferHelper *pHardwareBufferHelper, My
 	int ret = ERROR_OK;
 	CHECK_NULL_INPUT(pHardwareBufferHelper)
 	CHECK_NULL_INPUT(lpMyImageInfo)
-	CHECK_NULL_INPUT(lpMyImageInfo->buffer[0])
+	CHECK_NULL_INPUT(lpMyImageInfo->ppBuffer[0])
 
 	GLint viewPort[4] {0};
 	glGetIntegerv(GL_VIEWPORT, viewPort);
@@ -380,13 +380,13 @@ int drawByHardwareBuffer (const AHardwareBufferHelper *pHardwareBufferHelper, My
 		DrawHelper::CheckGLError("glActiveTexture");
 		glBindTexture(TargetColor, textureColorId);
 		DrawHelper::CheckGLError("glBindTexture");
-		if (NULL != lpMyImageInfo->buffer[0]) {
-			glTexImage2D (TargetColor, 0, GL_RGBA, nImageWidth, nImageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, lpMyImageInfo->buffer[0]);
+		if (NULL != lpMyImageInfo->ppBuffer[0]) {
+			glTexImage2D (TargetColor, 0, GL_RGBA, nImageWidth, nImageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, lpMyImageInfo->ppBuffer[0]);
 			DrawHelper::CheckGLError("glTexImage2D");
 			glGenerateMipmap (TargetColor);
 			DrawHelper::CheckGLError("glGenerateMipmap");
 		} else {
-			LOGE("drawByHardwareBuffer myImageInfo.buffer is NULL");
+			LOGE("drawByHardwareBuffer myImageInfo.ppBuffer is NULL");
 		}
 		glBindTexture(TargetColor, GL_NONE);
 		DrawHelper::CheckGLError("glBindTexture");
@@ -408,7 +408,7 @@ int drawByHardwareBuffer (const AHardwareBufferHelper *pHardwareBufferHelper, My
 		if (MY_FORMAT_NV21 == myImageInfo.format || MY_FORMAT_NV12 == myImageInfo.format)
 		{
 			char sPath[MAX_PATH]{0};
-			sprintf(sPath, "/sdcard/OpenGLESTest/gpu/gpu_%04d_%dX%d.NV21", pBufferHelper->getRenderNum(), myImageInfo.channel[0], myImageInfo.height);
+			sprintf(sPath, "/sdcard/OpenGLESTest/gpu/gpu_%04d_%dX%d.NV21", pBufferHelper->getRenderNum(), myImageInfo.wPitch[0], myImageInfo.height);
 			OpenImageHelper::SaveImageToYuv(&myImageInfo, sPath);
 		}
 		if (ERROR_OK != ret)

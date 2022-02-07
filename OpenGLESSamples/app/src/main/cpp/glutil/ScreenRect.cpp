@@ -35,7 +35,7 @@ RESULT ScreenRect::CreateRectGLBuffer()
 		return ERROR_GL_STATE;
 	}
 
-	// create full rect gl buffer
+	// create full rect gl ppBuffer
 	GLuint VBO[2] = {GL_NONE};
 	glGenBuffers(2, VBO);
 	GLuint EBO = GL_NONE;
@@ -102,7 +102,7 @@ void ScreenRect::SetTexture(int textureId, int srcWidth, int srcHeight)
 
 void ScreenRect::DrawRect(glm::mat4 mvp)
 {
-	CAL_TIME_COST("ScreenRect::DrawRect")
+	AUTO_COUNT_TIME_COST("ScreenRect::DrawRect")
 
 	int viewport[4] {0};
 	glGetIntegerv(GL_VIEWPORT, viewport);

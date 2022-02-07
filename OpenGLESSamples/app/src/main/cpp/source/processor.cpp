@@ -17,7 +17,7 @@
 int CreateSampleAndShaderByDrawType (const PHandle pProcessorHandle, SampleType drawType)
 {
 	LOGD("CreateSampleAndShaderByDrawType drawType = %d", drawType);
-	CAL_TIME_COST("CreateSampleAndShaderByDrawType")
+	AUTO_COUNT_TIME_COST("CreateSampleAndShaderByDrawType")
 	CHECK_NULL_INPUT(pProcessorHandle)
 	auto MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
 	int ret = ERROR_OK;
@@ -158,7 +158,7 @@ int DestroySampleAndShaderByDrawType (const PHandle pProcessorHandle, SampleType
 
 int CreateProcessor (PHandle *ppProcessorHandle)
 {
-	CAL_TIME_COST("CreateProcessor")
+	AUTO_COUNT_TIME_COST("CreateProcessor")
 
 	if (nullptr == ppProcessorHandle || nullptr != *ppProcessorHandle)
 	{
@@ -175,7 +175,7 @@ int CreateProcessor (PHandle *ppProcessorHandle)
 
 int SetupResource (PHandle const pProcessorHandle)
 {
-	CAL_TIME_COST("SetupResource")
+	AUTO_COUNT_TIME_COST("SetupResource")
 
 	LOGD("SetupResource pProcessorHandle = %p", pProcessorHandle);
 
@@ -230,7 +230,7 @@ int DestroyProcessor (PHandle *ppProcessorHandle)
 
 int onSurfaceCreated (PHandle const pProcessorHandle, const int effectType)
 {
-	CAL_TIME_COST("onSurfaceCreated")
+	AUTO_COUNT_TIME_COST("onSurfaceCreated")
 
 	LOGD("onSurfaceCreated pProcessorHandle = %p", pProcessorHandle);
 
@@ -311,6 +311,7 @@ int onDrawFrame (PHandle const pProcessorHandle)
 		case eDraw_Texture:
 			if (MyProcessorHandle->m_pSampleTexture) {
                 MyProcessorHandle->m_pSampleTexture->DrawFrame();
+                //MyProcessorHandle->m_pSampleTexture->DrawFrameAsync();
             }
 		case eDraw_YUV:
 			if (MyProcessorHandle->m_pSampleRenderYUV) {

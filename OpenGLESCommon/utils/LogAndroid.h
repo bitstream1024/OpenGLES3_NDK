@@ -28,7 +28,7 @@ class MyTimeUtils;
 									LOGD ("%s stop time %lld ms", (_FUN_), (t1 -  t0)); \
 								}
 
-#define CAL_TIME_COST(_FUN_) 	MyAutoTimeUtils _time_print1_ ((_FUN_));
+#define AUTO_COUNT_TIME_COST(_FUN_) 	MyAutoTimeUtils _time_print1_ ((_FUN_));
 
 
 #else
@@ -60,6 +60,7 @@ public:
 		if (sFun)
 		{
 			mFunName = (char*)sFun;
+            LOGD("%s begin", mFunName);
 			mStartTime = MyTimeUtils::getCurrentTime();
 		}
 	}

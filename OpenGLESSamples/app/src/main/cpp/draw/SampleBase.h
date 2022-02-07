@@ -31,10 +31,12 @@ public:
 	GLuint m_VBO;
 	GLuint m_EBO;
 
-private:
-	GLuint m_TextureId;
-	MotionState m_MotionState;
+protected:
+    unsigned int m_FrameID;
 
+private:
+    GLuint m_TextureId;
+	MotionState m_MotionState;
 };
 
 

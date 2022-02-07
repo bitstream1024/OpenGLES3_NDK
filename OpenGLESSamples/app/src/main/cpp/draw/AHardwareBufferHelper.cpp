@@ -190,16 +190,16 @@ int AHardwareBufferHelper::getGPUBufferData(LPMyImageInfo lpMyImageInfo)
 	lpMyImageInfo->width = aOutBufferDesc.width;
 	lpMyImageInfo->height = aOutBufferDesc.height;
 	convertHardwareFormat2Image(aOutBufferDesc.format, lpMyImageInfo->format);
-	lpMyImageInfo->channel[0] = aOutBufferDesc.stride;
+	lpMyImageInfo->wPitch[0] = aOutBufferDesc.stride;
 	long lSize = 0;
-	if (NULL == lpMyImageInfo->buffer[0])
+	if (NULL == lpMyImageInfo->ppBuffer[0])
 	{
 		lSize = OpenImageHelper::AllocMyImageInfo(lpMyImageInfo);
 		LOGD("getGPUBufferDate AllocMyImageInfo lSize = %ld", lSize);
 		if (0 == lSize)
 			return ERROR_IMAGE;
 	}
-	memcpy(lpMyImageInfo->buffer[0], pSrcPlane, (size_t)lSize);
+	memcpy(lpMyImageInfo->ppBuffer[0], pSrcPlane, (size_t)lSize);
 	ret = AHardwareBuffer_unlock(pAHardwareBuffer, &fence);
 	LOGD("getGPUBufferDate AHardwareBuffer_unlock ret = %d", ret);
 	if (ERROR_OK != ret)
@@ -379,7 +379,7 @@ void AHardwareBufferHelper::initDstOesFbo()
 	glFramebufferTexture2D(TargetFrameBuffer, GL_COLOR_ATTACHMENT0, TargetOES, mOESTextureId, 0);
 	DrawHelper::CheckGLError("initDstOesFbo glFramebufferTexture2D");
 
-	// check frame buffer state
+	// check frame ppBuffer state
 	GLenum tmpStatus = glCheckFramebufferStatus(TargetFrameBuffer);
 	if (GL_FRAMEBUFFER_COMPLETE != tmpStatus)
 	{

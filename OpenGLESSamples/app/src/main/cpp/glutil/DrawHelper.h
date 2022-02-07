@@ -8,6 +8,7 @@
 #include "GLES2/gl2ext.h"
 #include "EGL/egl.h"
 #include "OpenImageHelper.h"
+#include "NativeImageUtils.h"
 
 #define SafeDeleteGLBuffers(_num_, _pVal_)	\
 if (_pVal_) {    \
@@ -47,27 +48,6 @@ if (_pVal_) {    \
 class DrawHelper
 {
 public:
-	static void GetOneTexture(const GLenum target, GLuint *pTexture)
-	{
-		LOGD("getOneTexture target = %d", target);
-		glGenTextures(1, pTexture);
-		glBindTexture(target, *pTexture);
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		if (GL_TEXTURE_2D == target)
-		{
-			glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		}
-		else if (GL_TEXTURE_EXTERNAL_OES == target)
-		{
-			glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		}
-		glBindTexture(target, GL_NONE);
-		DrawHelper::CheckGLError("GetOneTexture");
-	}
-
 	static void CheckGLError(const char *TAG)
 	{
 		GLenum errorCode = glGetError();
@@ -110,6 +90,68 @@ public:
 			LOGE("%s CheckEGLError error_code = %d", TAG, error);
 	}
 
+    static void GetOneTexture(const GLenum target, GLuint *pTexture)
+    {
+        LOGD("getOneTexture target = %d", target);
+        glGenTextures(1, pTexture);
+        glBindTexture(target, *pTexture);
+        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        if (GL_TEXTURE_2D == target)
+        {
+            glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        }
+        else if (GL_TEXTURE_EXTERNAL_OES == target)
+        {
+            glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        }
+        glBindTexture(target, GL_NONE);
+        DrawHelper::CheckGLError("GetOneTexture");
+    }
+
+    static void ConvertNativeImageFormatToGL(const int &nativeFormat, GLenum &glFormat)
+    {
+	    switch (nativeFormat)
+        {
+            case MY_FORMAT_RGBA:
+                glFormat = GL_RGBA;
+                break;
+            case MY_FORMAT_RGB:
+                glFormat = GL_RGB;
+                break;
+            case MY_FORMAT_NV21:
+                glFormat = GL_LUMINANCE;
+                break;
+            default:
+                glFormat = GL_RGBA;
+                break;
+        }
+    }
+
+    static void UpdateTexture(const MyImageInfo *pSrcImg, const GLuint &nTextureID, const int &nTextureType = -1)
+    {
+        AUTO_COUNT_TIME_COST("DrawHelper::UpdateTexture");
+
+        LOGD("UpdateTexture nTextureID = %d, nTextureType = %d", nTextureID, nTextureType);
+        GLenum TEXTURE_TARGET = GL_TEXTURE_2D;
+        if (nTextureType > 0)
+        {
+            TEXTURE_TARGET = nTextureType;
+        }
+        NativeImageUtils::PrintNativeImageInfo(pSrcImg);
+        if (nTextureID > 0 && NativeImageUtils::IsNativeImageValid(pSrcImg))
+        {
+            GLenum glFormat = GL_RGBA;
+            ConvertNativeImageFormatToGL(pSrcImg->format, glFormat);
+            glBindTexture(TEXTURE_TARGET, nTextureID);
+            glTexImage2D(TEXTURE_TARGET, 0, glFormat, pSrcImg->width, pSrcImg->height,
+                         0, glFormat, GL_UNSIGNED_BYTE, pSrcImg->ppBuffer[0]);
+            glBindTexture(TEXTURE_TARGET, GL_NONE);
+        }
+    }
+
 	static void SaveRenderImage (const SRECT sRect, const GLenum format, std::string sPath)
 	{
 		LOGD("SaveRenderImage");
@@ -132,10 +174,10 @@ public:
 				myImageInfo.format = MY_FORMAT_RGB;
 				break;
 		}
-		myImageInfo.channel[0] = myImageInfo.width;
+		myImageInfo.wPitch[0] = myImageInfo.width;
 		OpenImageHelper::AllocMyImageInfo(&myImageInfo);
 		START_TIME ("SaveRenderImage glReadPixels")
-			glReadPixels(0, 0, width, height, format, GL_UNSIGNED_BYTE, myImageInfo.buffer[0]);
+			glReadPixels(0, 0, width, height, format, GL_UNSIGNED_BYTE, myImageInfo.ppBuffer[0]);
 		STOP_TIME ("SaveRenderImage glReadPixels")
 		OpenImageHelper::ExchangeImageCoordinateY(&myImageInfo);
 		OpenImageHelper::SaveImageToPng(&myImageInfo, sPath.c_str());

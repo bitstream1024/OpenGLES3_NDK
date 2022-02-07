@@ -10,6 +10,7 @@ typedef struct __tag_image_info_
 	int width;
 	int height;
 	int format;
-	int channel[4];
-	unsigned char *buffer[4];
+	int wPitch[4];
+	int hPitch[4];
+	unsigned char *ppBuffer[4];
 }MyImageInfo, *LPMyImageInfo;
