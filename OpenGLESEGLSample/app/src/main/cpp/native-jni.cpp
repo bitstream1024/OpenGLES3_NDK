@@ -244,6 +244,7 @@ Java_com_example_opengleseglsample_AAudioMakerActivity_nativeTouchEvent(JNIEnv *
 	}
 }
 
+///---------------------------------- OboeActivity function ------------------------------------///
 extern "C" void
 Java_com_example_opengleseglsample_OboeActivity_nativeSetRecordingState(JNIEnv *env, jobject thiz, jboolean b_playing)
 {
