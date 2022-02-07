@@ -1,5 +1,5 @@
 //
-// Created by wcg3031 on 2020/7/30.
+// Created by chauncy on 2020/7/30.
 //
 
 #pragma once
@@ -27,24 +27,26 @@ class EGLHelper
 public:
 	// 单例
 	static EGLHelper* CreateInstance ();
-	int Init ();
 	int SetWindow (ANativeWindow * const pNativeWindow, const int windowWith, const int windowHeight);
 	int SetWindowRender (ANativeWindow * const pNativeWindow, const int windowWith, const int windowHeight);
+	int Init(int usage = 0, ANativeWindow *const pWindow = nullptr); // usage: 0 for render, 1 for encode
 	int UnInit ();
 	int Draw ();
+	bool SwapBuffers();
+	void SetPresentationTime(long nsecs);
+	int SetRecordWindow (ANativeWindow * const pWindow);
 	int SetImageData (const int imgWidth, const int imgHeight, const unsigned char* pImgData);
 
 private:
 	EGLHelper ();
 	~EGLHelper ();
-	int CreateEGLEnv ();
+	int CreateEGLEnv (int usage, ANativeWindow *const pWindow);
 	int DestroyEGLEnv ();
 
 	int createShader();
 	void destroyShader();
 	int creteGLBuffer ();
 	void destroyGLBuffer ();
-	void generateSurfaceFrame();
 	int drawFBO();
 
 	static EGLHelper *m_EGLHelper;
@@ -54,6 +56,8 @@ private:
 	EGLSurface m_EGLSurfaceRender;
 	EGLContext m_EGLContext;
 	bool m_bEGLEnvReady;
+	ANativeWindow *m_pRecordWindow;
+	PFNEGLPRESENTATIONTIMEANDROIDPROC m_pPresentTimeFunc;
 
 	ANativeWindow *m_pANativeWindow;
 	ANativeWindow *m_pANativeWindowRender;
@@ -73,6 +77,7 @@ private:
 
 	int m_VideoWidth;
 	int m_VideoHeight;
+	long m_lBeginTime;
 
 	int m_ImgFormat;
 	MyImageInfo m_RenderImg;

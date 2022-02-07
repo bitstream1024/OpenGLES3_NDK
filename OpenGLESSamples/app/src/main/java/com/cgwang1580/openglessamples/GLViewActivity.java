@@ -1,36 +1,37 @@
 package com.cgwang1580.openglessamples;
 
+import android.Manifest;
 import android.content.Context;
-import android.os.Build;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MotionEvent;
-import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.cgwang1580.glview.MyGLSurfaceView;
-import com.cgwang1580.glview.NativeFunctionHelper;
 import com.cgwang1580.multimotionhelper.MotionStateGL;
+import com.cgwang1580.permission.PermissionHelper;
+import com.cgwang1580.permission.PermissionInterface;
 import com.cgwang1580.multimotionhelper.MultiMotionEventHelper;
 import com.cgwang1580.utils.CommonDefine;
 import com.cgwang1580.utils.LogUtils;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class GLViewActivity extends AppCompatActivity {
 
     private final static String PROCESSOR_NAME = "processor.draw";
+
     static {
         System.loadLibrary(PROCESSOR_NAME);
     }
     private final String TAG = this.getClass().getName();
-    private MultiMotionEventHelper mMultiMotionHelper = null;
-    private MyGLSurfaceView myGLSurfaceView;
+
+    MultiMotionEventHelper mMultiMotionHelper = null;
+
+    private final static String[]PermissionList = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE , Manifest.permission.CAMERA};
+
+    MyGLSurfaceView myGLSurfaceView;
     private int mEffectType = 0;
-    private NativeFunctionHelper mNativeFunctionHelper = new NativeFunctionHelper();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,9 +39,9 @@ public class GLViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gl_view);
         mMultiMotionHelper = new MultiMotionEventHelper();
+
         mEffectType = getIntent().getIntExtra(CommonDefine.MESSAGE_EFFECT_TYPE, 0);
         LogUtils.d(TAG, "onCreate mEffectType = " + mEffectType);
-        initUI (mEffectType);
     }
 
     @Override
@@ -59,15 +60,11 @@ public class GLViewActivity extends AppCompatActivity {
     protected void onResume () {
         LogUtils.d(TAG, "onResume");
         super.onResume();
-        int retCode = mNativeFunctionHelper.Init();
-        if (retCode != CommonDefine.ReturnCode.ERROR_OK) {
-            LogUtils.e(TAG, "onResume mNativeFunctionHelper Init failed");
-            Toast.makeText(this, "Init error", Toast.LENGTH_SHORT).show();
-            return;
-        }
         if (null == myGLSurfaceView) {
             InitGLSurfaceView(this);
         }
+        //myGLSurfaceView.MyGLSurfaceResume();
+        myGLSurfaceView.requestRender();
     }
 
     @Override
@@ -77,9 +74,6 @@ public class GLViewActivity extends AppCompatActivity {
         if (null != myGLSurfaceView) {
             myGLSurfaceView.MyGLSurfacePause ();
         }
-        mNativeFunctionHelper.DestroyProcessor();
-        myGLSurfaceView.pause();
-        myGLSurfaceView = null;
     }
 
     @Override
@@ -90,33 +84,7 @@ public class GLViewActivity extends AppCompatActivity {
 
     public void InitGLSurfaceView (Context context) {
         LogUtils.d(TAG, "InitGLSurfaceView");
-        myGLSurfaceView = new MyGLSurfaceView(context, mEffectType, mNativeFunctionHelper);
-        myGLSurfaceView.resume();
-    }
-
-    private void initUI (int effectType) {
-        LogUtils.d(TAG, "initUI");
-        //setNavigationColor ();
-        List<String> effectList = new ArrayList<>(Arrays.asList("Triangle", "SimpleTexture", "TextureFBO",
-                "HardwareBuffer", "Transform", "Render3D", "TriangleFBO", "Render3DMesh", "DrawTexture", "RenderYUV"));
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            if (effectType < effectList.size()) {
-                actionBar.setTitle(effectList.get(effectType));
-            }
-        }
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        finish();
-        return true;
-    }
-    private void setNavigationColor () {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-        }
+        myGLSurfaceView = new MyGLSurfaceView();
+        myGLSurfaceView.Init(context);
     }
 }

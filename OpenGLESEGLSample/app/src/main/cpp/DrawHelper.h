@@ -1,5 +1,5 @@
 //
-// Created by wcg3031 on 2020/4/21.
+// Created by chauncy on 2020/4/21.
 //
 
 #pragma once
@@ -66,7 +66,7 @@ public:
 
 	static void SaveRenderImage (const SRECT sRect, const GLenum format, std::string sPath)
 	{
-		CAL_TIME_COST("SaveRenderImage");
+		AUTO_COUNT_TIME_COST("SaveRenderImage");
 		LOGD("SaveRenderImage sRect = (%d,%d,%d,%d), format = %d, sPath = %s", sRect.left, sRect.top,
 				sRect.right, sRect.bottom, format, sPath.c_str());
 		int width = sRect.right - sRect.left;
@@ -86,10 +86,10 @@ public:
 				myImageInfo.format = MY_FORMAT_RGB;
 				break;
 		}
-		myImageInfo.channel[0] = myImageInfo.width;
+		myImageInfo.wPitch[0] = myImageInfo.width;
 		OpenImageHelper::AllocMyImageInfo(&myImageInfo);
 		START_TIME ("SaveRenderImage glReadPixels")
-			glReadPixels(0, 0, width, height, format, GL_UNSIGNED_BYTE, myImageInfo.buffer[0]);
+			glReadPixels(0, 0, width, height, format, GL_UNSIGNED_BYTE, myImageInfo.ppBuffer[0]);
 		STOP_TIME ("SaveRenderImage glReadPixels")
 		//OpenImageHelper::ExchangeImageCoordinateY(&myImageInfo);
 		OpenImageHelper::SaveImageToPng(&myImageInfo, sPath.c_str());

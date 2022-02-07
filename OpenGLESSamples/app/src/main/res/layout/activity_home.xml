@@ -13,6 +13,7 @@
         android:text="@string/home_activity"
         android:textSize="45sp"
         android:textAllCaps="false"
+
         app:layout_constraintBottom_toTopOf="@+id/btn_start_activity"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -1,7 +1,8 @@
 package com.example.opengleseglsample;
 
 import androidx.appcompat.app.AppCompatActivity;
-
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -9,16 +10,10 @@ import android.widget.Button;
 
 import com.example.media.MediaCodecHelper;
 
-import java.io.IOException;
 
 public class GLProcessorActivity extends AppCompatActivity {
 
-    // Used to load the 'native-lib' library on application startup.
-    static {
-        System.loadLibrary("eglutils");
-    }
-
-    private final String TAG = this.getClass().getName();
+    private final static String TAG = "MainActivity";
 
     private NativeEGLHelper mNativeEGLHelper = null;
     private boolean bRenderResume = true;
@@ -67,7 +62,10 @@ public class GLProcessorActivity extends AppCompatActivity {
                 };
 
                 retCode = mNativeEGLHelper.Init();
-                Log.d(TAG, "mNativeEGLHelper.Init retCode = " + retCode);
+                if (0 != retCode) {
+                    Log.d(TAG, "mNativeEGLHelper.Init retCode = " + retCode);
+                    return;
+                }
 
                 if (bRenderResume) {
                     mMediaCodecHelper.StartEncode();

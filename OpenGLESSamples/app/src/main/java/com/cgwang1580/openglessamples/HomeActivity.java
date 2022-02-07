@@ -22,7 +22,6 @@ public class HomeActivity extends AppCompatActivity {
     private SharedPreferenceUtils mSharedPreferenceUtils = null;
     private Spinner mSpinnerView = null;
 
-
     private final static String[]PermissionList = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE};
 
@@ -132,6 +131,4 @@ public class HomeActivity extends AppCompatActivity {
             Toast.makeText(HomeActivity.this, "Please confirm permission", Toast.LENGTH_SHORT).show();
         }
     }
-
-
 }

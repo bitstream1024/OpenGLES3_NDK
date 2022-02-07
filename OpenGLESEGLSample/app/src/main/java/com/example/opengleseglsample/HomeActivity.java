@@ -1,6 +1,7 @@
 package com.example.opengleseglsample;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -16,9 +17,14 @@ public class HomeActivity extends AppCompatActivity {
     private final String TAG  = this.getClass().getName();
 
     private final static String[]PermissionList = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE};
+            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO};
 
     private boolean bPermissionOK = false;
+
+    // Used to load the library on application startup.
+    static {
+        System.loadLibrary("mediahelper");
+    }
 
     @Override
     protected void onCreate (Bundle savedInstanceState) {
@@ -63,7 +69,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private void init () {
 
-        findViewById(R.id.home_text_view).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.home_btn_glactivity).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startGLActivity ();
@@ -71,14 +77,47 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
-    private void startGLActivity () {
-//        if (bPermissionOK) {
-            Intent intent = new Intent(this, GLProcessorActivity.class);
-            startActivity(intent);
-//        }
-        /*else {
-            Toast.makeText(HomeActivity.this, "Please ammit permission", Toast.LENGTH_SHORT).show();
-        }*/
+    @SuppressLint("NonConstantResourceId")
+    public void onClick (View view) {
+        switch (view.getId()) {
+            case R.id.home_btn_glactivity:
+                startGLActivity();
+                break;
+            case R.id.home_btn_openslactivity:
+                startOpenSLESActivity();
+                break;
+            case R.id.home_btn_aaudioactivity:
+                startAAudioActivity();
+                break;
+            case R.id.home_btn_aaudiomakeractivity:
+                startAAudioMakerActivity();
+                break;
+            case R.id.home_btn_oboeactivity:
+                startOboeActivity();
+                break;
+            default:
+                break;
+        }
     }
 
+    private void startGLActivity () {
+        Intent intent = new Intent(this, GLProcessorActivity.class);
+        startActivity(intent);
+    }
+
+    private void startOpenSLESActivity() {
+        startActivity(new Intent(this, OpenSLESActivity.class));
+    }
+
+    private void startAAudioActivity() {
+        startActivity(new Intent(this, AAudioActivity.class));
+    }
+
+    private void startAAudioMakerActivity() {
+        startActivity(new Intent(this, AAudioMakerActivity.class));
+    }
+
+    private void startOboeActivity() {
+        startActivity(new Intent(this, OboeActivity.class));
+    }
 }

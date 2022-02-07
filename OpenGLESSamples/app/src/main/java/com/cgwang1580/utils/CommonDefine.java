@@ -2,13 +2,13 @@ package com.cgwang1580.utils;
 
 public class CommonDefine {
 
-    public class ReturnCode {
+    public static class ReturnCode {
         public final static int ERROR_OK = 0;
     }
 
     public final static String MESSAGE_EFFECT_TYPE = "effect_type";
 
-    public class SampleType {
+    public static class SampleType {
         public static final int eDraw_Triangle = 0x00;
         public static final int eDraw_SimpleTexture = eDraw_Triangle + 1;
         public static final int eDraw_TextureFBO = eDraw_Triangle + 2;
@@ -19,6 +19,4 @@ public class CommonDefine {
         public static final int eDraw_Render3DMesh = eDraw_Triangle + 7;
         public static final int eDraw_Texture = eDraw_Triangle + 8;
     }
-
-
 }

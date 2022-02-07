@@ -1,5 +1,5 @@
 //
-// Created by wcg3031 on 2020/7/30.
+// Created by chauncy on 2020/7/30.
 //
 
 #include <common.h>
@@ -40,9 +40,10 @@ const char *triangle_vertex_shader0 =
 		GLES_VERSION_STRING
 R"(
 layout (location = 0) in vec3 aPos;
+uniform mat4 mvp;
 void main()
 {
-	gl_Position = vec4(aPos, 1.0);
+	gl_Position = mvp * vec4(aPos, 1.0);
 }
 )";
 
@@ -78,14 +79,14 @@ EGLHelper *EGLHelper::CreateInstance()
 	return EGLHelper::m_EGLHelper;
 }
 
-int EGLHelper::Init()
+int EGLHelper::Init(int usage, ANativeWindow *const pWindow)
 {
 	LOGD("EGLHelper::Init");
 
 	int retCode = ERROR_OK;
 	do {
 
-		retCode = CreateEGLEnv();
+		retCode = CreateEGLEnv(usage, pWindow);
 		if (ERROR_OK != retCode)
 			break;
 
@@ -111,16 +112,16 @@ int EGLHelper::UnInit()
 }
 
 EGLHelper::EGLHelper():
-	m_EGLDisplay (nullptr),
-	m_EGLConfig (nullptr),
-	m_EGLSurface(nullptr),
-	m_EGLSurfaceRender (nullptr),
-	m_EGLContext(nullptr),
-	m_pShaderHelperNormal (nullptr),
-	m_pShaderHelperFBO (nullptr),
-	m_pANativeWindow(nullptr),
-	m_pANativeWindowRender(nullptr),
-	m_pfneglPresentationTimeANDROID(nullptr)
+		m_EGLDisplay (nullptr),
+		m_EGLConfig (nullptr),
+		m_EGLSurface(nullptr),
+		m_EGLContext(nullptr),
+		m_pShaderHelperNormal (nullptr),
+		m_pShaderHelperFBO (nullptr),
+		m_pRecordWindow(nullptr),
+		m_bEGLEnvReady(false),
+		m_pPresentTimeFunc(nullptr),
+		m_lBeginTime(0)
 {
 	m_VAO = GL_NONE;
 	/*for (auto val : m_VBO)
@@ -139,17 +140,54 @@ EGLHelper::~EGLHelper()
 
 }
 
-int EGLHelper::CreateEGLEnv()
+bool EGLHelper::SwapBuffers() {
+	return eglSwapBuffers(m_EGLDisplay, m_EGLSurface);
+}
+
+void EGLHelper::SetPresentationTime(long nsecs) {
+
+	if (!m_pPresentTimeFunc) {
+		m_pPresentTimeFunc(m_EGLDisplay, m_EGLSurface, nsecs);
+	}
+}
+
+int EGLHelper::Draw()
+{
+
+	LOGD("EGLHelper::Draw");
+
+	if (!m_bEGLEnvReady)
+		return 0;
+
+	drawFBO ();
+
+	++m_FrameID;
+	return ERROR_OK;
+}
+
+int EGLHelper::SetRecordWindow(ANativeWindow *const pWindow)
+{
+	LOGD("EGLHelper::SetRecordWindow");
+	if (nullptr == pWindow)
+	{
+		LOGE("SetRecordWindow pWindow is nullptr");
+		return ERROR_INPUT;
+	}
+	m_pRecordWindow = pWindow;
+	return 0;
+}
+
+int EGLHelper::CreateEGLEnv(int usage, ANativeWindow *const pWindow)
 {
 	LOGD ("EGLHelper::CreateEGLEnv");
 
-	int ret = ERROR_OK;
+	int retCode = ERROR_OK;
 	do {
 		// 1.获取EGLDisplay对象，与本地窗口系统建立连接
 		m_EGLDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 		if (EGL_NO_DISPLAY == m_EGLDisplay) {
 			LOGE("EGLHelper::CreateEGLEnv eglGetDisplay failed");
-			ret = ERROR_EGL_STATE;
+			retCode = ERROR_EGL_STATE;
 			break;
 		}
 
@@ -157,34 +195,34 @@ int EGLHelper::CreateEGLEnv()
 		int nMajorVer = 0, nMinVer = 0;
 		if (!eglInitialize(m_EGLDisplay, &nMajorVer, &nMinVer)) {
 			LOGE("EGLHelper::CreateEGLEnv eglInitialize failed");
-			ret = ERROR_EGL_STATE;
+			retCode = ERROR_EGL_STATE;
 			break;
 		}
 		LOGE("EGLHelper::CreateEGLEnv egl version nMajorVer = %d, nMinVer = %d", nMajorVer, nMinVer);
 
 		// EGL config attributes
 		const EGLint confAttr[] = {
-						EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
-						EGL_SURFACE_TYPE,
-						EGL_PBUFFER_BIT,//EGL_WINDOW_BIT EGL_PBUFFER_BIT we will create a pixelbuffer surface
-						EGL_RED_SIZE, 8,
-						EGL_GREEN_SIZE, 8,
-						EGL_BLUE_SIZE, 8,
-						EGL_ALPHA_SIZE, 8,// if you need the alpha channel
-						EGL_DEPTH_SIZE, 8,// if you need the depth buffer
-						EGL_STENCIL_SIZE, 8,
-						EGL_NONE
-				};
+				EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
+				EGL_SURFACE_TYPE,
+				EGL_PBUFFER_BIT,//EGL_WINDOW_BIT EGL_PBUFFER_BIT we will create a pixelbuffer surface
+				EGL_RED_SIZE, 8,
+				EGL_GREEN_SIZE, 8,
+				EGL_BLUE_SIZE, 8,
+				EGL_ALPHA_SIZE, 8,// if you need the alpha channel
+				EGL_DEPTH_SIZE, 8,// if you need the depth buffer
+				EGL_STENCIL_SIZE, 8,
+				EGL_NONE
+		};
 
 		// 3.获取EGLConfig对象
 		EGLint numConfigs = 0;
 		if (!eglChooseConfig(m_EGLDisplay, confAttr, &m_EGLConfig, 1, &numConfigs)) {
 			LOGE("EGLHelper::CreateEGLEnv eglChooseConfig failed");
-			ret = ERROR_EGL_STATE;
+			retCode = ERROR_EGL_STATE;
 			break;
 		}
 
-		// 4.创建渲染表面EGLSurface，使用elgCreatePbufferSurface创建屏幕外渲染
+		// 4.创建渲染表面 EGLSurface，使用 elgCreatePbufferSurface 创建屏幕外渲染
 		// surface attributes
 		// the surface size is set to the input frame size
 		const EGLint surfaceAttr[] = {
@@ -192,12 +230,21 @@ int EGLHelper::CreateEGLEnv()
 				EGL_HEIGHT,1,
 				EGL_NONE
 		};
-		// 这里也可以使用eglCreateWindowSurface传入一个native window用于绘制，这个window可以是java层
-		// 的GLSurfaceView，TextureView或者SurfaceView
-		//m_EGLSurface = eglCreatePbufferSurface(m_EGLDisplay, m_EGLConfig, surfaceAttr);
-		m_EGLSurface = eglCreateWindowSurface(m_EGLDisplay, m_EGLConfig, m_pANativeWindow, nullptr);
-		m_EGLSurfaceRender = eglCreateWindowSurface(m_EGLDisplay, m_EGLConfig, m_pANativeWindowRender, nullptr);
-		if(m_EGLSurface == EGL_NO_SURFACE || m_EGLSurfaceRender == EGL_NO_SURFACE)
+
+		// 这里也可以使用 eglCreateWindowSurface 传入一个 native window 用于绘制，这个 window 可以是java层
+		// 的 GLSurfaceView，TextureView 或者 SurfaceView
+		if (0 == usage) {
+			m_EGLSurface = eglCreatePbufferSurface(m_EGLDisplay, m_EGLConfig, surfaceAttr);
+		} else {
+			if (nullptr != pWindow) {
+				m_pRecordWindow = pWindow;
+				m_EGLSurface = eglCreateWindowSurface(m_EGLDisplay, m_EGLConfig, m_pRecordWindow, nullptr);
+			} else {
+				LOGE("EGLHelper::CreateEGLEnv eglCreateWindowSurface pWindow is nullptr");
+				retCode = ERROR_INPUT;
+			}
+		}
+		if(m_EGLSurface == EGL_NO_SURFACE)
 		{
 			GLint error = eglGetError ();
 			LOGE("EGLHelper::CreateEGLEnv eglCreateWindowSurface error = %d", error);
@@ -222,7 +269,7 @@ int EGLHelper::CreateEGLEnv()
 					LOGE("EGLHelper::CreateEGLEnv Check window and EGLConfig attributes");
 					break;
 			}
-			ret = ERROR_EGL_STATE;
+			retCode = ERROR_EGL_STATE;
 		}
 
 		// 5.创建渲染上下文EGLContext
@@ -239,7 +286,7 @@ int EGLHelper::CreateEGLEnv()
 			{
 				// Handle error and recover
 				LOGE("EGLHelper::CreateEGLEnv EGL_BAD_CONFIG");
-				ret = ERROR_EGL_STATE;
+				retCode = ERROR_EGL_STATE;
 				break;
 			}
 		}
@@ -247,68 +294,17 @@ int EGLHelper::CreateEGLEnv()
 		// 6.绑定上下文
 		if (!eglMakeCurrent(m_EGLDisplay, m_EGLSurfaceRender, m_EGLSurfaceRender, m_EGLContext)) {
 			LOGE("EGLHelper::CreateEGLEnv eglMakeCurrent failed");
-			ret = ERROR_EGL_STATE;
+			retCode = ERROR_EGL_STATE;
 			break;
 		}
 
-		m_pfneglPresentationTimeANDROID = reinterpret_cast<PFNEGLPRESENTATIONTIMEANDROIDPROC>(eglGetProcAddress(
-				"eglPresentationTimeANDROID"));
-		if (!m_pfneglPresentationTimeANDROID)
-		{
-			LOGE("eglPresentationTimeANDROID is not available!");
-		}
+		m_pPresentTimeFunc = (PFNEGLPRESENTATIONTIMEANDROIDPROC)eglGetProcAddress("eglPresentationTimeANDROID");
 
 		m_bEGLEnvReady = true;
 
 	} while (false);
 
-	return ret;
-}
-
-int EGLHelper::Draw()
-{
-
-	LOGD("EGLHelper::Draw");
-
-	if (!m_bEGLEnvReady)
-		return 0;
-
-	if (!eglMakeCurrent(m_EGLDisplay, m_EGLSurfaceRender, m_EGLSurfaceRender, m_EGLContext)) {
-		LOGE("EGLHelper::CreateEGLEnv eglMakeCurrent failed");
-		return ERROR_EGL_STATE;
-	}
-	//generateSurfaceFrame();
-	glViewport(0, 0, m_WindowWidth, m_WindowHeight);
-	drawFBO();
-	eglSwapBuffers(m_EGLDisplay, m_EGLSurfaceRender);
-
-	glViewport(0, 0, m_VideoWidth, m_VideoHeight);
-	if (!eglMakeCurrent(m_EGLDisplay, m_EGLSurface, m_EGLSurface, m_EGLContext)) {
-		LOGE("EGLHelper::CreateEGLEnv eglMakeCurrent failed");
-		return ERROR_EGL_STATE;
-	}
-	// 在第二次绘制到MediaCode对象创建的surface前先调用glClear，不调用无法获取正确的绘制结果
-	glClearColor(0.f, 0.f, 0.f, 1.f);
-	glClear(GL_COLOR_BUFFER_BIT);
-	drawFBO();
-	long ONE_BILLION = 1000000000;
-	long timestamp = m_FrameID * ONE_BILLION / 15;
-	if (m_pfneglPresentationTimeANDROID)
-	{
-		m_pfneglPresentationTimeANDROID (m_EGLDisplay, m_EGLSurface, timestamp);
-	}
-	eglSwapBuffers(m_EGLDisplay, m_EGLSurface);
-
-	glViewport(0, 0, m_WindowWidth, m_WindowHeight);
-	if (!eglMakeCurrent(m_EGLDisplay, m_EGLSurfaceRender, m_EGLSurfaceRender, m_EGLContext)) {
-		LOGE("EGLHelper::CreateEGLEnv eglMakeCurrent failed");
-		return ERROR_EGL_STATE;
-	}
-	// 交换display和surface，很重要，如果没有就无法绘制出画面
-	//eglSwapBuffers(m_EGLDisplay, m_EGLSurfaceRender);
-
-	++m_FrameID;
-	return ERROR_OK;
+	return retCode;
 }
 
 int EGLHelper::DestroyEGLEnv()
@@ -327,10 +323,10 @@ int EGLHelper::DestroyEGLEnv()
 	return 0;
 }
 
-// todo: 目前强制传rgb32类型，后续更新
+// todo: 目前强制传 rgb32 类型，后续更新
 int EGLHelper::SetImageData(const int imgWidth, const int imgHeight, const unsigned char *pImgData)
 {
-	CAL_TIME_COST ("EGLHelper::SetImageData")
+	AUTO_COUNT_TIME_COST("EGLHelper::SetImageData")
 	LOGD("EGLHelper::SetImageData imgWidth = %d, imgHeight = %d, pImgData = %p", imgWidth, imgHeight, pImgData);
 	CHECK_NULL_INPUT(pImgData)
 
@@ -343,9 +339,9 @@ int EGLHelper::SetImageData(const int imgWidth, const int imgHeight, const unsig
 
 		m_RenderImg.width = imgWidth;
 		m_RenderImg.height = imgHeight;
-		m_RenderImg.channel[0] = m_RenderImg.width * 4;
+		m_RenderImg.wPitch[0] = m_RenderImg.width * 4;
 		m_RenderImg.format = MY_FORMAT_RGBA;
-		memcpy(m_RenderImg.buffer[0], pImgData, m_RenderImg.width * m_RenderImg.height * 4);
+		memcpy(m_RenderImg.ppBuffer[0], pImgData, m_RenderImg.width * m_RenderImg.height * 4);
 
 	} while (false);
 
@@ -486,12 +482,6 @@ int EGLHelper::SetWindow(ANativeWindow *const pNativeWindow, const int windowWit
 	return 0;
 }
 
-void EGLHelper::generateSurfaceFrame()
-{
-	glClearColor(1.f, 0.f, 0.5f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-}
-
 int EGLHelper::SetWindowRender(ANativeWindow *const pNativeWindow, const int windowWith, const int windowHeight)
 {
 	LOGD("SetWindowRender windowWith = %d, windowHeight = %d", windowWith, windowHeight);
@@ -503,32 +493,34 @@ int EGLHelper::SetWindowRender(ANativeWindow *const pNativeWindow, const int win
 
 int EGLHelper::drawFBO()
 {
-	LOGD("drawFBO");
+	LOGD("EGLHelper::drawFBO");
+
+	if (0 == m_lBeginTime) {
+		m_lBeginTime = MyTimeUtils::getCurrentTime();
+	}
+
+	float rotateAngle = (MyTimeUtils::getCurrentTime() - m_lBeginTime) * 0.5f;
+	glm::mat4 mvp(1.f);
+	mvp = glm::rotate(glm::mat4(1.f), glm::radians(rotateAngle), glm::vec3(0, 0, 1.f));
+
+	// draw FBO
 	m_pShaderHelperNormal->use();
-	DrawHelper::CheckGLError("OnDrawFrame use");
+	m_pShaderHelperNormal->setMat4("mvp", mvp);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
+	glClearColor(0.f, 0.f, 0.f, 1.f);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	glBindVertexArray(m_VAO);
-	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
-	DrawHelper::CheckGLError("OnDrawFrame glDrawElements");
 	glBindVertexArray(GL_NONE);
 	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
 
-	/*GLint viewport[4]{0};
-	glGetIntegerv(GL_VIEWPORT, viewport);
-	SRECT sRect {0};
-	sRect.left = viewport[0];sRect.top = viewport[1];sRect.right = viewport[2];sRect.bottom = viewport[3];
-	char sPath[MAX_PATH]{0};
-	sprintf(sPath, "/sdcard/OpenGLESTest/testDrawFBO_%04d_%dx%d.png", m_FrameID, sRect.right - sRect.left,
-			sRect.bottom - sRect.top);
-	DrawHelper::SaveRenderImage(sRect, GL_RGBA, sPath);*/
-
 	glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-
+	glClearColor(0.f, 0.f, 0.f, 1.f);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	// draw FBO texture to screen
 	m_pShaderHelperFBO->use();
-	glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-	DrawHelper::CheckGLError("OnDrawFrame glBindFramebuffer");
+	m_pShaderHelperFBO->setMat4("mvp", glm::mat4(mvp));
+
 	glClear (GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 	glBindTexture(GL_TEXTURE_2D, m_FBOTexture);
 	DrawHelper::CheckGLError("OnDrawFrame glBindTexture");
@@ -538,5 +530,6 @@ int EGLHelper::drawFBO()
 	DrawHelper::CheckGLError("OnDrawFrame glDrawElements");
 	glBindVertexArray(GL_NONE);
 	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
-	return 0;
+
+	return ERROR_OK;
 }
