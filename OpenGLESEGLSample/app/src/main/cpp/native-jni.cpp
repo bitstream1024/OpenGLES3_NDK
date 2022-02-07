@@ -7,7 +7,7 @@
 #include "EGLHelper.h"
 #include "audio/OpenSLESHelper.h"
 #include "audio/AAudioHelper.h"
-#include "audio/AAduioWaveMaker.h"
+#include "audio/AAudioWaveMaker.h"
 #include "audio/OboeHelper.h"
 
 #define AMOTION_EVENT_ACTION_DOWN	0
@@ -218,14 +218,14 @@ extern "C" void
 Java_com_example_opengleseglsample_AAudioMakerActivity_nativeStartEngine(JNIEnv *env, jobject thiz)
 {
 	LOGD ("Java_com_example_opengleseglsample_AAudioMakerActivity_startEngine begin");
-	AAduioWaveMaker::getInstance()->start();
+	AAudioWaveMaker::getInstance()->start();
 }
 
 extern "C" void
 Java_com_example_opengleseglsample_AAudioMakerActivity_nativeStopEngine(JNIEnv *env, jobject thiz)
 {
 	LOGD ("Java_com_example_opengleseglsample_AAudioMakerActivity_stopEngine begin");
-	AAduioWaveMaker::getInstance()->stop();
+	AAudioWaveMaker::getInstance()->stop();
 }
 
 extern "C" void
@@ -234,10 +234,10 @@ Java_com_example_opengleseglsample_AAudioMakerActivity_nativeTouchEvent(JNIEnv *
 	LOGD ("Java_com_example_opengleseglsample_AAudioMakerActivity_touchEvent begin action = %d", action);
 	switch (action) {
 		case AMOTION_EVENT_ACTION_DOWN:
-			AAduioWaveMaker::getInstance()->setToneOn(true);
+			AAudioWaveMaker::getInstance()->setToneOn(true);
 			break;
 		case AMOTION_EVENT_ACTION_UP:
-			AAduioWaveMaker::getInstance()->setToneOn(false);
+			AAudioWaveMaker::getInstance()->setToneOn(false);
 			break;
 		default:
 			break;

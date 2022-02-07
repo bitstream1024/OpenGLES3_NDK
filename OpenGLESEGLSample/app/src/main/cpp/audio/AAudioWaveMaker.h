@@ -10,20 +10,20 @@
 #include <aaudio/AAudio.h>
 #include <mutex>
 
-class AAduioWaveMaker
+class AAudioWaveMaker
 {
 	class Oscillator;
 
 public:
-	static AAduioWaveMaker* getInstance();
+	static AAudioWaveMaker* getInstance();
 	bool start();
 	void stop();
 	void restart();
 	void setToneOn(bool isToneOn);
 
 private:
-	AAduioWaveMaker();
-	~AAduioWaveMaker();
+	AAudioWaveMaker();
+	~AAudioWaveMaker();
 	static aaudio_data_callback_result_t dataCallback(AAudioStream* stream, void* userData, void* audioData, int32_t numFrames);
 	static void errorCallback (AAudioStream *stream, void *userData, aaudio_result_t error);
 

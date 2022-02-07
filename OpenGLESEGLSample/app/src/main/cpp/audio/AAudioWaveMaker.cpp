@@ -5,7 +5,7 @@
 #include <cmath>
 #include <LogAndroid.h>
 #include <thread>
-#include "AAduioWaveMaker.h"
+#include "AAudioWaveMaker.h"
 
 #define CHECK_WAVE_MAKER_ERROR_BOOL(_tag_, _ret_)		if (AAUDIO_OK != _ret_) {LOGE("%s error, _ret_ = %s", _tag_, AAudio_convertResultToText(_ret_)); return false;}
 #define CHECK_WAVE_MAKER_ERROR_VOID(_tag_, _ret_)		if (AAUDIO_OK != _ret_) {LOGE("%s error, _ret_ = %s", _tag_, AAudio_convertResultToText(_ret_)); return;}
@@ -14,31 +14,31 @@
 // 将缓冲区大小设置为数据量的两倍，用这种双缓冲的方式可以起到有效避免数据溢出，去除毛刺，降低延迟的作用
 constexpr int32_t kBufferSizeInBursts = 2;
 
-AAduioWaveMaker *AAduioWaveMaker::getInstance()
+AAudioWaveMaker *AAudioWaveMaker::getInstance()
 {
-	static AAduioWaveMaker aaudioWaveMaker;
+	static AAudioWaveMaker aaudioWaveMaker;
 	return &aaudioWaveMaker;
 }
 
 
-bool AAduioWaveMaker::start()
+bool AAudioWaveMaker::start()
 {
-	LOGD("AAduioWaveMaker::start begin");
+	LOGD("AAudioWaveMaker::start begin");
 
 	AAudioStreamBuilder* pStreamBuilder = nullptr;
 	aaudio_result_t result = AAudio_createStreamBuilder(&pStreamBuilder);
-	CHECK_WAVE_MAKER_ERROR_BOOL("AAduioWaveMaker::start AAudio_createStreamBuilder", result)
+	CHECK_WAVE_MAKER_ERROR_BOOL("AAudioWaveMaker::start AAudio_createStreamBuilder", result)
 
 	AAudioStreamBuilder_setFormat(pStreamBuilder, AAUDIO_FORMAT_PCM_FLOAT);
 	AAudioStreamBuilder_setChannelCount(pStreamBuilder, 1);
 	AAudioStreamBuilder_setPerformanceMode(pStreamBuilder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
-	AAudioStreamBuilder_setDataCallback(pStreamBuilder, AAduioWaveMaker::dataCallback, this);
-	AAudioStreamBuilder_setErrorCallback(pStreamBuilder, AAduioWaveMaker::errorCallback, this);
+	AAudioStreamBuilder_setDataCallback(pStreamBuilder, AAudioWaveMaker::dataCallback, this);
+	AAudioStreamBuilder_setErrorCallback(pStreamBuilder, AAudioWaveMaker::errorCallback, this);
 
 	// 打开 stream
 	result = AAudioStreamBuilder_openStream(pStreamBuilder, &m_pPlayingStream);
 	if (AAUDIO_OK != result || nullptr == m_pPlayingStream) {
-		LOGE("AAduioWaveMaker::start AAudioStreamBuilder_openStream error");
+		LOGE("AAudioWaveMaker::start AAudioStreamBuilder_openStream error");
 		return false;
 	}
 
@@ -54,7 +54,7 @@ bool AAduioWaveMaker::start()
 
 	// start stream
 	result = AAudioStream_requestStart (m_pPlayingStream);
-	CHECK_WAVE_MAKER_ERROR_BOOL("AAduioWaveMaker::start AAudioStream_requestStart", result)
+	CHECK_WAVE_MAKER_ERROR_BOOL("AAudioWaveMaker::start AAudioStream_requestStart", result)
 
 	AAudioStreamBuilder_delete(pStreamBuilder);
 	pStreamBuilder = nullptr;
@@ -62,43 +62,43 @@ bool AAduioWaveMaker::start()
 	return true;
 }
 
-void AAduioWaveMaker::stop()
+void AAudioWaveMaker::stop()
 {
-	LOGD("AAduioWaveMaker::stop begin");
+	LOGD("AAudioWaveMaker::stop begin");
 	aaudio_result_t result;
 	if (nullptr != m_pPlayingStream) {
 		result = AAudioStream_requestStop (m_pPlayingStream);
-		CHECK_WAVE_MAKER_ERROR_VOID("AAduioWaveMaker::stop AAudioStream_requestStop", result)
+		CHECK_WAVE_MAKER_ERROR_VOID("AAudioWaveMaker::stop AAudioStream_requestStop", result)
 		result = AAudioStream_close (m_pPlayingStream);
-		CHECK_WAVE_MAKER_ERROR_VOID("AAduioWaveMaker::stop AAudioStream_close", result)
+		CHECK_WAVE_MAKER_ERROR_VOID("AAudioWaveMaker::stop AAudioStream_close", result)
 	}
 }
 
-void AAduioWaveMaker::restart()
+void AAudioWaveMaker::restart()
 {
-	LOGD("AAduioWaveMaker::restart begin");
+	LOGD("AAudioWaveMaker::restart begin");
 	static std::lock_guard<std::mutex> lock(m_RestartLock);
 	stop();
 	start();
 }
 
-void AAduioWaveMaker::setToneOn(bool isToneOn)
+void AAudioWaveMaker::setToneOn(bool isToneOn)
 {
-	LOGD("AAduioWaveMaker::setToneOn begin isToneOn = %d", isToneOn);
+	LOGD("AAudioWaveMaker::setToneOn begin isToneOn = %d", isToneOn);
 	if (nullptr != m_pOscillator) {
 		m_pOscillator->setWaveOn(isToneOn);
 	}
 }
 
-AAduioWaveMaker::AAduioWaveMaker():
+AAudioWaveMaker::AAudioWaveMaker():
 		m_pOscillator(nullptr),
 		m_pPlayingStream(nullptr)
 {
-	LOGD("AAduioWaveMaker::AAduioWaveMaker()");
+	LOGD("AAudioWaveMaker::AAudioWaveMaker()");
 	m_pOscillator = new Oscillator();
 }
 
-AAduioWaveMaker::~AAduioWaveMaker()
+AAudioWaveMaker::~AAudioWaveMaker()
 {
 	if (nullptr != m_pOscillator) {
 		delete m_pOscillator;
@@ -106,12 +106,12 @@ AAduioWaveMaker::~AAduioWaveMaker()
 	}
 }
 
-aaudio_data_callback_result_t AAduioWaveMaker::dataCallback(AAudioStream *stream, void *userData, void *audioData, int32_t numFrames)
+aaudio_data_callback_result_t AAudioWaveMaker::dataCallback(AAudioStream *stream, void *userData, void *audioData, int32_t numFrames)
 {
-	LOGD("AAduioWaveMaker::dataCallback begin");
-	auto pWaveMaker = static_cast<AAduioWaveMaker*>(userData);
+	LOGD("AAudioWaveMaker::dataCallback begin");
+	auto pWaveMaker = static_cast<AAudioWaveMaker*>(userData);
 	if (nullptr == pWaveMaker) {
-		LOGE("AAduioWaveMaker::dataCallback pWaveMaker is nullptr");
+		LOGE("AAudioWaveMaker::dataCallback pWaveMaker is nullptr");
 		return -1;
 	}
 	if (nullptr != pWaveMaker->m_pOscillator){
@@ -122,11 +122,11 @@ aaudio_data_callback_result_t AAduioWaveMaker::dataCallback(AAudioStream *stream
 	return AAUDIO_CALLBACK_RESULT_CONTINUE;
 }
 
-void AAduioWaveMaker::errorCallback (AAudioStream *stream, void *userData, aaudio_result_t error)
+void AAudioWaveMaker::errorCallback (AAudioStream *stream, void *userData, aaudio_result_t error)
 {
-	LOGD("AAduioWaveMaker::errorCallback() error = %d", error);
+	LOGD("AAudioWaveMaker::errorCallback() error = %d", error);
 	if (error == AAUDIO_ERROR_DISCONNECTED) {
-		std::function<void(void)> restartFunction = std::bind(&AAduioWaveMaker::restart, static_cast<AAduioWaveMaker*>(userData));
+		std::function<void(void)> restartFunction = std::bind(&AAudioWaveMaker::restart, static_cast<AAudioWaveMaker*>(userData));
 		new std::thread(restartFunction);
 	}
 }
@@ -135,18 +135,18 @@ void AAduioWaveMaker::errorCallback (AAudioStream *stream, void *userData, aaudi
 #define TWO_PI (3.14159 * 2)
 #define AMPLITUDE 0.3
 #define FREQUENCY 440.0
-void AAduioWaveMaker::Oscillator::setWaveOn(bool isWaveOn)
+void AAudioWaveMaker::Oscillator::setWaveOn(bool isWaveOn)
 {
 	m_bWaveOn.store(isWaveOn);
 }
 
-void AAduioWaveMaker::Oscillator::setSampleRate(int32_t sampleRate)
+void AAudioWaveMaker::Oscillator::setSampleRate(int32_t sampleRate)
 {
 	m_dPhaseIncrement = (TWO_PI * FREQUENCY) / (double) sampleRate;
 }
 
 /** 模拟 pcm 音频数据，塞入 audioData 中，用于写入 AAudioStream 播放 */
-void AAduioWaveMaker::Oscillator::render(float *audioData, int32_t numFrames)
+void AAudioWaveMaker::Oscillator::render(float *audioData, int32_t numFrames)
 {
 	if (!m_bWaveOn.load()) m_dPhase = 0;
 	for (int i = 0; i < numFrames; i++) {

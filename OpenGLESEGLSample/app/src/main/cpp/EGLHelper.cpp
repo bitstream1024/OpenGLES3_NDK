@@ -320,7 +320,7 @@ int EGLHelper::DestroyEGLEnv()
 	return 0;
 }
 
-// todo: 目前强制传rgb32类型，后续更新
+// todo: 目前强制传 rgb32 类型，后续更新
 int EGLHelper::SetImageData(const int imgWidth, const int imgHeight, const unsigned char *pImgData)
 {
 	CAL_TIME_COST ("EGLHelper::SetImageData")
