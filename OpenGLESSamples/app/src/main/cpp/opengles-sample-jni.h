@@ -10,7 +10,7 @@
 #define JNI_METHOD_NAME(name) Java_com_cgwang1580_glview_NativeFunctionHelper_##name
 
 extern "C" {
-JNIEXPORT jlong JNI_METHOD_NAME(CreateProcessorJNI)(JNIEnv *env, jobject thiz);
+JNIEXPORT jlong JNICALL JNI_METHOD_NAME(CreateProcessorJNI)(JNIEnv *env, jobject thiz);
 JNIEXPORT jint JNICALL JNI_METHOD_NAME(InitProcessorResourceJNI)(JNIEnv *env, jobject thiz, jlong handle);
 JNIEXPORT jint JNICALL JNI_METHOD_NAME(DestroyProcessorJNI)(JNIEnv *env, jobject thiz, jlong handle);
 
