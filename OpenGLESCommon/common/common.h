@@ -1,5 +1,5 @@
 //
-// Created by wcg3031 on 2020/4/21.
+// Created by chauncy on 2020/4/21.
 //
 
 #ifndef HELLOOPENGLES_COMMON_H

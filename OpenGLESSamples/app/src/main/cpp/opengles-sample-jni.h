@@ -1,5 +1,5 @@
 //
-// Created by wcg3031 on 2020/9/23.
+// Created by chauncy on 2020/9/23.
 //
 
 #include <jni.h>

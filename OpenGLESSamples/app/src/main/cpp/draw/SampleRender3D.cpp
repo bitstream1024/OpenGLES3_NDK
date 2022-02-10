@@ -1,5 +1,5 @@
 //
-// Created by wcg3031 on 2020/5/22.
+// Created by chauncy on 2020/5/22.
 //
 
 #include "SampleRender3D.h"
