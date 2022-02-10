@@ -1,10 +1,13 @@
 package com.cgwang1580.openglessamples;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.MotionEvent;
 import android.view.WindowManager;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.cgwang1580.glview.MyGLSurfaceView;
 import com.cgwang1580.glview.NativeFunctionHelper;
@@ -27,6 +30,7 @@ public class GLViewActivity extends AppCompatActivity {
     private final String TAG = this.getClass().getName();
     private MultiMotionEventHelper mMultiMotionHelper = null;
     private MyGLSurfaceView myGLSurfaceView;
+    private TextView mTextViewRenderTime;
     private int mEffectType = 0;
     private final NativeFunctionHelper mNativeFunctionHelper = new NativeFunctionHelper();
 
@@ -86,9 +90,13 @@ public class GLViewActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
+    @SuppressLint("SetTextI18n")
     public void InitGLSurfaceView (Context context) {
         LogUtils.d(TAG, "InitGLSurfaceView");
         myGLSurfaceView = new MyGLSurfaceView(context, mEffectType, mNativeFunctionHelper);
+        myGLSurfaceView.setMsgManager(fRenderTimeMS -> {
+            runOnUiThread(() -> mTextViewRenderTime.setText("" + fRenderTimeMS));
+        });
         myGLSurfaceView.resume();
     }
 
@@ -104,6 +112,7 @@ public class GLViewActivity extends AppCompatActivity {
                 actionBar.setTitle(effectList.get(effectType));
             }
         }
+        mTextViewRenderTime = findViewById(R.id.tv_render_time);
     }
 
     @Override

@@ -166,10 +166,6 @@ RESULT SampleTexture::DrawFrame()
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
     UpdateTextureFuncSync(this);
-    // todo: test to update texture
-    /*unsigned int blackRow = m_TextureImage.height/10;
-    memset(m_TextureImage.ppBuffer[0], 0, m_TextureImage.wPitch[0] * blackRow);
-    UpdateTexture(&m_TextureImage);*/
 
 	glm::mat4 mvp (1.f);
 	if(m_pScreenRect) {

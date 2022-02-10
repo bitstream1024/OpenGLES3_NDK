@@ -10,6 +10,8 @@ import com.cgwang1580.multimotionhelper.MotionStateGL;
 import com.cgwang1580.openglessamples.R;
 import com.cgwang1580.utils.CommonDefine;
 import com.cgwang1580.utils.LogUtils;
+import com.cgwang1580.utils.UIMsgManager;
+
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.microedition.khronos.egl.EGLConfig;
@@ -20,6 +22,7 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
     private final static long MAX_RENDER_COUNT = 500;
 
     public final static int MSG_SURFACE_CREATED = 0x10;
+    public final static int MSG_FRAME_RENDER_END = 0x11;
 
     private final static int GLES_VERSION = 3;
     private GLSurfaceView mGLSurfaceView = null;
@@ -34,6 +37,8 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
     private EGLConfig mEGLConfig = null;
 
     private NativeFunctionHelper mNativeFunctionHelper = null;
+    private UIMsgManager mUIMsgManager = null;
+    private float m_fTotalRenderTime = 0;
 
     public MyGLSurfaceView (Context context, int drawType, NativeFunctionHelper nativeFunctionHelper) {
         mNativeFunctionHelper = nativeFunctionHelper;
@@ -58,6 +63,10 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
         mRenderHandler = new RenderHandler();
     }
 
+    public void setMsgManager(UIMsgManager msgManager) {
+        this.mUIMsgManager = msgManager;
+    }
+
     protected void requestRender () {
         LogUtils.d(TAG, "requestRender");
         if (null != mGLSurfaceView ){ //&& mRenderCount < MAX_RENDER_COUNT) {
@@ -75,7 +84,6 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
             mGLSurfaceView.onPause();
         }
     }
-
 
     public void MyGLSurfacePause () {
         if (null != mGLSurfaceView) {
@@ -156,12 +164,24 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
             LogUtils.d(TAG, "SetMotionState ret = " + retCode);
             return;
         }
+
+        long beginTime = System.currentTimeMillis();
+
         retCode = mNativeFunctionHelper.OnDrawFrame();
         if (CommonDefine.ReturnCode.ERROR_OK != retCode) {
             LogUtils.d(TAG, "onDrawFrameJNI ret = " + retCode);
             return;
         }
+
+        long endTime = System.currentTimeMillis();
         mRenderCount = mRenderCount + 1;
+        m_fTotalRenderTime = m_fTotalRenderTime + (endTime - beginTime);
+        if (null != mRenderHandler && mRenderCount > 0) {
+            float fFrameTime = m_fTotalRenderTime/mRenderCount;
+            //LogUtils.d(TAG, "onDrawFrame fFrameTime: " + fFrameTime);
+            mRenderHandler.sendMessage(mRenderHandler.obtainMessage(MSG_FRAME_RENDER_END, fFrameTime));
+        }
+
         requestRender();
     }
 
@@ -182,7 +202,12 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
         int ret = mNativeFunctionHelper.OnSurfaceDestroyed();
         LogUtils.d(TAG, "onSurfaceDestroyedJNI ret = " + ret);
         //mRenderHandler.setGLState(false);
-        //mRenderHandler.notifyAfterDestroy();
+    }
+
+    protected void updateRenderTime(float renderTime) {
+        if (null != mUIMsgManager) {
+            mUIMsgManager.updateRenderTime(renderTime);
+        }
     }
 
     @SuppressLint("HandlerLeak")
@@ -201,6 +226,11 @@ public class MyGLSurfaceView implements GLSurfaceView.Renderer{
             switch (msgType) {
                 case MSG_SURFACE_CREATED:
                     requestRender();
+                    break;
+                case MSG_FRAME_RENDER_END:
+                    float renderTime = (float) msg.obj;
+                    LogUtils.d(TAG, "handleMessage renderTime: " + renderTime);
+                    updateRenderTime(renderTime);
                     break;
                 default:
                     break;
