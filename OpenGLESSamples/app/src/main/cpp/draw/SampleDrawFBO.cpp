@@ -47,7 +47,7 @@ RESULT SampleDrawFBO::OnDrawFrame ()
 	AUTO_COUNT_TIME_COST("SampleDrawFBO::onDrawFrame");
 
 	float angle = 0.f;
-	long long currentTime = MyTimeUtils::getCurrentTime();
+	long long currentTime = MyTimeUtils::GetCurrentTime();
 	if (!m_Time) {
 		m_Time = currentTime;
 	} else {

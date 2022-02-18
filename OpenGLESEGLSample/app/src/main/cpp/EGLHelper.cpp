@@ -340,7 +340,7 @@ int EGLHelper::SetImageData(const int imgWidth, const int imgHeight, const unsig
 		m_RenderImg.width = imgWidth;
 		m_RenderImg.height = imgHeight;
 		m_RenderImg.wPitch[0] = m_RenderImg.width * 4;
-		m_RenderImg.format = MY_FORMAT_RGBA;
+		m_RenderImg.format = MY_FORMAT_RGB32;
 		memcpy(m_RenderImg.ppBuffer[0], pImgData, m_RenderImg.width * m_RenderImg.height * 4);
 
 	} while (false);
@@ -496,10 +496,10 @@ int EGLHelper::drawFBO()
 	LOGD("EGLHelper::drawFBO");
 
 	if (0 == m_lBeginTime) {
-		m_lBeginTime = MyTimeUtils::getCurrentTime();
+		m_lBeginTime = MyTimeUtils::GetCurrentTime();
 	}
 
-	float rotateAngle = (MyTimeUtils::getCurrentTime() - m_lBeginTime) * 0.5f;
+	float rotateAngle = (MyTimeUtils::GetCurrentTime() - m_lBeginTime) * 0.5f;
 	glm::mat4 mvp(1.f);
 	mvp = glm::rotate(glm::mat4(1.f), glm::radians(rotateAngle), glm::vec3(0, 0, 1.f));
 

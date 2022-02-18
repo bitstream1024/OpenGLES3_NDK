@@ -32,8 +32,8 @@ private:
 		int lSize = 0;
 		switch (lpMyImageInfo->format)
 		{
-			case MY_FORMAT_RGB:
-			case MY_FORMAT_RGBA:
+			case MY_FORMAT_RGB24:
+			case MY_FORMAT_RGB32:
 				lSize = lpMyImageInfo->wPitch[0] * lpMyImageInfo->height;
 				break;
 			case MY_FORMAT_NV12:
@@ -46,15 +46,6 @@ private:
 	}
 
 public:
-
-	static void ZeroMyImageInfo (LPMyImageInfo lpMyImageInfo) {
-		LOGD("OpenImageHelper::ZeroSetImage");
-		if (nullptr == lpMyImageInfo) {
-			return;
-		}
-		memset(lpMyImageInfo, 0, sizeof(MyImageInfo));
-	}
-
 	/**
 	 * Alloc MyImageInfo, ppBuffer of image should be null
 	 * @param lpMyImageInfo
@@ -81,10 +72,10 @@ public:
 		}
 		switch (lpMyImageInfo->format)
 		{
-			case MY_FORMAT_RGB:
-			case MY_FORMAT_RGBA:
+			case MY_FORMAT_RGB24:
+			case MY_FORMAT_RGB32:
 				lpMyImageInfo->ppBuffer[0] = (unsigned char *) malloc(lSize);
-				CHECK_MALLOC_BREAK(lpMyImageInfo->ppBuffer[0], &ret, "AllocMyImageInfo MY_FORMAT_RGB MY_FORMAT_RGBA");
+				CHECK_MALLOC_BREAK(lpMyImageInfo->ppBuffer[0], &ret, "AllocMyImageInfo MY_FORMAT_RGB24 MY_FORMAT_RGB32");
 				memset(lpMyImageInfo->ppBuffer[0], 0, lSize);
 				break;
 			case MY_FORMAT_NV12:
@@ -106,26 +97,6 @@ public:
 		CHECK_NULL_INPUT(lpMyImageInfo)
 		SafeFree(lpMyImageInfo->ppBuffer[0]);
 		memset(lpMyImageInfo, 0, sizeof(MyImageInfo));
-		return ERROR_OK;
-	}
-
-	/**
-	 * Copy MyImageInfo
-	 * @param pDstImage
-	 * @param pSrcImage
-	 * @return
-	 */
-	static int CopyMyImageInfo (LPMyImageInfo pDstImage, MyImageInfo *const pSrcImage)
-	{
-		AUTO_COUNT_TIME_COST("OpenImageHelper::CopyMyImageInfo");
-		if (nullptr == pDstImage || nullptr == pDstImage->ppBuffer[0] || nullptr == pSrcImage
-            || nullptr == pSrcImage->ppBuffer[0] || pSrcImage->width != pDstImage->width
-            || pSrcImage->height != pDstImage->height) {
-			LOGE("OpenImageHelper::CopyMyImageInfo input error");
-			return ERROR_INPUT;
-		}
-		long lSize = CalMyImageBufferLength(pSrcImage);
-		memcpy(pDstImage->ppBuffer[0], pSrcImage->ppBuffer[0], lSize);
 		return ERROR_OK;
 	}
 
@@ -166,10 +137,10 @@ public:
 			lpMyImageInfo->width = static_cast<int>(image.width);
 			lpMyImageInfo->height = static_cast<int>(image.height);
 			if (PNG_FORMAT_RGBA == image.format) {
-				lpMyImageInfo->format = MY_FORMAT_RGBA;
+				lpMyImageInfo->format = MY_FORMAT_RGB32;
                 lpMyImageInfo->wPitch[0] = lpMyImageInfo->width * 4;
             } else {
-                lpMyImageInfo->format = MY_FORMAT_RGB;
+                lpMyImageInfo->format = MY_FORMAT_RGB24;
                 lpMyImageInfo->wPitch[0] = lpMyImageInfo->width * 3;
             }
 			long lSize = 0;
@@ -206,30 +177,6 @@ public:
                  lpMyImageInfo->wPitch[1], lpMyImageInfo->wPitch[2], lpMyImageInfo->wPitch[3], lpMyImageInfo->ppBuffer[0]);
 	}
 
-	static int SaveImageToYuv (const LPMyImageInfo lpMyImageInfo, const char* sPath)
-	{
-		AUTO_COUNT_TIME_COST("SaveImage")
-		CHECK_NULL_INPUT(lpMyImageInfo)
-		CHECK_NULL_INPUT(lpMyImageInfo->ppBuffer[0])
-		CHECK_NULL_INPUT(sPath)
-		LOGD("SaveImageToYuv sPath = %s", sPath);
-
-		int ret = ERROR_OK;
-		long lSize = CalMyImageBufferLength(lpMyImageInfo);
-		FILE *fp = nullptr;
-		fp = fopen(sPath, "wb");
-		if (fp)
-		{
-			fwrite(lpMyImageInfo->ppBuffer[0], 1, lSize, fp);
-			fclose(fp);
-		}
-		else
-		{
-			ret = ERROR_FILE_COMMON;
-		}
-		return ret;
-	}
-
 	static ERROR_CODE SaveImageToPng (const LPMyImageInfo lpMyImageInfo, const char* sPath)
 	{
 		AUTO_COUNT_TIME_COST("SaveImageToPng");
@@ -244,7 +191,7 @@ public:
 		image.version = PNG_IMAGE_VERSION;
 		image.width = static_cast<png_uint_32 >(lpMyImageInfo->width);
 		image.height = static_cast<png_uint_32 >(lpMyImageInfo->height);
-		if (MY_FORMAT_RGBA == lpMyImageInfo->format) {
+		if (MY_FORMAT_RGB32 == lpMyImageInfo->format) {
 			image.format = PNG_FORMAT_RGBA;
 		} else{
 			image.format = PNG_FORMAT_RGB;
@@ -278,10 +225,10 @@ public:
 			case MY_FORMAT_NV21:
                 channelNum = 2;
                 break;
-            case MY_FORMAT_RGBA:
+            case MY_FORMAT_RGB32:
 				channelNum = 4;
 				break;
-			case MY_FORMAT_RGB:
+			case MY_FORMAT_RGB24:
 				channelNum = 3;
 				break;
 			default:

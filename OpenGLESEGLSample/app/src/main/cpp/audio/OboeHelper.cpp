@@ -107,7 +107,7 @@ void OboeHelper::startRecording()
 	CHECK_OBOE_ERROR(result)
 
 	char pcmPath[MAX_PATH] {0};
-	sprintf (pcmPath, "/sdcard/AudioVideoTest/audio_oboe_%lld.pcm", MyTimeUtils::getCurrentTime());
+	sprintf (pcmPath, "/sdcard/AudioVideoTest/audio_oboe_%lld.pcm", MyTimeUtils::GetCurrentTime());
 	m_pFile = fopen (pcmPath, "ab+");
 	if (nullptr == m_pFile) {
 		LOGE("OboeHelper::startRecording m_pFile is nullptr");

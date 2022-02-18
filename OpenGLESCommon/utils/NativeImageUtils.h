@@ -9,6 +9,32 @@
 
 class NativeImageUtils
 {
+private:
+    static void GetImageFileExtByFormat(const int &imgFormat, char *szExt)
+    {
+        CHECK_NULL_INPUT_VOID(szExt);
+
+        switch(imgFormat)
+        {
+            case MY_FORMAT_NV12:
+                sprintf(szExt, "%s", ".NV12");
+                break;
+            case MY_FORMAT_NV21:
+                sprintf(szExt, "%s", ".NV21");
+                break;
+            case MY_FORMAT_RGB24:
+                sprintf(szExt, "%s", ".RGB24");
+                break;
+            case MY_FORMAT_RGB32:
+                sprintf(szExt, "%s", ".RGB32");
+                break;
+            default:
+                sprintf(szExt, "%s", ".undefined");
+                LOGE("GetImageFileExtByFormat image format is not supported!!!");
+                break;
+        }
+    }
+
 public:
 
     static void PrintNativeImageInfo(const MyImageInfo *pSrcImg)
@@ -49,13 +75,22 @@ public:
                 break;
             }
         }
-
         return bOK;
+    }
+
+    static void ZeroNativeImage (LPMyImageInfo lpMyImageInfo) {
+        if (nullptr == lpMyImageInfo) {
+            return;
+        }
+        memset(lpMyImageInfo, 0, sizeof(MyImageInfo));
     }
 
     static unsigned int AllocNativeImage (MyImageInfo *pSrcImg)
     {
         AUTO_COUNT_TIME_COST("AllocNativeImage");
+
+        if (nullptr == pSrcImg)
+            return 0;
 
         if (nullptr != pSrcImg->ppBuffer[0]) {
             FreeNativeImage(pSrcImg);
@@ -65,8 +100,8 @@ public:
         unsigned int length = 0;
         switch (pSrcImg->format)
         {
-            case MY_FORMAT_RGBA:
-            case MY_FORMAT_RGB:
+            case MY_FORMAT_RGB32:
+            case MY_FORMAT_RGB24:
                 length = pSrcImg->wPitch[0] * pSrcImg->height;
                 pSrcImg->ppBuffer[0] = static_cast<unsigned char *>(malloc(length));
                 memset(pSrcImg->ppBuffer[0], 0, length);
@@ -107,8 +142,8 @@ public:
         int bufferLen = 0;
         switch(pSrcImg->format)
         {
-            case MY_FORMAT_RGBA:
-            case MY_FORMAT_RGB:
+            case MY_FORMAT_RGB32:
+            case MY_FORMAT_RGB24:
                 bufferLen = pSrcImg->wPitch[0] * pSrcImg->height;
                 memcpy(pDstImg->ppBuffer[0], pSrcImg->ppBuffer[0], bufferLen);
                 break;
@@ -138,10 +173,10 @@ public:
                 lpMyImageInfo->wPitch[0] = lpMyImageInfo->width;
                 lpMyImageInfo->wPitch[1] = lpMyImageInfo->width;
                 break;
-            case MY_FORMAT_RGB:
+            case MY_FORMAT_RGB24:
                 lpMyImageInfo->wPitch[0] = lpMyImageInfo->width * 3;
                 break;
-            case MY_FORMAT_RGBA:
+            case MY_FORMAT_RGB32:
                 lpMyImageInfo->wPitch[0] = lpMyImageInfo->width * 4;
                 break;
             default:
@@ -219,6 +254,71 @@ public:
         return ret;
     }
 
+    static void GetImageSaveNameWithFolder(const char *pFolder, const LPMyImageInfo lpMyImage, char* szSaveName)
+    {
+        CHECK_NULL_INPUT_VOID(pFolder);
+        CHECK_NULL_INPUT_VOID(lpMyImage);
+        CHECK_NULL_INPUT_VOID(szSaveName);
+
+        char szExt[PATH_LEN_MAX] {0};
+        GetImageFileExtByFormat(lpMyImage->format, szExt);
+
+        long long llTimeStamp = MyTimeUtils::GetCurrentTime();
+        sprintf(szSaveName, "%s/Image_0_%dx%d_%lld%s", pFolder, lpMyImage->wPitch[0], lpMyImage->height, llTimeStamp, szExt);
+    }
+
+    static RESULT SaveYuvImageToFile (const LPMyImageInfo lpMyImageInfo, const char* sPath)
+    {
+        AUTO_COUNT_TIME_COST("SaveYuvImageToFile")
+
+        LOGD("SaveYuvImageToFile sPath = %s", sPath);
+        CHECK_NULL_INPUT(lpMyImageInfo)
+        CHECK_NULL_INPUT(sPath)
+
+        if (!IsNativeImageValid(lpMyImageInfo))
+        {
+            return ERROR_INPUT;
+        }
+
+        int ret = ERROR_OK;
+        FILE *fp = fopen(sPath, "wb");
+        do
+        {
+            if (!fp)
+            {
+                ret = ERROR_FILE_COMMON;
+                LOGE("SaveYuvImageToFile, open file failed, sPath = %s", sPath);
+                break;
+            }
+
+            unsigned int uLength = 0;
+            switch (lpMyImageInfo->format)
+            {
+                case MY_FORMAT_NV21:
+                case MY_FORMAT_NV12:
+                    uLength = lpMyImageInfo->wPitch[0] * lpMyImageInfo->height * 3/2;
+                    break;
+                case MY_FORMAT_RGB24:
+                case MY_FORMAT_RGB32:
+                    uLength = lpMyImageInfo->wPitch[0] * lpMyImageInfo->height;
+                    break;
+                default:
+                    LOGE("SaveYuvImageToFile, image format is not supported!!!");
+                    break;
+            }
+
+            if (uLength > 0)
+                fwrite(lpMyImageInfo->ppBuffer[0], 1, uLength, fp);
+
+        } while(false);
+
+        if (fp)
+        {
+            fclose(fp);
+        }
+        return ret;
+    }
+
     /*static void GetImageFormatByFileName(const std::string &strFileName, int &dstFormat)
     {
 
@@ -232,9 +332,9 @@ public:
         else if ("NV21" == sExt || "nv21" == sExt)
             nFormat = MY_FORMAT_NV21;
         else if ("RGB24" == sExt || "rgb24" == sExt)
-            nFormat = MY_FORMAT_RGB;
+            nFormat = MY_FORMAT_RGB24;
         else if ("RGB32" == sExt || "rgb32" == sExt)
-            nFormat = MY_FORMAT_RGBA;
+            nFormat = MY_FORMAT_RGB32;
         else
             LOGE("GetImageFormatByExt unsupported format");
     }

@@ -20,11 +20,11 @@ class MyTimeUtils;
 #define LOGI(...)  __android_log_print (ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 
 #define START_TIME(_FUN_)		{ \
-									long long t0 = MyTimeUtils::getCurrentTime(); \
+									long long t0 = MyTimeUtils::GetCurrentTime(); \
 									LOGD ("%s start", (_FUN_)); \
 
 #define STOP_TIME(_FUN_)		\
-									long long t1 = MyTimeUtils::getCurrentTime(); \
+									long long t1 = MyTimeUtils::GetCurrentTime(); \
 									LOGD ("%s stop, cost time %lld ms", (_FUN_), (t1 -  t0)); \
 								}
 
@@ -43,7 +43,7 @@ class MyTimeUtils;
 class MyTimeUtils
 {
 public:
-	static long long getCurrentTime ()
+	static long long GetCurrentTime ()
 	{
 		struct timeval time;
 		gettimeofday(&time, NULL);
@@ -61,7 +61,7 @@ public:
 		{
 			mFunName = (char*)sFun;
             LOGD("%s start", mFunName);
-			mStartTime = MyTimeUtils::getCurrentTime();
+			mStartTime = MyTimeUtils::GetCurrentTime();
 		}
 	}
 
@@ -69,7 +69,7 @@ public:
 	{
 		if (mFunName)
 		{
-			long long deltaTime = MyTimeUtils::getCurrentTime() - mStartTime;
+			long long deltaTime = MyTimeUtils::GetCurrentTime() - mStartTime;
 			LOGD("%s stop, const %lld ms", mFunName, deltaTime);
 		}
 	}

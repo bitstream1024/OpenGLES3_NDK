@@ -115,7 +115,7 @@ void AAudioHelper::startRecording()
 	m_pRecordingBufferQueue = new LocalAAudioBuffer(m_MaxBufferSize);
 
 	char path [MAX_PATH * 2] {0};
-	sprintf(path, "/sdcard/AudioVideoTest/audio_aaudio_%lld.pcm", MyTimeUtils::getCurrentTime());
+	sprintf(path, "/sdcard/AudioVideoTest/audio_aaudio_%lld.pcm", MyTimeUtils::GetCurrentTime());
 	if (nullptr == m_pFile) {
 		m_pFile = fopen(path, "ab+");
 		if (nullptr == m_pFile) {
@@ -138,7 +138,7 @@ void AAudioHelper::startRecording()
 	pStreamBuilder  = nullptr;
 
 	m_bRecording = true;
-	m_RecordingBeginTime = MyTimeUtils::getCurrentTime();
+	m_RecordingBeginTime = MyTimeUtils::GetCurrentTime();
 
 	// 创建一个线程变量用于保存 pcm 数据，这里如果使用成员函数作为线程初始化时的参数，需要多传一个 this 参数，作为
 	// AAudioHelper 的实例化，否则编译出错
@@ -160,7 +160,7 @@ void AAudioHelper::stopRecording()
 	}
 	// todo: 这里可能需要加锁，和线程中的判断用锁保护起来
 	m_bRecording = false;
-	auto llRecordingTime = static_cast<float>(1.0f * (MyTimeUtils::getCurrentTime() - m_RecordingBeginTime) / 1000);
+	auto llRecordingTime = static_cast<float>(1.0f * (MyTimeUtils::GetCurrentTime() - m_RecordingBeginTime) / 1000);
 	LOGD("AAudioHelper::stopRecording recording time: %f s", llRecordingTime);
 	if (nullptr != m_pFile) {
 		fclose(m_pFile);

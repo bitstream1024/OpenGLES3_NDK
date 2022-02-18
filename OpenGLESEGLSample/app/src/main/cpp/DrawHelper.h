@@ -77,13 +77,13 @@ public:
 		switch (format)
 		{
 			case GL_RGB:
-				myImageInfo.format = MY_FORMAT_RGB;
+				myImageInfo.format = MY_FORMAT_RGB24;
 				break;
 			case GL_RGBA:
-				myImageInfo.format = MY_FORMAT_RGBA;
+				myImageInfo.format = MY_FORMAT_RGB32;
 				break;
 			default:
-				myImageInfo.format = MY_FORMAT_RGB;
+				myImageInfo.format = MY_FORMAT_RGB32;
 				break;
 		}
 		myImageInfo.wPitch[0] = myImageInfo.width;

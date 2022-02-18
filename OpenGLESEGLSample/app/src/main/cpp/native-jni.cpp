@@ -63,7 +63,7 @@ Java_com_example_opengleseglsample_NativeEGLHelper_Draw(JNIEnv *env, jobject cla
 			for (int i = 0; i < 200; ++i) {
 				retCode = EGLHelper::CreateInstance()->Draw();
 				EGLHelper::CreateInstance()->SwapBuffers();
-				EGLHelper::CreateInstance()->SetPresentationTime((long)MyTimeUtils::getCurrentTime() * 1000000);
+				EGLHelper::CreateInstance()->SetPresentationTime((long)MyTimeUtils::GetCurrentTime() * 1000000);
 				MediaCodecHelper::CreateInstance()->DrainEncoder(false);
 				LOGD ("Java_com_example_opengleseglsample_NativeEGLHelper_Draw Draw ret = %d", retCode);
 			}

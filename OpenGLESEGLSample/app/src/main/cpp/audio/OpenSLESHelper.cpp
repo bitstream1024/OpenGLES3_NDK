@@ -359,7 +359,7 @@ void OpenSLESHelper::startRecording()
 		m_AudioRecorder.pFile = nullptr;
 	}
 	char path[MAX_PATH * 2] {0};
-	sprintf(path, "%s/audio_opengles_%lld", RECORDING_FILE_FOLDER, MyTimeUtils::getCurrentTime());
+	sprintf(path, "%s/audio_opengles_%lld", RECORDING_FILE_FOLDER, MyTimeUtils::GetCurrentTime());
 	m_AudioRecorder.pFile = fopen(path, "ab+");
 	std::lock_guard<std::mutex> lock (m_SLAudioRecorderLock);
 	// 设置录制开启状态（OpenSL ES 也是一个状态机，通过改变状态来执行操作）

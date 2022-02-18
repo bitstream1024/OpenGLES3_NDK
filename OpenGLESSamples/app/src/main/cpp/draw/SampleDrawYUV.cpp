@@ -11,7 +11,7 @@ SampleDrawYUV::SampleDrawYUV() {
     mTextureLumin = GL_NONE;
     mTextureAlpha = GL_NONE;
     m_pShaderHelper = nullptr;
-    OpenImageHelper::ZeroMyImageInfo(&m_YUVImage);
+    NativeImageUtils::ZeroNativeImage(&m_YUVImage);
     initMVPMatrix ();
 }
 

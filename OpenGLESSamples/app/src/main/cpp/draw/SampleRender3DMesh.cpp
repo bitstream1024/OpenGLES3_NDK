@@ -43,7 +43,7 @@ RESULT SampleRender3DMesh::OnDrawFrame ()
 
 	float angle = 0.f;
 	float trans = 0.f;
-	long long currentTime = MyTimeUtils::getCurrentTime();
+	long long currentTime = MyTimeUtils::GetCurrentTime();
 	if (!m_Time)
 	{
 		m_Time = currentTime;

@@ -32,7 +32,7 @@ static void UpdateTextureFuncAsync(SampleTexture* pSample)
             pSample->m_TextureReadyConditionVariable.wait(locker);
         }
 
-        /*if (NativeImageUtils::IsNativeImageValid(&testImageInfo) && MY_FORMAT_RGBA == testImageInfo.format
+        /*if (NativeImageUtils::IsNativeImageValid(&testImageInfo) && MY_FORMAT_RGB32 == testImageInfo.format
             && frameID < testImageInfo.height)
         {
             memset(testImageInfo.ppBuffer[0], 0, testImageInfo.wPitch[0] * frameID);
@@ -68,7 +68,7 @@ static void UpdateTextureFuncSync(SampleTexture* pSample)
     NativeImageUtils::AllocNativeImage(&testImageInfo);
 
     NativeImageUtils::CopyNativeImageToDst(lpMyImageInfo, &testImageInfo);
-    if (NativeImageUtils::IsNativeImageValid(&testImageInfo) && MY_FORMAT_RGBA == testImageInfo.format && frameID < testImageInfo.height)
+    if (NativeImageUtils::IsNativeImageValid(&testImageInfo) && MY_FORMAT_RGB32 == testImageInfo.format && frameID < testImageInfo.height)
     {
         memset(testImageInfo.ppBuffer[0], 0, testImageInfo.wPitch[0] * frameID);
     }

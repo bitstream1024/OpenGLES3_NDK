@@ -194,7 +194,8 @@ int AHardwareBufferHelper::getGPUBufferData(LPMyImageInfo lpMyImageInfo)
 	long lSize = 0;
 	if (NULL == lpMyImageInfo->ppBuffer[0])
 	{
-		lSize = OpenImageHelper::AllocMyImageInfo(lpMyImageInfo);
+		//lSize = OpenImageHelper::AllocMyImageInfo(lpMyImageInfo);
+		lSize = NativeImageUtils::AllocNativeImage(lpMyImageInfo);
 		LOGD("getGPUBufferDate AllocMyImageInfo lSize = %ld", lSize);
 		if (0 == lSize)
 			return ERROR_IMAGE;
@@ -311,7 +312,7 @@ int AHardwareBufferHelper::onDrawFrame (const GLuint colorTextureId, LPMyImageIn
 	int ret = ERROR_OK;
 	START_TIME("getGPUBufferData")
 		ret = getGPUBufferData(lpMyImageInfo);
-	STOP_TIME("getGPUBufferData")
+    STOP_TIME("getGPUBufferData")
 	LOGE("drawByHardwareBuffer getGPUBufferDate ret = %d", ret);
 
 	// normal render
@@ -417,10 +418,10 @@ void AHardwareBufferHelper::convertImageFormat2Hardware(const int srcFormat, int
 	LOGD("convertImageFormat2Hardware srcFormat = %d", srcFormat);
 	switch (srcFormat)
 	{
-		case MY_FORMAT_RGBA:
+		case MY_FORMAT_RGB32:
 			dstFormat = MY_AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNKNOWN;
 			break;
-		case MY_FORMAT_RGB:
+		case MY_FORMAT_RGB24:
 			dstFormat = AHARDWAREBUFFER_FORMAT_R8G8B8_UNORM;
 			break;
 		case MY_FORMAT_NV21:
@@ -439,10 +440,10 @@ void AHardwareBufferHelper::convertHardwareFormat2Image(const int srcFormat, int
 	switch (srcFormat)
 	{
 		case MY_AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNKNOWN:
-			dstFormat = MY_FORMAT_RGBA;
+			dstFormat = MY_FORMAT_RGB32;
 			break;
 		case AHARDWAREBUFFER_FORMAT_R8G8B8_UNORM:
-			dstFormat = MY_FORMAT_RGB;
+			dstFormat = MY_FORMAT_RGB24;
 			break;
 		case MY_AHARDWAREBUFFER_FORMAT_YCrCb_420_SP:
 			dstFormat = MY_FORMAT_NV21;

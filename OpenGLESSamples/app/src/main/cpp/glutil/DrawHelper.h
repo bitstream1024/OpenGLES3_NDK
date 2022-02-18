@@ -115,10 +115,10 @@ public:
     {
 	    switch (nativeFormat)
         {
-            case MY_FORMAT_RGBA:
+            case MY_FORMAT_RGB32:
                 glFormat = GL_RGBA;
                 break;
-            case MY_FORMAT_RGB:
+            case MY_FORMAT_RGB24:
                 glFormat = GL_RGB;
                 break;
             case MY_FORMAT_NV21:
@@ -165,17 +165,17 @@ public:
 		switch (format)
 		{
 			case GL_RGB:
-				myImageInfo.format = MY_FORMAT_RGB;
+				myImageInfo.format = MY_FORMAT_RGB24;
 				break;
 			case GL_RGBA:
-				myImageInfo.format = MY_FORMAT_RGBA;
+				myImageInfo.format = MY_FORMAT_RGB32;
 				break;
 			default:
-				myImageInfo.format = MY_FORMAT_RGB;
+				myImageInfo.format = MY_FORMAT_RGB24;
 				break;
 		}
-		myImageInfo.wPitch[0] = myImageInfo.width;
-		OpenImageHelper::AllocMyImageInfo(&myImageInfo);
+		NativeImageUtils::AssignNativeImagePitchByWidth(&myImageInfo);
+        NativeImageUtils::AllocNativeImage(&myImageInfo);
 		START_TIME ("SaveRenderImage glReadPixels")
 			glReadPixels(0, 0, width, height, format, GL_UNSIGNED_BYTE, myImageInfo.ppBuffer[0]);
 		STOP_TIME ("SaveRenderImage glReadPixels")

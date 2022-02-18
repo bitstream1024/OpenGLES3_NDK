@@ -214,9 +214,9 @@ private:
 		if (ERROR_OK == ret)
 		{
 			GLenum format = GL_RGB;
-			if (MY_FORMAT_RGB == myImageInfo.format)
+			if (MY_FORMAT_RGB24 == myImageInfo.format)
 				format = GL_RGB;
-			else if (MY_FORMAT_RGBA == myImageInfo.format)
+			else if (MY_FORMAT_RGB32 == myImageInfo.format)
 				format = GL_RGBA;
 
 			glBindTexture(GL_TEXTURE_2D, textureID);

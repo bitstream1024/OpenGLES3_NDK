@@ -184,7 +184,7 @@ int drawTexture (ShaderHelper *pShaderHelper, const LPMyImageInfo lpMyImageInfo)
 	MyImageInfo myImageInfo {0};
 	myImageInfo.width = width;
 	myImageInfo.height = height;
-	myImageInfo.format = MY_FORMAT_RGBA;
+	myImageInfo.format = MY_FORMAT_RGB32;
 	myImageInfo.wPitch[0] = myImageInfo.width * 4;
 	NativeImageUtils::AllocNativeImage(&myImageInfo);
 	//glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -317,7 +317,7 @@ int drawFBO (ShaderHelper *pShaderHelperFBO, ShaderHelper *pShaderHelperNormal, 
 	if (false) {
 		SRECT sRect{0, 0, nImageWidth, nImageHeight};
 		char path[MAX_PATH]{0};
-		sprintf(path, "/sdcard/OpenGLESTest/SaveRender_0_%lld.png", MyTimeUtils::getCurrentTime());
+		sprintf(path, "/sdcard/OpenGLESTest/SaveRender_0_%lld.png", MyTimeUtils::GetCurrentTime());
 		DrawHelper::SaveRenderImage (sRect, GL_RGBA, path);
 	}
 
@@ -409,8 +409,9 @@ int drawByHardwareBuffer (const AHardwareBufferHelper *pHardwareBufferHelper, My
 		if (MY_FORMAT_NV21 == myImageInfo.format || MY_FORMAT_NV12 == myImageInfo.format)
 		{
 			char sPath[MAX_PATH]{0};
-			sprintf(sPath, "/sdcard/OpenGLESTest/gpu/gpu_%04d_%dx%d.NV21", pBufferHelper->getRenderNum(), myImageInfo.wPitch[0], myImageInfo.height);
-			OpenImageHelper::SaveImageToYuv(&myImageInfo, sPath);
+			sprintf(sPath, "/sdcard/OpenGLESTest/gpu/gpu_%04d_%dx%d.NV21", pBufferHelper->getRenderNum(),
+                myImageInfo.wPitch[0], myImageInfo.height);
+			NativeImageUtils::SaveYuvImageToFile(&myImageInfo, sPath);
 		}
 		if (ERROR_OK != ret)
 			break;
