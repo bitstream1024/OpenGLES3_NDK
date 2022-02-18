@@ -48,7 +48,7 @@ void main()
 }
 )";
 
-    const char *yuv_fragment_shader =
+    const char *yuv_fragment_shader_nv21 =
             GLES_VERSION_STRING
     GLES_MEDIUM_STRING
     R"(
@@ -57,18 +57,47 @@ out vec4 FragColor;
 uniform sampler2D y_texture;
 uniform sampler2D uv_texture;
 
+mat3 matYUVToRGB = mat3(
+        1.f,     1.f,     1.f,
+        0.f, 	-0.344f,  1.770f,
+        1.403f, -0.714f,  0.f
+    );
+
 void main()
 {
     vec3 yuv;
     yuv.x = texture (y_texture, v_texCoord).r;
     yuv.y = texture (uv_texture, v_texCoord).a - 0.5;
     yuv.z = texture (uv_texture, v_texCoord).r - 0.5;
-    mat3 matNV21ToRgb = mat3(
+
+    vec3 rgb = matYUVToRGB * yuv;
+	FragColor = vec4 (rgb, 1.f);
+}
+)";
+
+    const char *yuv_fragment_shader_nv12 =
+            GLES_VERSION_STRING
+            GLES_MEDIUM_STRING
+            R"(
+in vec2 v_texCoord;
+out vec4 FragColor;
+uniform sampler2D y_texture;
+uniform sampler2D uv_texture;
+
+mat3 matYUVToRGB = mat3(
         1.f,     1.f,     1.f,
         0.f, 	-0.344f,  1.770f,
-        1.403f, -0.714f, 0.f
+        1.403f, -0.714f,  0.f
     );
-    vec3 rgb = matNV21ToRgb * yuv;
+
+void main()
+{
+    vec3 yuv;
+    yuv.x = texture (y_texture, v_texCoord).r;
+    yuv.y = texture (uv_texture, v_texCoord).r - 0.5;
+    yuv.z = texture (uv_texture, v_texCoord).a - 0.5;
+
+    vec3 rgb = matYUVToRGB * yuv;
 	FragColor = vec4 (rgb, 1.f);
 }
 )";

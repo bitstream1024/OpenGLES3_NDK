@@ -219,10 +219,9 @@ private:
 			else if (MY_FORMAT_RGBA == myImageInfo.format)
 				format = GL_RGBA;
 
-			width = myImageInfo.wPitch[0];
-			height = myImageInfo.height;
 			glBindTexture(GL_TEXTURE_2D, textureID);
-			glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, myImageInfo.ppBuffer[0]);
+			glTexImage2D(GL_TEXTURE_2D, 0, format, myImageInfo.width, myImageInfo.height,
+                0, format, GL_UNSIGNED_BYTE, myImageInfo.ppBuffer[0]);
 			glGenerateMipmap(GL_TEXTURE_2D);
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

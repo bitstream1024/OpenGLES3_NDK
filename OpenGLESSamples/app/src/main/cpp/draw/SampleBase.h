@@ -32,6 +32,7 @@ public:
 	GLuint m_EBO;
 
 protected:
+    bool m_bFitInOutDone;
     unsigned int m_FrameID;
 
 private:

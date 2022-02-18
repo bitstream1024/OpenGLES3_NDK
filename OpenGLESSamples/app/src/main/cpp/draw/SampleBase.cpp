@@ -6,7 +6,7 @@
 #include "SampleBase.h"
 #include "DrawHelper.h"
 
-SampleBase::SampleBase()
+SampleBase::SampleBase():m_bFitInOutDone(false), m_FrameID(0)
 {
 	LOGD("SampleBase::SampleBase");
 	m_VAO = GL_NONE;

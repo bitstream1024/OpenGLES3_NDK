@@ -16,11 +16,6 @@
 #include "SampleRender3DMesh.h"
 #include "SampleFactory.h"
 
-#define TEST_IMAGE_PATH_0	"/sdcard/OpenGLESTest/television.png"
-#define TEST_IMAGE_PATH_1	"/sdcard/OpenGLESTest/testlib.png"
-#define TEST_IMAGE_PATH_2	"/sdcard/OpenGLESTest/night.png"
-#define TEST_IMAGE_PATH_YUV_0	"/sdcard/OpenGLESTest/Img_test_1_640X480.nv12"
-
 typedef struct __tag_color_set_
 {
 	float r;

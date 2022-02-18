@@ -24,6 +24,19 @@ RESULT SampleDrawYUV::OnDrawFrame() {
     LOGD("SampleDrawYUV::OnDrawFrame begin");
     GL_CHECK_ERROR("SampleDrawYUV::OnDrawFrame begin");
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.f, 1.f, 0.f, 1.f);
+
+    if (!m_bFitInOutDone)
+    {
+        int viewport[4] {0};
+        glGetIntegerv(GL_VIEWPORT, viewport);
+        int viewportOut[4] {0};
+        DrawHelper::ViewportFitInOut(viewport, m_YUVImage.width, m_YUVImage.height, viewportOut);
+        glViewport(viewportOut[0], viewportOut[1], viewportOut[2], viewportOut[3]);
+        m_bFitInOutDone = true;
+    }
+
     m_pShaderHelper->use();
     GL_CHECK_ERROR("SampleDrawYUV::OnDrawFrame use");
 
@@ -77,8 +90,8 @@ RESULT SampleDrawYUV::SetImageYuvResource(MyImageInfo *const pSrcImage) {
     m_YUVImage.height = pSrcImage->height;
     m_YUVImage.format = pSrcImage->format;
     memcpy(m_YUVImage.wPitch, pSrcImage->wPitch, 4 * sizeof(int));
-    OpenImageHelper::AllocMyImageInfo(&m_YUVImage);
-    OpenImageHelper::CopyMyImageInfo(&m_YUVImage, pSrcImage);
+    NativeImageUtils::AllocNativeImage(&m_YUVImage);
+    NativeImageUtils::CopyNativeImageToDst(pSrcImage, &m_YUVImage);
     return 0;
 }
 
@@ -88,8 +101,7 @@ RESULT SampleDrawYUV::createShader() {
 
     RESULT retCode = ERROR_OK;
     do {
-        m_pShaderHelper = new ShaderHelper (yuv_vertex_shader, yuv_fragment_shader);
-        //m_pShaderHelper = new ShaderHelper (vShaderStr, fShaderStr);
+        m_pShaderHelper = new ShaderHelper (yuv_vertex_shader, yuv_fragment_shader_nv12);
         if (nullptr == m_pShaderHelper || ERROR_OK != m_pShaderHelper->getShaderHelperState()) {
             LOGE("SampleDrawYUV::createShader error");
             retCode = m_pShaderHelper->getShaderHelperState();
@@ -129,18 +141,19 @@ RESULT SampleDrawYUV::createGLBuffer() {
     DrawHelper::CheckGLError("SampleDrawYUV::createGLBuffer glTexImage2D mTextureAlpha");
     glBindTexture(TEXTURE_TARGET, GL_NONE);
 
-
+    // coordinates left-bottom is origin point, left-bottom, right-bottom, right-top, left-top
     const std::vector<GLfloat> vertex {
         -1.f, -1.f, 0.f,
          1.f, -1.f, 0.f,
          1.f,  1.f, 0.f,
         -1.f,  1.f, 0.f
     };
+    // normal texture left-top is origin point, so the order is left-top, right-top, right-bottom, left-bottom
     const std::vector <GLfloat> texCoords {
-        0.f, 0.f,
-        1.f, 0.f,
+        0.f, 1.f,
         1.f, 1.f,
-        0.f, 1.f
+        1.f, 0.f,
+        0.f, 0.f
     };
     const std::vector<GLuint> indices {0, 1, 2, 0, 2, 3};
 
@@ -180,8 +193,6 @@ RESULT SampleDrawYUV::createGLBuffer() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_NONE);
     DrawHelper::CheckGLError("SampleDrawYUV::createGLBuffer glBindBuffer GL_NONE");
 
-    int size = sizeof(vbo);
-    int sizeu = sizeof(GLuint);
     SafeDeleteGLBuffers(sizeof(vbo)/ sizeof(GLuint), vbo)
     GL_CHECK_ERROR("SampleDrawYUV::createGLBuffer end");
     return ERROR_OK;

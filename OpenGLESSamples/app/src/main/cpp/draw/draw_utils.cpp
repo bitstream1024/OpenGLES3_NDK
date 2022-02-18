@@ -185,8 +185,8 @@ int drawTexture (ShaderHelper *pShaderHelper, const LPMyImageInfo lpMyImageInfo)
 	myImageInfo.width = width;
 	myImageInfo.height = height;
 	myImageInfo.format = MY_FORMAT_RGBA;
-	myImageInfo.wPitch[0] = myImageInfo.width;
-	OpenImageHelper::AllocMyImageInfo(&myImageInfo);
+	myImageInfo.wPitch[0] = myImageInfo.width * 4;
+	NativeImageUtils::AllocNativeImage(&myImageInfo);
 	//glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	START_TIME ("glReadPixels")
 		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, myImageInfo.ppBuffer[0]);
@@ -381,7 +381,8 @@ int drawByHardwareBuffer (const AHardwareBufferHelper *pHardwareBufferHelper, My
 		glBindTexture(TargetColor, textureColorId);
 		DrawHelper::CheckGLError("glBindTexture");
 		if (NULL != lpMyImageInfo->ppBuffer[0]) {
-			glTexImage2D (TargetColor, 0, GL_RGBA, nImageWidth, nImageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, lpMyImageInfo->ppBuffer[0]);
+			glTexImage2D (TargetColor, 0, GL_RGBA, nImageWidth, nImageHeight, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, lpMyImageInfo->ppBuffer[0]);
 			DrawHelper::CheckGLError("glTexImage2D");
 			glGenerateMipmap (TargetColor);
 			DrawHelper::CheckGLError("glGenerateMipmap");
@@ -408,7 +409,7 @@ int drawByHardwareBuffer (const AHardwareBufferHelper *pHardwareBufferHelper, My
 		if (MY_FORMAT_NV21 == myImageInfo.format || MY_FORMAT_NV12 == myImageInfo.format)
 		{
 			char sPath[MAX_PATH]{0};
-			sprintf(sPath, "/sdcard/OpenGLESTest/gpu/gpu_%04d_%dX%d.NV21", pBufferHelper->getRenderNum(), myImageInfo.wPitch[0], myImageInfo.height);
+			sprintf(sPath, "/sdcard/OpenGLESTest/gpu/gpu_%04d_%dx%d.NV21", pBufferHelper->getRenderNum(), myImageInfo.wPitch[0], myImageInfo.height);
 			OpenImageHelper::SaveImageToYuv(&myImageInfo, sPath);
 		}
 		if (ERROR_OK != ret)

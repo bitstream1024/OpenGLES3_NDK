@@ -13,6 +13,7 @@
 #include "shader_content.h"
 #include "unistd.h"
 #include "draw_utils.h"
+#include "config.h"
 
 int CreateSampleAndShaderByDrawType (const PHandle pProcessorHandle, SampleType drawType)
 {
@@ -196,7 +197,7 @@ int SetupResource (PHandle const pProcessorHandle)
 		MyProcessorHandle->lpMyImageInfo_YUV = (LPMyImageInfo)malloc(sizeof(MyImageInfo));
 		CHECK_NULL_MALLOC(MyProcessorHandle->lpMyImageInfo_YUV);
 		memset(MyProcessorHandle->lpMyImageInfo_YUV, 0, sizeof(MyImageInfo));
-		retCode = OpenImageHelper::LoadYuvFromFile(TEST_IMAGE_PATH_YUV_0, MyProcessorHandle->lpMyImageInfo_YUV);
+		retCode = NativeImageUtils::LoadYuvImageFromFile(TEST_IMAGE_PATH_YUV_0, MyProcessorHandle->lpMyImageInfo_YUV);
 		if (ERROR_OK != retCode) {
 			LOGE("SetupResource LoadYuvFromFile retCode = %d", retCode);
 			break;

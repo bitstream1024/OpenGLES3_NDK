@@ -7,7 +7,7 @@
 #include "android/log.h"
 #include "sys/time.h"
 
-#define LOG_TAG	"MY_LOG"
+#define LOG_TAG	"WangLog_C"
 
 #define OUPUT_MY_LOG
 
@@ -25,7 +25,7 @@ class MyTimeUtils;
 
 #define STOP_TIME(_FUN_)		\
 									long long t1 = MyTimeUtils::getCurrentTime(); \
-									LOGD ("%s stop time %lld ms", (_FUN_), (t1 -  t0)); \
+									LOGD ("%s stop, cost time %lld ms", (_FUN_), (t1 -  t0)); \
 								}
 
 #define AUTO_COUNT_TIME_COST(_FUN_) 	MyAutoTimeUtils _time_print1_ ((_FUN_));
@@ -60,7 +60,7 @@ public:
 		if (sFun)
 		{
 			mFunName = (char*)sFun;
-            LOGD("%s begin", mFunName);
+            LOGD("%s start", mFunName);
 			mStartTime = MyTimeUtils::getCurrentTime();
 		}
 	}
@@ -70,7 +70,7 @@ public:
 		if (mFunName)
 		{
 			long long deltaTime = MyTimeUtils::getCurrentTime() - mStartTime;
-			LOGD("%s const %lld ms", mFunName, deltaTime);
+			LOGD("%s stop, const %lld ms", mFunName, deltaTime);
 		}
 	}
 
