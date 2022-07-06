@@ -10,7 +10,7 @@
 #include "MyImageInfo.h"
 #include "MyFileHelper.h"
 
-#define CHECK_PNG_RET_BREAK(_pRet_)	if (0 == *(_pRet_)) {LOGE ("CHECK_PNG_RET_BREAK error"); *(_pRet_) = ERROR_UNKNOWN; break;}
+#define CHECK_PNG_RET_BREAK(_pRet_)	if (0 == (_pRet_)) {LOGE ("CHECK_PNG_RET_BREAK error"); (_pRet_) = ERROR_UNKNOWN; break;}
 
 class OpenImageHelper
 {
@@ -119,7 +119,7 @@ public:
 		{
 			ret = png_image_begin_read_from_file (&image, sPath);
 			LOGD("LoadPngFromFile png_image_begin_read_from_file ret = %d", ret);
-			CHECK_PNG_RET_BREAK (&ret)
+			CHECK_PNG_RET_BREAK (ret)
 			image.format = PNG_FORMAT_RGBA;
 			buffer = (png_bytep)malloc(PNG_IMAGE_SIZE(image));
 			CHECK_MALLOC_BREAK (buffer, &ret, "LoadPngFromFile ")
@@ -127,7 +127,7 @@ public:
 
 			ret = png_image_finish_read(&image, NULL, buffer, 0, NULL);
 			LOGD("LoadPngFromFile png_image_finish_read ret = %d", ret);
-			CHECK_PNG_RET_BREAK (&ret)
+			CHECK_PNG_RET_BREAK (ret)
 
 			/*ret = png_image_write_to_file(&image, "/sdcard/testlibpng.png", 0, ppBuffer, 0, NULL);
 			LOGD("LoadPngFromFile png_image_write_to_file ret = %d", ret);

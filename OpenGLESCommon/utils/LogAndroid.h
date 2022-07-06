@@ -7,7 +7,7 @@
 #include "android/log.h"
 #include "sys/time.h"
 
-#define LOG_TAG	"WangLog_C"
+#define LOG_TAG	"SampleLog_C"
 
 #define OUPUT_MY_LOG
 

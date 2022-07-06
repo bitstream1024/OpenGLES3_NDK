@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <LogAndroid.h>
+#include "LogAndroid.h"
 #include <string.h>
 
 enum MotionType
