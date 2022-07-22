@@ -20,14 +20,15 @@ else ()
 endif ()
 
 # set common variables
-set(COMMON_INC_PATH     ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../../OpenGLESCommon)
-set(COMMON_FILE_PATH    ${COMMON_INC_PATH}/common)
-set(COMMON_RENDER_PATH  ${COMMON_INC_PATH}/glrender)
-set(COMMON_ASSIMP_PATH  ${COMMON_INC_PATH}/glrender/libassimp)
-set(COMMON_LIBPNG_PATH  ${COMMON_INC_PATH}/libpng)
-set(COMMON_UTILS_PATH   ${COMMON_INC_PATH}/utils)
+set(COMMON_INC_PATH         ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../../OpenGLESCommon)
+set(COMMON_FILE_PATH        ${COMMON_INC_PATH}/common)
+set(COMMON_RENDER_PATH      ${COMMON_INC_PATH}/glrender)
+set(COMMON_ASSIMP_PATH      ${COMMON_INC_PATH}/glrender/libassimp)
+set(COMMON_LIBPNG_PATH      ${COMMON_INC_PATH}/libpng)
+set(COMMON_UTILS_PATH       ${COMMON_INC_PATH}/utils)
+set(COMMON_FREETYPE_PATH    ${COMMON_INC_PATH}/freetype)
 
-MESSAGE(ERROR "COMMON_UTILS_PATH: ${COMMON_UTILS_PATH}")
+message(STATUS "COMMON_UTILS_PATH: ${COMMON_UTILS_PATH}")
 
 #for STL path and libs
 set(CLANG_STL_PATH ${NDK_ROOT}/sources/cxx-stl/llvm-libc++/libs/${TARGET_ABI})
@@ -42,6 +43,7 @@ set(COMMON_INCLUDE_DIR
         ${COMMON_RENDER_PATH}
         ${COMMON_ASSIMP_PATH}
         ${COMMON_UTILS_PATH}
+        ${COMMON_FREETYPE_PATH}
         )
 
 include_directories(
@@ -54,11 +56,13 @@ include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/../render3d
         ${CMAKE_CURRENT_SOURCE_DIR}/../model
         ${CMAKE_CURRENT_SOURCE_DIR}/../glutil
+        ${CMAKE_CURRENT_SOURCE_DIR}/../freetype/include
 )
 
 link_directories(
         ${COMMON_LIBPNG_PATH}/lib/${TARGET_ABI}
         ${COMMON_ASSIMP_PATH}/lib/${TARGET_ABI}
+        ${COMMON_FREETYPE_PATH}/lib/${TARGET_ABI}
         ${CLANG_STL_PATH}
 )
 
@@ -77,7 +81,7 @@ list(APPEND LIST_SRC_FILES
         SampleDrawFBO.cpp
         SampleRender3DMesh.cpp
         SampleDrawYUV.cpp
-        SampleText.cpp
+        SampleTextRender.cpp
         )
 
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffunction-sections")
@@ -92,6 +96,7 @@ set(LIST_TARGET_LINK
         nativewindow
         log
         assimp
+        freetype
         )
 
 if (IF_USE_STATIC_PNG_LIB EQUAL 1)

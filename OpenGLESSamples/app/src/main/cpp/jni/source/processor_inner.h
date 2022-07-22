@@ -49,5 +49,6 @@ typedef struct __tag_processor_handle
 	SampleRender3DMesh *m_pSampleRender3DMesh;
 	SampleTexture *m_pSampleTexture;
 	SampleDrawYUV *m_pSampleRenderYUV;
+	SampleTextRender *m_pSampleRenderText;
 } ProcessorHandle, *LPProcessorHandle;
 

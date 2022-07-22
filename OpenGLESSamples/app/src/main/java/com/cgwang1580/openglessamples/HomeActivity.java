@@ -1,6 +1,7 @@
 package com.cgwang1580.openglessamples;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -13,6 +14,7 @@ import com.cgwang1580.utils.CommonDefine;
 import com.cgwang1580.utils.LogUtils;
 import com.cgwang1580.utils.SharedPreferenceUtils;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class HomeActivity extends AppCompatActivity {
@@ -22,10 +24,12 @@ public class HomeActivity extends AppCompatActivity {
     private SharedPreferenceUtils mSharedPreferenceUtils = null;
     private Spinner mSpinnerView = null;
 
-    private final static String[]PermissionList = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE};
+    private final static String[]PermissionList = new String[]{
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+    };
 
-    //todo: 从shared_preferenced里获取权限情况
+    //todo: 从 shared_preference 里获取权限情况
     private boolean bPermissionOK = false;
 
     @Override
@@ -54,7 +58,7 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         PermissionHelper.onMyRequestPermissionsResult(requestCode, permissions, grantResults);
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
@@ -92,6 +96,7 @@ public class HomeActivity extends AppCompatActivity {
         mSpinnerView.setSelection(mEffectType);
     }
 
+    @SuppressLint("NonConstantResourceId")
     public void viewOnClick(View view) {
         if (view == null) {
             return;

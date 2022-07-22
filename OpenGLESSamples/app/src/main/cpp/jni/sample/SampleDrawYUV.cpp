@@ -102,7 +102,7 @@ RESULT SampleDrawYUV::createShader() {
     RESULT retCode = ERROR_OK;
     do {
         m_pShaderHelper = new ShaderHelper (yuv_vertex_shader, yuv_fragment_shader_nv12);
-        if (nullptr == m_pShaderHelper || ERROR_OK != m_pShaderHelper->getShaderHelperState()) {
+        if (ERROR_OK != m_pShaderHelper->getShaderHelperState()) {
             LOGE("SampleDrawYUV::createShader error");
             retCode = m_pShaderHelper->getShaderHelperState();
             break;

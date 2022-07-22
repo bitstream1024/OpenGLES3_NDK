@@ -8,4 +8,9 @@ cmake_minimum_required(VERSION 3.4.1)
 project(openglessamples)
 include(config.cmake)
 
+if(${IF_BUILD_FREETYPE_LIB} EQUAL 1)
+    MESSAGE(STATUS "add_subdirectory: freetype")
+    add_subdirectory(freetype)
+endif()
+
 add_subdirectory(sample)

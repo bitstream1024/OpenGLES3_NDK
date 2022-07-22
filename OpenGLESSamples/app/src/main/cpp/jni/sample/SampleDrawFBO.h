@@ -37,8 +37,8 @@ private:
 	GLuint m_VAO_fbo;
 	GLuint m_EBO_fbo;
 
-	GLuint m_FBO;
-	GLuint m_FBOTexture;
+	GLuint m_FBO{};
+	GLuint m_FBOTexture{};
 	ShaderHelper *m_pShaderHelperNormal;
 	ShaderHelper *m_pShaderHelperFBO;
 

@@ -47,11 +47,11 @@ public class GLViewActivity extends AppCompatActivity {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (null != mMultiMotionHelper) mMultiMotionHelper.handleViewEvent(event);
+        assert mMultiMotionHelper != null;
+        mMultiMotionHelper.handleViewEvent(event);
         MotionStateGL motionStateGL = mMultiMotionHelper.getMotionStateGL(myGLSurfaceView.getGLViewWidth(),
                 myGLSurfaceView.getGLViewHeight());
         motionStateGL.logoutTransform();
-
         myGLSurfaceView.setMotionState(motionStateGL);
 
         return true;
@@ -103,8 +103,19 @@ public class GLViewActivity extends AppCompatActivity {
     private void initUI (int effectType) {
         LogUtils.d(TAG, "initUI");
         //setNavigationColor ();
-        List<String> effectList = new ArrayList<>(Arrays.asList("Triangle", "SimpleTexture", "TextureFBO",
-                "HardwareBuffer", "Transform", "Render3D", "TriangleFBO", "Render3DMesh", "DrawTexture", "RenderYUV"));
+        List<String> effectList = new ArrayList<>(Arrays.asList(
+                "Triangle",
+                "SimpleTexture",
+                "TextureFBO",
+                "HardwareBuffer",
+                "Transform",
+                "Render3D",
+                "TriangleFBO",
+                "Render3DMesh",
+                "DrawTexture",
+                "RenderYUV",
+                "renderText"
+        ));
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -121,9 +132,7 @@ public class GLViewActivity extends AppCompatActivity {
         return true;
     }
     private void setNavigationColor () {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-        }
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
     }
 }

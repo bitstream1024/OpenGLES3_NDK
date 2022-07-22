@@ -5,6 +5,7 @@
 #pragma once
 
 #include "SampleBase.h"
+#include "SampleTextRender.h"
 
 typedef enum
 {
@@ -17,12 +18,14 @@ typedef enum
 	eDraw_TriangleFBO,
 	eDraw_Render3DMesh,
 	eDraw_Texture,
-	eDraw_YUV
+	eDraw_YUV,
+    eDraw_Text
 }SampleType;
 
 class SampleFactory {
 public:
 	static SampleBase * CreateSample (SampleType sampleType) {
+        SampleBase *pBase(nullptr);
 		switch (sampleType) {
 			case eDraw_Triangle:
 				break;
@@ -37,15 +40,23 @@ public:
 			case eDraw_Render3D:
 				break;
 			case eDraw_TriangleFBO:
-				return new SampleDrawFBO ();
+                pBase = new SampleDrawFBO ();
+                break;
 			case eDraw_Render3DMesh:
-				return new SampleRender3DMesh ();
+                pBase = new SampleRender3DMesh ();
+                break;
 			case eDraw_Texture:
-				return new SampleTexture();
+                pBase = new SampleTexture();
+                break;
 			case eDraw_YUV:
-				return new SampleDrawYUV();
+                pBase = new SampleDrawYUV();
+                break;
+            case eDraw_Text:
+                pBase = new SampleTextRender();
+                break;
 			default:
 				break;
 		}
+        return pBase;
 	}
 };

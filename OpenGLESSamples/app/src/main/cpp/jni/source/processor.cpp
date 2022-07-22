@@ -77,12 +77,20 @@ int CreateSampleAndShaderByDrawType (const PHandle pProcessorHandle, SampleType 
 			MyProcessorHandle->m_pSampleTexture->Create();
             break;
 		case eDraw_YUV:
-			if (!MyProcessorHandle->m_pSampleRenderYUV) {
+			if (!MyProcessorHandle->m_pSampleRenderYUV)
+            {
 				MyProcessorHandle->m_pSampleRenderYUV = (SampleDrawYUV*)SampleFactory::CreateSample(drawType);
 				MyProcessorHandle->m_pSampleRenderYUV->SetImageYuvResource(MyProcessorHandle->lpMyImageInfo_YUV);
 				MyProcessorHandle->m_pSampleRenderYUV->InitSample();
 			}
 			break;
+        case eDraw_Text:
+            if (!MyProcessorHandle->m_pSampleRenderText)
+            {
+                MyProcessorHandle->m_pSampleRenderText = (SampleTextRender*) SampleFactory::CreateSample(drawType);
+                MyProcessorHandle->m_pSampleRenderText->Init();
+            }
+            break;
 		default:
 			LOGD("CreateSampleAndShaderByDrawType nDrawType = %d is unsupported", drawType);
 			break;
@@ -149,6 +157,11 @@ int DestroySampleAndShaderByDrawType (const PHandle pProcessorHandle, SampleType
 			if (MyProcessorHandle->m_pSampleRenderYUV)
 				MyProcessorHandle->m_pSampleRenderYUV->UnInitSample();
 			SafeDelete(MyProcessorHandle->m_pSampleRenderYUV)
+			break;
+        case eDraw_Text:
+			if (MyProcessorHandle->m_pSampleRenderText)
+				MyProcessorHandle->m_pSampleRenderText->UnInit();
+			SafeDelete(MyProcessorHandle->m_pSampleRenderText)
 			break;
 		default:
 			LOGD("onDrawFrame nDrawType = %d is unsupported", drawType);
@@ -319,6 +332,11 @@ int onDrawFrame (PHandle const pProcessorHandle)
 				MyProcessorHandle->m_pSampleRenderYUV->OnDrawFrame();
 			}
 			break;
+        case eDraw_Text:
+            if (MyProcessorHandle->m_pSampleRenderText) {
+                MyProcessorHandle->m_pSampleRenderText->Draw();
+            }
+            break;
 		default:
 			LOGD("onDrawFrame nDrawType = %d", nDrawType);
 			break;

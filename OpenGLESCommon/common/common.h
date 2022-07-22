@@ -5,9 +5,11 @@
 #ifndef HELLOOPENGLES_COMMON_H
 #define HELLOOPENGLES_COMMON_H
 
-#define PATH_LEN_MAX     256
+#define IF_DEBUG        1
 
-#define RESULT           int
+#define PATH_LEN_MAX    256
+
+#define RESULT          int
 typedef enum _enum_error_code_
 {
 	ERROR_OK = 0x00,
@@ -29,6 +31,6 @@ typedef struct _tag_rect_
 	int top;
 	int right;
 	int bottom;
-}SRECT, *LPSRECT;
+}RECT, *LPRECT;
 
 #endif //HELLOOPENGLES_COMMON_H

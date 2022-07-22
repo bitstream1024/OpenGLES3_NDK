@@ -14,13 +14,13 @@ ShaderHelper::ShaderHelper(const char* vertexShaderCode, const char* fragmentSha
 	do {
 		// vertex shader.cpp
 		vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vertexShader, 1, &vertexShaderCode, NULL);
+		glShaderSource(vertexShader, 1, &vertexShaderCode, nullptr);
 		glCompileShader(vertexShader);
         GL_CHECK_ERROR("ShaderHelper::ShaderHelper glCompileShader vertexShader");
 		// get compile shader.cpp result
 		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &result);
 		if (!result) {
-			glGetShaderInfoLog(vertexShader, MY_MAX_PATH * 2, NULL, infoLog);
+			glGetShaderInfoLog(vertexShader, MY_MAX_PATH * 2, nullptr, infoLog);
 			LOGE ("ShaderHelper glCompileShader vertexShader error, %s", infoLog);
 			m_nShaderState = ERROR_GL_STATE;
 			break;
@@ -28,13 +28,13 @@ ShaderHelper::ShaderHelper(const char* vertexShaderCode, const char* fragmentSha
 
 		// fragment shader.cpp
 		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragmentShader, 1, &fragmentShaderCode, NULL);
+		glShaderSource(fragmentShader, 1, &fragmentShaderCode, nullptr);
 		glCompileShader(fragmentShader);
         GL_CHECK_ERROR("ShaderHelper::ShaderHelper glCompileShader fragmentShader");
         // get compile shader.cpp result
 		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &result);
 		if (!result) {
-			glGetShaderInfoLog(fragmentShader, MY_MAX_PATH * 2, NULL, infoLog);
+			glGetShaderInfoLog(fragmentShader, MY_MAX_PATH * 2, nullptr, infoLog);
 			LOGE ("ShaderHelper glCompileShader fragmentShader error, %s ", infoLog);
 			m_nShaderState = ERROR_GL_STATE;
 			break;
@@ -49,7 +49,7 @@ ShaderHelper::ShaderHelper(const char* vertexShaderCode, const char* fragmentSha
         // get link result
 		glGetProgramiv(m_nProgramId, GL_LINK_STATUS, &result);
 		if (!result) {
-			glGetProgramInfoLog(m_nProgramId, MY_MAX_PATH * 2, NULL, infoLog);
+			glGetProgramInfoLog(m_nProgramId, MY_MAX_PATH * 2, nullptr, infoLog);
 			LOGE ("ShaderHelper glLinkProgram progreamId error, %s ", infoLog);
 			m_nShaderState = ERROR_GL_STATE;
 			break;
@@ -81,6 +81,11 @@ int ShaderHelper::getAttribLocation(const std::string &name) const
 	return glGetAttribLocation(m_nProgramId, name.c_str());
 }
 
+int ShaderHelper::getUniformLocation(const std::string &name) const
+{
+    return glGetUniformLocation(m_nProgramId, name.c_str());
+}
+
 void ShaderHelper::setBool (const std::string &name, bool value) const{
 	glUniform1i(glGetUniformLocation(m_nProgramId, name.c_str()), value);
 }
@@ -96,6 +101,11 @@ void ShaderHelper::setFloat(const std::string &name, float value) const {
 void ShaderHelper::setVec3f(const std::string &name, float value1, float value2, float value3) const
 {
 	glUniform3f(glGetUniformLocation(m_nProgramId, name.c_str()), value1, value2, value3);
+}
+
+void ShaderHelper::setVec4f(const std::string &name, float value1, float value2, float value3, float value4) const
+{
+    glUniform4f(glGetUniformLocation(m_nProgramId, name.c_str()), value1, value2, value3, value4);
 }
 
 void ShaderHelper::setMat4(const std::string &name, const glm::mat4 &mat) const

@@ -315,7 +315,7 @@ int drawFBO (ShaderHelper *pShaderHelperFBO, ShaderHelper *pShaderHelperNormal, 
 
 	// save texture for test
 	if (false) {
-		SRECT sRect{0, 0, nImageWidth, nImageHeight};
+		RECT sRect{0, 0, nImageWidth, nImageHeight};
 		char path[MAX_PATH]{0};
 		sprintf(path, "/sdcard/OpenGLESTest/SaveRender_0_%lld.png", MyTimeUtils::GetCurrentTime());
 		DrawHelper::SaveRenderImage (sRect, GL_RGBA, path);

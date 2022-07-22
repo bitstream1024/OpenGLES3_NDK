@@ -8,9 +8,6 @@
 SampleDrawFBO::SampleDrawFBO ()
 {
 	LOGD("SampleDrawFBO::SampleDrawFBO");
-	m_VAO = GL_NONE;
-	m_VBO = GL_NONE;
-	m_EBO = GL_NONE;
 	m_VAO_fbo = GL_NONE;
 	m_EBO_fbo = GL_NONE;
 	m_pShaderHelperNormal = nullptr;
@@ -104,7 +101,7 @@ RESULT SampleDrawFBO::OnDrawFrame ()
 	if (false) {
 		GLint viewport[4]{0};
 		glGetIntegerv(GL_VIEWPORT, viewport);
-		SRECT sRect{0};
+		RECT sRect{0};
 		sRect.left = viewport[0];
 		sRect.top = viewport[1];
 		sRect.right = viewport[2];

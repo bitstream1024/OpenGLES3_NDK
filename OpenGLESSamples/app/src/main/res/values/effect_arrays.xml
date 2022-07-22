@@ -11,5 +11,6 @@
         <item>Render3DMesh</item>
         <item>DrawTexture</item>
         <item>RenderYUV</item>
+        <item>RenderText</item>
     </string-array>
 </resources>

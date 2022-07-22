@@ -86,14 +86,14 @@ JNIEXPORT jint JNICALL JNI_METHOD_NAME(OnSurfaceDestroyedJNI)(JNIEnv *env, jobje
 JNIEXPORT jint JNICALL JNI_METHOD_NAME(SetMotionStateJNI)(JNIEnv *env, jobject thiz, jlong handle, jobject motion_state_gl)
 {
 	// TODO: implement SetMotionState()
-	LOGD("Java_com_cgwang1580_senioropengles_MyGLRenderer_SetMotionState");
+	//LOGD("Java_com_cgwang1580_senioropengles_MyGLRenderer_SetMotionState");
 	MotionState motionState;
 	int retCode = ConvertMotionState (env, motion_state_gl, motionState);
-	LOGD("ConvertMotionState ret = %d", retCode);
+	//LOGD("ConvertMotionState ret = %d", retCode);
 
 	auto addr = (PHandle)handle;
 	retCode = setMotionState (addr, motionState);
-	LOGD("setMotionState ret = %d", retCode);
+	//LOGD("setMotionState ret = %d", retCode);
 
 	return retCode;
 }

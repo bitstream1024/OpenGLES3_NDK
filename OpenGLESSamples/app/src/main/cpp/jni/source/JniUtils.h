@@ -10,7 +10,7 @@
 
 int ConvertMotionState (JNIEnv *env, jobject jMotionObject, MotionState &motionState)
 {
-	LOGD ("ConvertMotionState");
+	//LOGD ("ConvertMotionState");
 	CHECK_NULL_INPUT(env);
 	CHECK_NULL_INPUT(jMotionObject);
 
@@ -31,8 +31,8 @@ int ConvertMotionState (JNIEnv *env, jobject jMotionObject, MotionState &motionS
 	motionState.transform_y = env->GetFloatField(jMotionObject, transformYID);
 	motionState.transform_z = env->GetFloatField(jMotionObject, transformZID);
 
-	LOGD("ConvertMotionState motionState %d, (%f %f %f)", motionState.eMotionType,
-			motionState.transform_x, motionState.transform_y, motionState.transform_z);
+	/*LOGD("ConvertMotionState motionState %d, (%f %f %f)", motionState.eMotionType,
+			motionState.transform_x, motionState.transform_y, motionState.transform_z);*/
 	env->DeleteLocalRef(jMotionClass);
 
 	return ERROR_OK;

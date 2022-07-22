@@ -30,7 +30,7 @@ RESULT ScreenRect::CreateRectGLBuffer()
 	// create shader
 	m_pFullRectShader = new ShaderHelper (FULL_RECT_VERTEX_SHADER, FULL_RECT_FRAGMENT_SHADER);
 	int shaderState = m_pFullRectShader->getShaderHelperState();
-	if (nullptr == m_pFullRectShader || shaderState != ERROR_OK) {
+	if (shaderState != ERROR_OK) {
 		LOGE("ScreenRect::CreateFullRectBuffer m_pFullRectShader shaderState = %d", shaderState);
 		return ERROR_GL_STATE;
 	}

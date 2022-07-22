@@ -152,11 +152,11 @@ public:
         }
     }
 
-	static void SaveRenderImage (const SRECT sRect, const GLenum format, std::string sPath)
+	static void SaveRenderImage (const RECT sRect, const GLenum format, std::string strPath)
 	{
 		LOGD("SaveRenderImage");
-		LOGD("SaveRenderImage sRect = (%d,%d,%d,%d), format = %d, sPath = %s", sRect.left, sRect.top,
-				sRect.right, sRect.bottom, format, sPath.c_str());
+		LOGD("SaveRenderImage sRect = (%d,%d,%d,%d), format = %d, strPath = %s", sRect.left, sRect.top,
+             sRect.right, sRect.bottom, format, strPath.c_str());
 		int width = sRect.right - sRect.left;
 		int height = sRect.bottom - sRect.top;
 		MyImageInfo myImageInfo {0};
@@ -180,7 +180,7 @@ public:
 			glReadPixels(0, 0, width, height, format, GL_UNSIGNED_BYTE, myImageInfo.ppBuffer[0]);
 		STOP_TIME ("SaveRenderImage glReadPixels")
 		OpenImageHelper::ExchangeImageCoordinateY(&myImageInfo);
-		OpenImageHelper::SaveImageToPng(&myImageInfo, sPath.c_str());
+		OpenImageHelper::SaveImageToPng(&myImageInfo, strPath.c_str());
 		OpenImageHelper::FreeMyImageInfo(&myImageInfo);
 	}
 
