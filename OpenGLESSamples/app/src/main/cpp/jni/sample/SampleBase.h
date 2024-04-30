@@ -1,12 +1,12 @@
 //
-// Created by chauncy on 2020/6/4.
+// Created by bitstream1024 on 2020/6/4.
 //
 
 #pragma once
 
 #include <MotionState.h>
 #include <vector>
-#include <common.h>
+#include <KitCommon.h>
 #include <ShaderHelper.h>
 #include "GLES3/gl3.h"
 #include "glm/glm.hpp"

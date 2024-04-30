@@ -1,11 +1,11 @@
 //
-// Created by chauncy on 2020/6/18.
+// Created by bitstream1024 on 2020/6/18.
 //
 
 #pragma once
 
-#include <LogAndroid.h>
-#include <MyDefineUtils.h>
+#include <KitLogUtils.h>
+#include <KitCommonDefine.h>
 #include <jni.h>
 
 int ConvertMotionState (JNIEnv *env, jobject jMotionObject, MotionState &motionState)
@@ -35,7 +35,7 @@ int ConvertMotionState (JNIEnv *env, jobject jMotionObject, MotionState &motionS
 			motionState.transform_x, motionState.transform_y, motionState.transform_z);*/
 	env->DeleteLocalRef(jMotionClass);
 
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
 /// this function is used to test variable form java layer
@@ -75,5 +75,5 @@ int ConvertJavaClassVariableTest (JNIEnv *env, jobject thiz)
 
 	// release
 	env->DeleteLocalRef(myGLRenderClazz);
-	return ERROR_OK;
+	return NONE_ERROR;
 }

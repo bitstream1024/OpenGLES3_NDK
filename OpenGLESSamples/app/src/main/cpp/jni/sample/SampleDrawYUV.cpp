@@ -1,8 +1,8 @@
 //
-// Created by chauncy_wang on 2020/9/23.
+// Created by bitstream1024_wang on 2020/9/23.
 //
 
-#include <MyDefineUtils.h>
+#include <KitCommonDefine.h>
 #include <vector>
 #include "SampleDrawYUV.h"
 #include "DrawHelper.h"
@@ -11,7 +11,7 @@ SampleDrawYUV::SampleDrawYUV() {
     mTextureLumin = GL_NONE;
     mTextureAlpha = GL_NONE;
     m_pShaderHelper = nullptr;
-    NativeImageUtils::ZeroNativeImage(&m_YUVImage);
+  KitImageUtils::ZeroImage(&m_YUVImage);
     initMVPMatrix ();
 }
 
@@ -72,7 +72,7 @@ RESULT SampleDrawYUV::InitSample() {
     LOGV("SampleDrawYUV::InitSample begin");
     createShader();
     createGLBuffer();
-    return ERROR_OK;
+    return NONE_ERROR;
 }
 
 void SampleDrawYUV::UnInitSample () {
@@ -80,18 +80,18 @@ void SampleDrawYUV::UnInitSample () {
     destroyShader();
 }
 
-RESULT SampleDrawYUV::SetImageYuvResource(MyImageInfo *const pSrcImage) {
+RESULT SampleDrawYUV::SetImageYuvResource(KitImage *const pSrcImage) {
     LOGD("SampleDrawYUV::SetImage");
-    if (nullptr == pSrcImage || nullptr == pSrcImage->ppBuffer[0]) {
+    if (nullptr == pSrcImage || nullptr == pSrcImage->data[0]) {
         LOGE("SampleDrawYUV::SetImage pSrcImage error");
         return ERROR_IMAGE;
     }
     m_YUVImage.width = pSrcImage->width;
     m_YUVImage.height = pSrcImage->height;
     m_YUVImage.format = pSrcImage->format;
-    memcpy(m_YUVImage.wPitch, pSrcImage->wPitch, 4 * sizeof(int));
-    NativeImageUtils::AllocNativeImage(&m_YUVImage);
-    NativeImageUtils::CopyNativeImageToDst(pSrcImage, &m_YUVImage);
+    memcpy(m_YUVImage.wStride, pSrcImage->wStride, 4 * sizeof(int));
+  KitImageUtils::AllocImage(&m_YUVImage);
+  KitImageUtils::CopyImageToDst(pSrcImage, &m_YUVImage);
     return 0;
 }
 
@@ -99,10 +99,10 @@ RESULT SampleDrawYUV::createShader() {
     LOGD("SampleDrawYUV::createShader begin");
     GL_CHECK_ERROR("SampleDrawYUV::createShader begin");
 
-    RESULT retCode = ERROR_OK;
+    RESULT retCode = NONE_ERROR;
     do {
         m_pShaderHelper = new ShaderHelper (yuv_vertex_shader, yuv_fragment_shader_nv12);
-        if (ERROR_OK != m_pShaderHelper->getShaderHelperState()) {
+        if (NONE_ERROR != m_pShaderHelper->getShaderHelperState()) {
             LOGE("SampleDrawYUV::createShader error");
             retCode = m_pShaderHelper->getShaderHelperState();
             break;
@@ -130,14 +130,14 @@ RESULT SampleDrawYUV::createGLBuffer() {
     DrawHelper::GetOneTexture(TEXTURE_TARGET, &mTextureLumin);
     glBindTexture(TEXTURE_TARGET, mTextureLumin);
     glTexImage2D(TEXTURE_TARGET, 0, GL_LUMINANCE, srcWidth, srcHeight, 0, GL_LUMINANCE,
-            GL_UNSIGNED_BYTE, m_YUVImage.ppBuffer[0]);
+            GL_UNSIGNED_BYTE, m_YUVImage.data[0]);
     DrawHelper::CheckGLError("SampleDrawYUV::createGLBuffer glTexImage2D mTextureLuminAlpha");
     glBindTexture(TEXTURE_TARGET, GL_NONE);
 
     DrawHelper::GetOneTexture(TEXTURE_TARGET, &mTextureAlpha);
     glBindTexture(TEXTURE_TARGET, mTextureAlpha);
     glTexImage2D(TEXTURE_TARGET, 0, GL_LUMINANCE_ALPHA, srcWidth>>1, srcHeight>>1,
-            0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, m_YUVImage.ppBuffer[1]);
+            0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, m_YUVImage.data[1]);
     DrawHelper::CheckGLError("SampleDrawYUV::createGLBuffer glTexImage2D mTextureAlpha");
     glBindTexture(TEXTURE_TARGET, GL_NONE);
 
@@ -195,7 +195,7 @@ RESULT SampleDrawYUV::createGLBuffer() {
 
     SafeDeleteGLBuffers(sizeof(vbo)/ sizeof(GLuint), vbo)
     GL_CHECK_ERROR("SampleDrawYUV::createGLBuffer end");
-    return ERROR_OK;
+    return NONE_ERROR;
 }
 
 void SampleDrawYUV::destroyGLBuffer() {

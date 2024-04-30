@@ -1,15 +1,15 @@
 //
-// Created by chauncy_wang on 2020/9/23.
+// Created by bitstream1024_wang on 2020/9/23.
 //
 
-#include <MyDefineUtils.h>
+#include <KitCommonDefine.h>
 #include <vector>
 #include "SampleRender16Bit.h"
 #include "DrawHelper.h"
 
 SampleRender16Bit::SampleRender16Bit() : m_TextureY(GL_NONE), m_TextureUV(GL_NONE) {
   m_pShaderHelper = nullptr;
-  NativeImageUtils::ZeroNativeImage(&m_YUVImage);
+  KitImageUtils::ZeroImage(&m_YUVImage);
   initMVPMatrix();
 }
 
@@ -41,7 +41,7 @@ RESULT SampleRender16Bit::OnDrawFrame() {
   m_pShaderHelper->setMat4("mvp", mvp);
   DrawHelper::CheckGLError("SampleRender16Bit::OnDrawFrame setMat4");
 
-  if (m_YUVImage.format == MY_FORMAT_GRAY10LE) {
+  if (m_YUVImage.format == KIT_FMT_GRAY10LE) {
     activeTextureForGray16();
   } else {
     activeTextureForP010();
@@ -63,7 +63,7 @@ RESULT SampleRender16Bit::InitSample() {
   LOGV("SampleRender16Bit::InitSample begin");
   createShader();
   createGLBuffer();
-  return ERROR_OK;
+  return NONE_ERROR;
 }
 
 void SampleRender16Bit::UnInitSample() {
@@ -71,18 +71,18 @@ void SampleRender16Bit::UnInitSample() {
   destroyShader();
 }
 
-RESULT SampleRender16Bit::SetImage(MyImageInfo *const pSrcImage) {
+RESULT SampleRender16Bit::SetImage(KitImage *const pSrcImage) {
   LOGD("SampleRender16Bit::SetImage");
-  if (nullptr == pSrcImage || nullptr == pSrcImage->ppBuffer[0]) {
+  if (nullptr == pSrcImage || nullptr == pSrcImage->data[0]) {
     LOGE("SampleRender16Bit::SetImage pSrcImage error");
     return ERROR_IMAGE;
   }
   m_YUVImage.width = pSrcImage->width;
   m_YUVImage.height = pSrcImage->height;
   m_YUVImage.format = pSrcImage->format;
-  memcpy(m_YUVImage.wPitch, pSrcImage->wPitch, 4 * sizeof(int));
-  NativeImageUtils::AllocNativeImage(&m_YUVImage);
-  NativeImageUtils::CopyNativeImageToDst(pSrcImage, &m_YUVImage);
+  memcpy(m_YUVImage.wStride, pSrcImage->wStride, 4 * sizeof(int));
+  KitImageUtils::AllocImage(&m_YUVImage);
+  KitImageUtils::CopyImageToDst(pSrcImage, &m_YUVImage);
   return 0;
 }
 
@@ -90,14 +90,14 @@ RESULT SampleRender16Bit::createShader() {
   LOGD("SampleRender16Bit::createShader begin");
   GL_CHECK_ERROR("SampleRender16Bit::createShader begin");
 
-  RESULT retCode = ERROR_OK;
+  RESULT retCode = NONE_ERROR;
   do {
-    const char* pFragShader = yuv_fragment_shader_p010_lsb;
-    if (MY_FORMAT_GRAY10LE == m_YUVImage.format) {
+    const char *pFragShader = yuv_fragment_shader_p010_lsb;
+    if (KIT_FMT_GRAY10LE == m_YUVImage.format) {
       pFragShader = yuv_fragment_shader_gray16;
     }
     m_pShaderHelper = new ShaderHelper(yuv_vertex_shader, pFragShader);
-    if (ERROR_OK != m_pShaderHelper->getShaderHelperState()) {
+    if (NONE_ERROR != m_pShaderHelper->getShaderHelperState()) {
       LOGE("SampleRender16Bit::createShader error");
       retCode = m_pShaderHelper->getShaderHelperState();
       break;
@@ -125,14 +125,14 @@ RESULT SampleRender16Bit::createGLBuffer() {
   DrawHelper::GetOneTexture(TEXTURE_TARGET, &m_TextureY);
   glBindTexture(TEXTURE_TARGET, m_TextureY);
   glTexImage2D(TEXTURE_TARGET, 0, GL_LUMINANCE_ALPHA, srcWidth, srcHeight, 0, GL_LUMINANCE_ALPHA,
-               GL_UNSIGNED_BYTE, m_YUVImage.ppBuffer[0]);
+               GL_UNSIGNED_BYTE, m_YUVImage.data[0]);
   DrawHelper::CheckGLError("SampleRender16Bit::createGLBuffer glTexImage2D m_TextureY");
   glBindTexture(TEXTURE_TARGET, GL_NONE);
-  if (m_YUVImage.format == MY_FORMAT_P010_LSB || m_YUVImage.format == MY_FORMAT_P010_MSB) {
+  if (m_YUVImage.format == KIT_FMT_P010_LSB || m_YUVImage.format == KIT_FMT_P010_MSB) {
     DrawHelper::GetOneTexture(TEXTURE_TARGET, &m_TextureUV);
     glBindTexture(TEXTURE_TARGET, m_TextureUV);
     glTexImage2D(TEXTURE_TARGET, 0, GL_RGBA, srcWidth >> 1, srcHeight >> 1, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, m_YUVImage.ppBuffer[1]);
+                 GL_UNSIGNED_BYTE, m_YUVImage.data[1]);
     DrawHelper::CheckGLError("SampleRender16Bit::createGLBuffer glTexImage2D m_TextureUV");
     glBindTexture(TEXTURE_TARGET, GL_NONE);
   }
@@ -194,7 +194,7 @@ RESULT SampleRender16Bit::createGLBuffer() {
 
   SafeDeleteGLBuffers(sizeof(vbo) / sizeof(GLuint), vbo)
   GL_CHECK_ERROR("SampleRender16Bit::createGLBuffer end");
-  return ERROR_OK;
+  return NONE_ERROR;
 }
 
 void SampleRender16Bit::destroyGLBuffer() {
@@ -217,7 +217,7 @@ void SampleRender16Bit::activeTextureForGray16() {
   m_pShaderHelper->setInt("la_texture", 0);
 }
 
-void SampleRender16Bit:: activeTextureForP010() {
+void SampleRender16Bit::activeTextureForP010() {
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, m_TextureY);
   m_pShaderHelper->setInt("y_texture", 0);

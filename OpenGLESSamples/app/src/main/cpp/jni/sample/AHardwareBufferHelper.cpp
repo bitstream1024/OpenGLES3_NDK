@@ -1,11 +1,11 @@
 //
-// Created by chauncy on 2020/5/7.
+// Created by bitstream1024 on 2020/5/7.
 //
 
 #include "AHardwareBufferHelper.h"
 #include "DrawHelper.h"
-#include "MyDefineUtils.h"
-#include "LogAndroid.h"
+#include "KitCommonDefine.h"
+#include "KitLogUtils.h"
 #include "cstring"
 
 const GLfloat vVertices[] = {
@@ -92,9 +92,9 @@ AHardwareBufferHelper::~AHardwareBufferHelper()
 int AHardwareBufferHelper::createGPUBuffer (const int nWidth, const int nHeight, const int dstImageFormat)
 {
 	LOGD("createGPUBuffer");
-	int ret = ERROR_OK;
+	int ret = NONE_ERROR;
 	if (bCreated)
-		return ERROR_OK;
+		return NONE_ERROR;
 	AHardwareBuffer_Desc aBufferDesc{0};
 	aBufferDesc.width = (uint32_t)nWidth;
 	aBufferDesc.height = (uint32_t)nHeight;
@@ -112,7 +112,7 @@ int AHardwareBufferHelper::createGPUBuffer (const int nWidth, const int nHeight,
 
 	ret = AHardwareBuffer_allocate (&aBufferDesc, &pAHardwareBuffer);
 	LOGD("AHardwareBuffer_allocate ret = %d", ret);
-	if (ERROR_OK != ret)
+	if (NONE_ERROR != ret)
 	{
 		LOGE("AHardwareBuffer_allocate error");
 		return ret;
@@ -168,7 +168,7 @@ void AHardwareBufferHelper::destroyGPUBuffer ()
 	setCreateState(false);
 }
 
-int AHardwareBufferHelper::getGPUBufferData(LPMyImageInfo lpMyImageInfo)
+int AHardwareBufferHelper::getGPUBufferData(LPKitImage lpMyImageInfo)
 {
 	LOGD("getGPUBufferDate");
 	CHECK_NULL_INPUT(lpMyImageInfo)
@@ -177,7 +177,7 @@ int AHardwareBufferHelper::getGPUBufferData(LPMyImageInfo lpMyImageInfo)
 	unsigned char *pSrcPlane = nullptr;
 	int ret = AHardwareBuffer_lock (pAHardwareBuffer, USAGE, fence, NULL, (void **)&pSrcPlane);
 	LOGD("getGPUBufferDate AHardwareBuffer_lock ret = %d", ret);
-	if (ERROR_OK != ret || nullptr == pSrcPlane)
+	if (NONE_ERROR != ret || nullptr == pSrcPlane)
 	{
 		LOGE("getGPUBufferDate AHardwareBuffer_lock error");
 		return ret;
@@ -190,25 +190,25 @@ int AHardwareBufferHelper::getGPUBufferData(LPMyImageInfo lpMyImageInfo)
 	lpMyImageInfo->width = aOutBufferDesc.width;
 	lpMyImageInfo->height = aOutBufferDesc.height;
 	convertHardwareFormat2Image(aOutBufferDesc.format, lpMyImageInfo->format);
-	lpMyImageInfo->wPitch[0] = aOutBufferDesc.stride;
+	lpMyImageInfo->wStride[0] = aOutBufferDesc.stride;
 	long lSize = 0;
-	if (NULL == lpMyImageInfo->ppBuffer[0])
+	if (NULL == lpMyImageInfo->data[0])
 	{
 		//lSize = OpenImageHelper::AllocMyImageInfo(m_pImageRGBA);
-		lSize = NativeImageUtils::AllocNativeImage(lpMyImageInfo);
+		lSize = KitImageUtils::AllocImage(lpMyImageInfo);
 		LOGD("getGPUBufferDate AllocMyImageInfo lSize = %ld", lSize);
 		if (0 == lSize)
 			return ERROR_IMAGE;
 	}
-	memcpy(lpMyImageInfo->ppBuffer[0], pSrcPlane, (size_t)lSize);
+	memcpy(lpMyImageInfo->data[0], pSrcPlane, (size_t)lSize);
 	ret = AHardwareBuffer_unlock(pAHardwareBuffer, &fence);
 	LOGD("getGPUBufferDate AHardwareBuffer_unlock ret = %d", ret);
-	if (ERROR_OK != ret)
+	if (NONE_ERROR != ret)
 	{
 		LOGE("getGPUBufferDate AHardwareBuffer_unlock error");
 		return ret;
 	}
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
 int AHardwareBufferHelper::initGLBuffer ()
@@ -246,7 +246,7 @@ int AHardwareBufferHelper::initGLBuffer ()
 		SafeDelete(m_pShaderHelper);
 	m_pShaderHelper = new ShaderHelper (hardware_vertex_shader.c_str(), hardware_fragment_shader.c_str());
 
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
 void AHardwareBufferHelper::unInitGLBuffer ()
@@ -264,7 +264,7 @@ void AHardwareBufferHelper::unInitGLBuffer ()
 	SafeDelete(m_pShaderHelper);
 }
 
-int AHardwareBufferHelper::onDrawFrame (const GLuint colorTextureId, LPMyImageInfo lpMyImageInfo)
+int AHardwareBufferHelper::onDrawFrame (const GLuint colorTextureId, LPKitImage lpMyImageInfo)
 {
 	LOGD("onDrawFrame colorTextureId = %d", colorTextureId);
 	mTextureColorId = colorTextureId;
@@ -309,7 +309,7 @@ int AHardwareBufferHelper::onDrawFrame (const GLuint colorTextureId, LPMyImageIn
 	glViewport(viewPorts[0], viewPorts[1], viewPorts[2], viewPorts[3]);
 	DrawHelper::CheckGLError("onDrawFrame glViewport");
 
-	int ret = ERROR_OK;
+	int ret = NONE_ERROR;
 	START_TIME("getGPUBufferData")
 		ret = getGPUBufferData(lpMyImageInfo);
     STOP_TIME("getGPUBufferData")
@@ -380,7 +380,7 @@ void AHardwareBufferHelper::initDstOesFbo()
 	glFramebufferTexture2D(TargetFrameBuffer, GL_COLOR_ATTACHMENT0, TargetOES, mOESTextureId, 0);
 	DrawHelper::CheckGLError("initDstOesFbo glFramebufferTexture2D");
 
-	// check frame ppBuffer state
+	// check frame data state
 	GLenum tmpStatus = glCheckFramebufferStatus(TargetFrameBuffer);
 	if (GL_FRAMEBUFFER_COMPLETE != tmpStatus)
 	{
@@ -418,14 +418,14 @@ void AHardwareBufferHelper::convertImageFormat2Hardware(const int srcFormat, int
 	LOGD("convertImageFormat2Hardware srcFormat = %d", srcFormat);
 	switch (srcFormat)
 	{
-		case MY_FORMAT_RGB32:
+		case KIT_FMT_RGB32:
 			dstFormat = MY_AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNKNOWN;
 			break;
-		case MY_FORMAT_RGB24:
+		case KIT_FMT_RGB24:
 			dstFormat = AHARDWAREBUFFER_FORMAT_R8G8B8_UNORM;
 			break;
-		case MY_FORMAT_NV21:
-		case MY_FORMAT_NV12:
+		case KIT_FMT_NV21:
+		case KIT_FMT_NV12:
 			dstFormat = MY_AHARDWAREBUFFER_FORMAT_YCrCb_420_SP;
 			break;
 		default:
@@ -440,13 +440,13 @@ void AHardwareBufferHelper::convertHardwareFormat2Image(const int srcFormat, int
 	switch (srcFormat)
 	{
 		case MY_AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNKNOWN:
-			dstFormat = MY_FORMAT_RGB32;
+			dstFormat = KIT_FMT_RGB32;
 			break;
 		case AHARDWAREBUFFER_FORMAT_R8G8B8_UNORM:
-			dstFormat = MY_FORMAT_RGB24;
+			dstFormat = KIT_FMT_RGB24;
 			break;
 		case MY_AHARDWAREBUFFER_FORMAT_YCrCb_420_SP:
-			dstFormat = MY_FORMAT_NV21;
+			dstFormat = KIT_FMT_NV21;
 			break;
 		default:
 			break;

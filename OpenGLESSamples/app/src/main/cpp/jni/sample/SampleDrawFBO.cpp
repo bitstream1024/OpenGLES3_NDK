@@ -1,5 +1,5 @@
 //
-// Created by chauncy on 2020/6/1.
+// Created by bitstream1024 on 2020/6/1.
 //
 
 #include <unistd.h>
@@ -24,7 +24,7 @@ SampleDrawFBO::~SampleDrawFBO ()
 RESULT SampleDrawFBO::InitSample()
 {
 	LOGD("SampleDrawFBO::InitSample");
-	RESULT ret = ERROR_OK;
+	RESULT ret = NONE_ERROR;
 	ret = createShader();
 	CHECK_OK_RETURN(ret);
 	createGLBuffer();
@@ -101,7 +101,7 @@ RESULT SampleDrawFBO::OnDrawFrame ()
 	if (false) {
 		GLint viewport[4]{0};
 		glGetIntegerv(GL_VIEWPORT, viewport);
-		RECT sRect{0};
+		KitRect sRect{0};
 		sRect.left = viewport[0];
 		sRect.top = viewport[1];
 		sRect.right = viewport[2];
@@ -138,7 +138,7 @@ RESULT SampleDrawFBO::OnDrawFrame ()
 	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
 
 	++mFrameNum;
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
 int SampleDrawFBO::GetDrawTexture()
@@ -313,7 +313,7 @@ RESULT SampleDrawFBO::createGLBuffer ()
 
 	SafeDeleteGLBuffers(2, VBO_fbo);
 
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
 void SampleDrawFBO::destroyGLBuffer ()

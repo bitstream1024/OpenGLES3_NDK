@@ -1,11 +1,11 @@
 #include <DrawHelper.h>
-#include "common.h"
+#include "KitCommon.h"
 #include "glm/ext.hpp"
-#include "LogAndroid.h"
+#include "KitLogUtils.h"
 #include "ShaderHelper.h"
 
 ShaderHelper::ShaderHelper(const char* vertexShaderCode, const char* fragmentShaderCode):
-		m_nShaderState(ERROR_OK), m_nProgramId(0)
+    m_nShaderState(NONE_ERROR), m_nProgramId(0)
 {
 	LOGD("ShaderHelper");
 	unsigned int vertexShader, fragmentShader;

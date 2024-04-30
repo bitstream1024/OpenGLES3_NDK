@@ -1,8 +1,8 @@
 //
-// Created by chauncy on 2020/6/4.
+// Created by bitstream1024 on 2020/6/4.
 //
 
-#include "LogAndroid.h"
+#include "KitLogUtils.h"
 #include "SampleBase.h"
 #include "DrawHelper.h"
 

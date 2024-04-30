@@ -1,5 +1,5 @@
 //
-// Created by chauncy on 2020/5/7.
+// Created by bitstream1024 on 2020/5/7.
 //
 
 #pragma once
@@ -11,7 +11,7 @@
 #include <GLES3/gl3ext.h>
 #include <android/hardware_buffer.h>
 #include "ShaderHelper.h"
-#include "MyImageInfo.h"
+#include "KitImage.h"
 
 /**
  * environment
@@ -32,7 +32,7 @@ public:
 	~AHardwareBufferHelper();
 	int createGPUBuffer (const int nWidth, const int nHeight, const int dstImageFormat);
 	void destroyGPUBuffer ();
-	int onDrawFrame (const GLuint colorTextureId, LPMyImageInfo lpMyImageInfo);
+	int onDrawFrame (const GLuint colorTextureId, LPKitImage lpMyImageInfo);
 	bool getCreateState();
 	int getRenderNum ();
 
@@ -63,7 +63,7 @@ private:
 	void initDstOesTextureId();
 	void initDstOesFbo();
 	void connectDstTextureIdToImageBuffer();
-	int getGPUBufferData(LPMyImageInfo lpMyImageInfo);
+	int getGPUBufferData(LPKitImage lpMyImageInfo);
 	int initGLBuffer ();
 	void unInitGLBuffer ();
 };

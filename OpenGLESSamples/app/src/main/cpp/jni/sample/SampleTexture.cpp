@@ -1,5 +1,5 @@
 //
-// Created by chauncy on 2020/9/28.
+// Created by bitstream1024 on 2020/9/28.
 //
 
 #include "SampleTexture.h"
@@ -9,18 +9,18 @@ static void UpdateTextureFuncAsync(SampleTexture* pSample)
 {
     AUTO_COUNT_TIME_COST("UpdateTextureFuncAsync");
     // update texture
-    LPMyImageInfo lpMyImageInfo = pSample->GetMyImageInfo();
+    LPKitImage lpMyImageInfo = pSample->GetMyImageInfo();
     unsigned int frameID = pSample->GetFrameID();
 
-    MyImageInfo testImageInfo {0};
+    KitImage testImageInfo {0};
     testImageInfo.width = lpMyImageInfo->width;
     testImageInfo.height = lpMyImageInfo->height;
     testImageInfo.format = lpMyImageInfo->format;
-    memcpy(testImageInfo.wPitch, lpMyImageInfo->wPitch, 4 * sizeof(int));
-    memcpy(testImageInfo.hPitch, lpMyImageInfo->hPitch, 4 * sizeof(int));
-    unsigned int size = NativeImageUtils::AllocNativeImage(&testImageInfo);
-    LOGV("UpdateTextureFuncAsync AllocNativeImage nRet = %u", size);
-    //NativeImageUtils::CopyNativeImageToDst(m_pImageRGBA, &testImageInfo);
+    memcpy(testImageInfo.wStride, lpMyImageInfo->wStride, 4 * sizeof(int));
+    memcpy(testImageInfo.hStride, lpMyImageInfo->hStride, 4 * sizeof(int));
+    unsigned int size = KitImageUtils::AllocImage(&testImageInfo);
+    LOGV("UpdateTextureFuncAsync AllocImage nRet = %u", size);
+    //KitImageUtils::CopyImageToDst(m_pImageRGBA, &testImageInfo);
 
     while(true) {
 
@@ -32,10 +32,10 @@ static void UpdateTextureFuncAsync(SampleTexture* pSample)
             pSample->m_TextureReadyConditionVariable.wait(locker);
         }
 
-        /*if (NativeImageUtils::IsNativeImageValid(&testImageInfo) && MY_FORMAT_RGB32 == testImageInfo.format
+        /*if (KitImageUtils::IsImageValid(&testImageInfo) && KIT_FMT_RGB32 == testImageInfo.format
             && frameID < testImageInfo.height)
         {
-            memset(testImageInfo.ppBuffer[0], 0, testImageInfo.wPitch[0] * frameID);
+            memset(testImageInfo.data[0], 0, testImageInfo.wStride[0] * frameID);
         }*/
         pSample->UpdateTexture(&testImageInfo);
 
@@ -49,32 +49,32 @@ static void UpdateTextureFuncAsync(SampleTexture* pSample)
             break;
     }
 
-    NativeImageUtils::FreeNativeImage(&testImageInfo);
+  KitImageUtils::FreeImage(&testImageInfo);
 }
 
 static void UpdateTextureFuncSync(SampleTexture* pSample)
 {
     AUTO_COUNT_TIME_COST("UpdateTextureFuncSync");
     // update texture
-    LPMyImageInfo lpMyImageInfo = pSample->GetMyImageInfo();
+    LPKitImage lpMyImageInfo = pSample->GetMyImageInfo();
     unsigned int frameID = pSample->GetFrameID();
 
-    MyImageInfo testImageInfo {0};
+    KitImage testImageInfo {0};
     testImageInfo.width = lpMyImageInfo->width;
     testImageInfo.height = lpMyImageInfo->height;
     testImageInfo.format = lpMyImageInfo->format;
-    memcpy(testImageInfo.wPitch, lpMyImageInfo->wPitch, 4 * sizeof(int));
-    memcpy(testImageInfo.hPitch, lpMyImageInfo->hPitch, 4 * sizeof(int));
-    NativeImageUtils::AllocNativeImage(&testImageInfo);
+    memcpy(testImageInfo.wStride, lpMyImageInfo->wStride, 4 * sizeof(int));
+    memcpy(testImageInfo.hStride, lpMyImageInfo->hStride, 4 * sizeof(int));
+  KitImageUtils::AllocImage(&testImageInfo);
 
-    NativeImageUtils::CopyNativeImageToDst(lpMyImageInfo, &testImageInfo);
-    if (NativeImageUtils::IsNativeImageValid(&testImageInfo) && MY_FORMAT_RGB32 == testImageInfo.format && frameID < testImageInfo.height)
+  KitImageUtils::CopyImageToDst(lpMyImageInfo, &testImageInfo);
+    if (KitImageUtils::IsImageValid(&testImageInfo) && KIT_FMT_RGB32 == testImageInfo.format && frameID < testImageInfo.height)
     {
-        memset(testImageInfo.ppBuffer[0], 0, testImageInfo.wPitch[0] * frameID);
+        memset(testImageInfo.data[0], 0, testImageInfo.wStride[0] * frameID);
     }
     pSample->UpdateTexture(&testImageInfo);
 
-    NativeImageUtils::FreeNativeImage(&testImageInfo);
+  KitImageUtils::FreeImage(&testImageInfo);
     //++frameID;
     //pSample->UpdateFrameID(frameID);
 }
@@ -85,7 +85,7 @@ SampleTexture::SampleTexture(): m_bThreadExist(false), m_bTextureReady(false), m
 	m_VAO = GL_NONE;
 	m_TextureID = GL_NONE;
 	m_TextureShaderHelper = nullptr;
-	memset(&m_TextureImage, 0, sizeof(MyImageInfo));
+	memset(&m_TextureImage, 0, sizeof(KitImage));
 	m_pScreenRect = new ScreenRect();
 }
 
@@ -94,10 +94,10 @@ SampleTexture::~SampleTexture()
 	SafeDelete(m_pScreenRect)
 }
 
-RESULT SampleTexture::SetImageInfo(MyImageInfo *const pSrc)
+RESULT SampleTexture::SetImageInfo(KitImage *const pSrc)
 {
 	LOGD("SampleTexture::SetImageInfo");
-	memcpy(&m_TextureImage, pSrc, sizeof(MyImageInfo));
+	memcpy(&m_TextureImage, pSrc, sizeof(KitImage));
 
 	return 0;
 }
@@ -105,21 +105,21 @@ RESULT SampleTexture::SetImageInfo(MyImageInfo *const pSrc)
 RESULT SampleTexture::Create()
 {
 	LOGD("SampleTexture::Create begin");
-	int retCode = ERROR_OK;
+	int retCode = NONE_ERROR;
 	do {
 		if (m_pScreenRect) {
 			retCode = m_pScreenRect->CreateRectGLBuffer();
-			if (retCode != ERROR_OK) {
+			if (retCode != NONE_ERROR) {
 				LOGE("SampleTexture::Create CreateRectGLBuffer retCode = %d", retCode);
 				break;
 			}
 		}
 		// create texture
 		DrawHelper::GetOneTexture(GL_TEXTURE_2D, &m_TextureID);
-		if (nullptr != m_TextureImage.ppBuffer[0]) {
+		if (nullptr != m_TextureImage.data[0]) {
 			glBindTexture(GL_TEXTURE_2D, m_TextureID);
 			glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, m_TextureImage.width, m_TextureImage.height,
-						  0, GL_RGBA, GL_UNSIGNED_BYTE, m_TextureImage.ppBuffer[0]);
+						  0, GL_RGBA, GL_UNSIGNED_BYTE, m_TextureImage.data[0]);
 			DrawHelper::CheckGLError("SampleTexture::Create glTexImage2D");
 			glGenerateMipmap (GL_TEXTURE_2D);
 			glBindTexture(GL_TEXTURE_2D, GL_NONE);
@@ -148,9 +148,9 @@ RESULT SampleTexture::Destroy()
     return 0;
 }
 
-RESULT SampleTexture::UpdateTexture(MyImageInfo *const pSrcImg)
+RESULT SampleTexture::UpdateTexture(KitImage *const pSrcImg)
 {
-    if (nullptr == pSrcImg || nullptr == pSrcImg->ppBuffer[0]) {
+    if (nullptr == pSrcImg || nullptr == pSrcImg->data[0]) {
         LOGE("UpdateTexture input image is not valid!!!");
         return ERROR_INPUT;
     }
@@ -212,7 +212,7 @@ RESULT SampleTexture::DrawFrameAsync()
     return 0;
 }
 
-MyImageInfo *SampleTexture::GetMyImageInfo()
+KitImage *SampleTexture::GetMyImageInfo()
 {
     return &m_TextureImage;
 }

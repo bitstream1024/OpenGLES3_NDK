@@ -1,10 +1,10 @@
 //
-// Created by chauncy on 2020/5/21.
+// Created by bitstream1024 on 2020/5/21.
 //
 
-#include "LogAndroid.h"
-#include "common.h"
-#include "MyDefineUtils.h"
+#include "KitLogUtils.h"
+#include "KitCommon.h"
+#include "KitCommonDefine.h"
 #include <GLES3/gl3.h>
 #include "SampleTransform.h"
 #include "DrawHelper.h"
@@ -95,13 +95,13 @@ RESULT SampleTransform::creteGLBuffer ()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_sVBO[1]);
 	glBindVertexArray(GL_NONE);
 
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
 RESULT SampleTransform::InitSample ()
 {
 	LOGD("SampleTransform::InitSample");
-	int ret = ERROR_OK;
+	int ret = NONE_ERROR;
 	createShader();
 	CHECK_OK_RETURN(ret)
 	ret = creteGLBuffer();
@@ -134,5 +134,5 @@ RESULT SampleTransform::OnDrawFrame ()
 	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
 	glFinish();
 	DrawHelper::CheckGLError("OnDrawFrame glFinish");
-	return ERROR_OK;
+	return NONE_ERROR;
 }

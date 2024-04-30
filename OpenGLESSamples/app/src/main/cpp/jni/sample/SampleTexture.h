@@ -1,12 +1,12 @@
 //
-// Created by chauncy on 2020/9/28.
+// Created by bitstream1024 on 2020/9/28.
 //
 
 #pragma once
 
-#include <common.h>
+#include <KitCommon.h>
 #include <ShaderHelper.h>
-#include <MyImageInfo.h>
+#include <KitImage.h>
 #include "SampleBase.h"
 #include "ScreenRect.h"
 
@@ -19,14 +19,14 @@ class SampleTexture: public SampleBase
 public:
 	SampleTexture();
 	~SampleTexture();
-	RESULT SetImageInfo (MyImageInfo *const pSrc);
+	RESULT SetImageInfo (KitImage *const pSrc);
 	RESULT Create ();
     RESULT Destroy ();
-    RESULT UpdateTexture (MyImageInfo *const pSrcImg);
+    RESULT UpdateTexture (KitImage *const pSrcImg);
     RESULT DrawFrame ();
     RESULT DrawFrameAsync ();
 
-    MyImageInfo* GetMyImageInfo();
+    KitImage* GetMyImageInfo();
     GLuint GetTextureID();
 
 public: //test
@@ -45,7 +45,7 @@ private:
 	GLuint m_VAO;
 	GLuint m_TextureID;
 	ShaderHelper *m_TextureShaderHelper;
-	MyImageInfo m_TextureImage;
+	KitImage m_TextureImage;
 	ScreenRect* m_pScreenRect;
 };
 

@@ -1,5 +1,5 @@
 //
-// Created by chauncy on 2020/4/1.
+// Created by bitstream1024 on 2020/4/1.
 //
 
 #pragma once
@@ -40,10 +40,10 @@ typedef struct __tag_processor_handle
 	ShaderSet mShaderSetTexture;
 	ShaderSet mShaderSetFBO;
 	ShaderSet mShaderSetFBONormal;
-	LPMyImageInfo m_pImageRGBA;
-	LPMyImageInfo m_pImageYUV;
-	LPMyImageInfo m_pImageGray10;
-	LPMyImageInfo m_pImageP010;
+	LPKitImage m_pImageRGBA;
+	LPKitImage m_pImageYUV;
+	LPKitImage m_pImageGray10;
+	LPKitImage m_pImageP010;
 	AHardwareBufferHelper *pHardwareBufferHelper;
 	SampleTransform *m_pSampleTransform;
 	SampleRender3D *m_pSampleRender3D;

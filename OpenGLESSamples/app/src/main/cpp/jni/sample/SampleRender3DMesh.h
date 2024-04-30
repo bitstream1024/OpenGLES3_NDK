@@ -1,12 +1,12 @@
 //
-// Created by chauncy on 2020/6/4.
+// Created by bitstream1024 on 2020/6/4.
 //
 
 #pragma once
 
 #include "SampleBase.h"
 #include "Model.h"
-#include "common.h"
+#include "KitCommon.h"
 #include "ShaderHelper.h"
 
 /**

@@ -1,10 +1,10 @@
 //
-// Created by chauncy on 2020/4/1.
+// Created by bitstream1024 on 2020/4/1.
 //
 
 #pragma once
 
-#include "common.h"
+#include "KitCommon.h"
 #include <stdlib.h>
 
 #define MAX_PATH		256
@@ -26,6 +26,6 @@
 																		LOGE("%s malloc failed", _sInfoTitle_); \
 																		break;}
 
-#define CHECK_OK_RETURN(_ret_)	if (ERROR_OK != (_ret_)) return _ret_;
-#define CHECK_OK_BREAK(_ret_, _info_)	if (ERROR_OK != (_ret_)) {LOGE("%s failed, ret: %d", (_info_), (_ret_)); break;}
+#define CHECK_OK_RETURN(_ret_)	if (NONE_ERROR != (_ret_)) return _ret_;
+#define CHECK_OK_BREAK(_ret_, _info_)	if (NONE_ERROR != (_ret_)) {LOGE("%s failed, ret: %d", (_info_), (_ret_)); break;}
 

@@ -1,12 +1,12 @@
 //
-// Created by chauncy on 2020/4/2.
+// Created by bitstream1024 on 2020/4/2.
 //
 
 #include "draw_utils.h"
-#include "LogAndroid.h"
+#include "KitLogUtils.h"
 #include "shader_content.h"
 #include "ShaderHelper.h"
-#include "MyDefineUtils.h"
+#include "KitCommonDefine.h"
 #include "Utils.h"
 #include "OpenImageHelper.h"
 #include "DrawHelper.h"
@@ -108,7 +108,7 @@ int drawTriangle (ShaderHelper *pShaderHelper)
 	return 0;
 }
 
-int drawTexture (ShaderHelper *pShaderHelper, const LPMyImageInfo lpMyImageInfo)
+int drawTexture (ShaderHelper *pShaderHelper, const LPKitImage lpMyImageInfo)
 {
 	LOGD("drawTexture");
 	CHECK_NULL_INPUT(pShaderHelper)
@@ -154,11 +154,11 @@ int drawTexture (ShaderHelper *pShaderHelper, const LPMyImageInfo lpMyImageInfo)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	if (NULL != lpMyImageInfo->ppBuffer[0]) {
-		glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, lpMyImageInfo->width, lpMyImageInfo->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, lpMyImageInfo->ppBuffer[0]);
+	if (NULL != lpMyImageInfo->data[0]) {
+		glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, lpMyImageInfo->width, lpMyImageInfo->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, lpMyImageInfo->data[0]);
 		glGenerateMipmap (GL_TEXTURE_2D);
 	} else {
-		LOGE("drawTexture myImageInfo.ppBuffer is NULL");
+		LOGE("drawTexture myImageInfo.data is NULL");
 	}
 
 	pShaderHelper->use();
@@ -181,15 +181,15 @@ int drawTexture (ShaderHelper *pShaderHelper, const LPMyImageInfo lpMyImageInfo)
 	/*int height1 = 0.25 * viewPort[3];
 	int height2 = 0.75 * viewPort[3];*/
 	int height = viewPort[3];
-	MyImageInfo myImageInfo {0};
+	KitImage myImageInfo {0};
 	myImageInfo.width = width;
 	myImageInfo.height = height;
-	myImageInfo.format = MY_FORMAT_RGB32;
-	myImageInfo.wPitch[0] = myImageInfo.width * 4;
-	NativeImageUtils::AllocNativeImage(&myImageInfo);
+	myImageInfo.format = KIT_FMT_RGB32;
+	myImageInfo.wStride[0] = myImageInfo.width * 4;
+  KitImageUtils::AllocImage(&myImageInfo);
 	//glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	START_TIME ("glReadPixels")
-		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, myImageInfo.ppBuffer[0]);
+		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, myImageInfo.data[0]);
 	STOP_TIME ("glReadPixels")
 	OpenImageHelper::ExchangeImageCoordinateY(&myImageInfo);
 	OpenImageHelper::SaveImageToPng(&myImageInfo, "/sdcard/OpenGLESTest/texture.png");
@@ -202,10 +202,10 @@ int drawTexture (ShaderHelper *pShaderHelper, const LPMyImageInfo lpMyImageInfo)
 	glDeleteBuffers(1, &EBO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteVertexArrays(1, &VAO);
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
-int drawFBO (ShaderHelper *pShaderHelperFBO, ShaderHelper *pShaderHelperNormal, const LPMyImageInfo lpMyImageInfo)
+int drawFBO (ShaderHelper *pShaderHelperFBO, ShaderHelper *pShaderHelperNormal, const LPKitImage lpMyImageInfo)
 {
 	LOGD ("drawFBO");
 
@@ -266,11 +266,11 @@ int drawFBO (ShaderHelper *pShaderHelperFBO, ShaderHelper *pShaderHelperNormal, 
 	const GLenum targetRgb = GL_TEXTURE_2D;
 	DrawHelper::GetOneTexture(targetRgb, &textureColorId);
 	glBindTexture(targetRgb, textureColorId);
-	if (NULL != lpMyImageInfo->ppBuffer[0]) {
-		glTexImage2D (targetRgb, 0, GL_RGBA, nImageWidth, nImageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, lpMyImageInfo->ppBuffer[0]);
+	if (NULL != lpMyImageInfo->data[0]) {
+		glTexImage2D (targetRgb, 0, GL_RGBA, nImageWidth, nImageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, lpMyImageInfo->data[0]);
 		glGenerateMipmap (targetRgb);
 	} else {
-		LOGE("drawTexture myImageInfo.ppBuffer is NULL");
+		LOGE("drawTexture myImageInfo.data is NULL");
 	}
 
 	// create a texture as FBO color attachment
@@ -279,17 +279,17 @@ int drawFBO (ShaderHelper *pShaderHelperFBO, ShaderHelper *pShaderHelperNormal, 
 	glTexImage2D (targetRgb, 0, GL_RGBA, nImageWidth, nImageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	glBindTexture(targetRgb, GL_NONE);
 
-	// create frame ppBuffer object
+	// create frame data object
 	GLuint FBO;
 	glGenFramebuffers(1, &FBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 	// bind color texture
 	glBindTexture(GL_TEXTURE_2D, textureFboId);
-	// attach a texture to frame ppBuffer object
+	// attach a texture to frame data object
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureFboId, 0);
 	glBindTexture(GL_TEXTURE_2D, GL_NONE);
 
-	// check frame ppBuffer state
+	// check frame data state
 	GLenum tmpStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (GL_FRAMEBUFFER_COMPLETE != tmpStatus)
 	{
@@ -315,7 +315,7 @@ int drawFBO (ShaderHelper *pShaderHelperFBO, ShaderHelper *pShaderHelperNormal, 
 
 	// save texture for test
 	if (false) {
-		RECT sRect{0, 0, nImageWidth, nImageHeight};
+		KitRect sRect{0, 0, nImageWidth, nImageHeight};
 		char path[MAX_PATH]{0};
 		sprintf(path, "/sdcard/OpenGLESTest/SaveRender_0_%lld.png", MyTimeUtils::GetCurrentTime());
 		DrawHelper::SaveRenderImage (sRect, GL_RGBA, path);
@@ -345,17 +345,17 @@ int drawFBO (ShaderHelper *pShaderHelperFBO, ShaderHelper *pShaderHelperNormal, 
 	/*glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);*/
 	glDeleteVertexArrays(1, &VAO);
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
-int drawByHardwareBuffer (const AHardwareBufferHelper *pHardwareBufferHelper, MyImageInfo *const lpMyImageInfo)
+int drawByHardwareBuffer (const AHardwareBufferHelper *pHardwareBufferHelper, KitImage *const lpMyImageInfo)
 {
 	LOGD ("drawByHardwareBuffer");
 
-	int ret = ERROR_OK;
+	int ret = NONE_ERROR;
 	CHECK_NULL_INPUT(pHardwareBufferHelper)
 	CHECK_NULL_INPUT(lpMyImageInfo)
-	CHECK_NULL_INPUT(lpMyImageInfo->ppBuffer[0])
+	CHECK_NULL_INPUT(lpMyImageInfo->data[0])
 
 	GLint viewPort[4] {0};
 	glGetIntegerv(GL_VIEWPORT, viewPort);
@@ -368,7 +368,7 @@ int drawByHardwareBuffer (const AHardwareBufferHelper *pHardwareBufferHelper, My
 	int nImageFormat = lpMyImageInfo->format;
 
 	GLuint textureColorId = GL_NONE;
-	MyImageInfo myImageInfo{0};
+	KitImage myImageInfo{0};
 	do
 	{
 		const GLenum TargetColor = GL_TEXTURE_2D;
@@ -380,14 +380,14 @@ int drawByHardwareBuffer (const AHardwareBufferHelper *pHardwareBufferHelper, My
 		DrawHelper::CheckGLError("glActiveTexture");
 		glBindTexture(TargetColor, textureColorId);
 		DrawHelper::CheckGLError("glBindTexture");
-		if (NULL != lpMyImageInfo->ppBuffer[0]) {
+		if (NULL != lpMyImageInfo->data[0]) {
 			glTexImage2D (TargetColor, 0, GL_RGBA, nImageWidth, nImageHeight, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, lpMyImageInfo->ppBuffer[0]);
+                 GL_UNSIGNED_BYTE, lpMyImageInfo->data[0]);
 			DrawHelper::CheckGLError("glTexImage2D");
 			glGenerateMipmap (TargetColor);
 			DrawHelper::CheckGLError("glGenerateMipmap");
 		} else {
-			LOGE("drawByHardwareBuffer myImageInfo.ppBuffer is NULL");
+			LOGE("drawByHardwareBuffer myImageInfo.data is NULL");
 		}
 		glBindTexture(TargetColor, GL_NONE);
 		DrawHelper::CheckGLError("glBindTexture");
@@ -396,24 +396,24 @@ int drawByHardwareBuffer (const AHardwareBufferHelper *pHardwareBufferHelper, My
 		if (!pBufferHelper->getCreateState())
 		{
 			// dst image format
-			nImageFormat = MY_FORMAT_NV21;
+			nImageFormat = KIT_FMT_NV21;
 			ret = pBufferHelper->createGPUBuffer(nImageWidth, nImageHeight, nImageFormat);
 			LOGE("drawByHardwareBuffer createGPUBuffer ret = %d", ret);
-			if (ERROR_OK != ret)
+			if (NONE_ERROR != ret)
 			{
 				break;
 			}
 		}
 		ret = pBufferHelper->onDrawFrame(textureColorId, &myImageInfo);
 		LOGE("drawByHardwareBuffer onDrawFrame ret = %d", ret);
-		if (MY_FORMAT_NV21 == myImageInfo.format || MY_FORMAT_NV12 == myImageInfo.format)
+		if (KIT_FMT_NV21 == myImageInfo.format || KIT_FMT_NV12 == myImageInfo.format)
 		{
 			char sPath[MAX_PATH]{0};
 			sprintf(sPath, "/sdcard/OpenGLESTest/gpu/gpu_%04d_%dx%d.NV21", pBufferHelper->getRenderNum(),
-                myImageInfo.wPitch[0], myImageInfo.height);
-			NativeImageUtils::SaveYuvImageToFile(&myImageInfo, sPath);
+                    myImageInfo.wStride[0], myImageInfo.height);
+			KitImageUtils::SaveYuvImageToFile(&myImageInfo, sPath);
 		}
-		if (ERROR_OK != ret)
+		if (NONE_ERROR != ret)
 			break;
 	}while (false);
 

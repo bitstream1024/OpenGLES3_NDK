@@ -1,8 +1,8 @@
 //
-// Created by chauncy on 2020/6/4.
+// Created by bitstream1024 on 2020/6/4.
 //
 
-#include "LogAndroid.h"
+#include "KitLogUtils.h"
 #include "SampleRender3DMesh.h"
 
 #define ModelPath "/sdcard/OpenGLESTest/nanosuit/nanosuit.obj"
@@ -84,7 +84,7 @@ RESULT SampleRender3DMesh::OnDrawFrame ()
 		m_pModel->Draw(m_pShaderHelper);
 
 	glDisable(GL_DEPTH_TEST);
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
 void SampleRender3DMesh::createRenderGLBuffer ()

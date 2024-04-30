@@ -1,8 +1,8 @@
 //
-// Created by chauncy on 2020/9/29.
+// Created by bitstream1024 on 2020/9/29.
 //
 
-#include <LogAndroid.h>
+#include <KitLogUtils.h>
 #include "ScreenRect.h"
 #include "DrawHelper.h"
 
@@ -30,12 +30,12 @@ RESULT ScreenRect::CreateRectGLBuffer()
 	// create shader
 	m_pFullRectShader = new ShaderHelper (FULL_RECT_VERTEX_SHADER, FULL_RECT_FRAGMENT_SHADER);
 	int shaderState = m_pFullRectShader->getShaderHelperState();
-	if (shaderState != ERROR_OK) {
+	if (shaderState != NONE_ERROR) {
 		LOGE("ScreenRect::CreateFullRectBuffer m_pFullRectShader shaderState = %d", shaderState);
 		return ERROR_GL_STATE;
 	}
 
-	// create full rect gl ppBuffer
+	// create full rect gl data
 	GLuint VBO[2] = {GL_NONE};
 	glGenBuffers(2, VBO);
 	GLuint EBO = GL_NONE;

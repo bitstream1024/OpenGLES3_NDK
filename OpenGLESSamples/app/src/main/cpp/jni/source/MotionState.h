@@ -1,10 +1,10 @@
 //
-// Created by chauncy on 2020/6/18.
+// Created by bitstream1024 on 2020/6/18.
 //
 
 #pragma once
 
-#include "LogAndroid.h"
+#include "KitLogUtils.h"
 #include <string.h>
 
 enum MotionType

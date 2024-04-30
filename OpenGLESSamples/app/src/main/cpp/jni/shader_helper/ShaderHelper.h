@@ -1,6 +1,6 @@
 /***
 ** this is a class for shader 
-** created by chauncy_wang at 5/7/2019
+** created by bitstream1024_wang at 5/7/2019
 ***/
 
 #pragma once

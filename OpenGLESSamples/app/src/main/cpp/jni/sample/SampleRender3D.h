@@ -1,13 +1,13 @@
 //
-// Created by chauncy on 2020/5/22.
+// Created by bitstream1024 on 2020/5/22.
 //
 
 #pragma once
 
 #include "ShaderHelper.h"
-#include "common.h"
-#include "MyDefineUtils.h"
-#include "barHelper.h"
+#include "KitCommon.h"
+#include "KitCommonDefine.h"
+#include "BarHelper.h"
 
 #include "glm/vec3.hpp"
 #include "glm/glm.hpp"

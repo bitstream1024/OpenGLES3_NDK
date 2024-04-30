@@ -1,11 +1,11 @@
 //
-// Created by chauncy on 2022/7/5.
+// Created by bitstream1024 on 2022/7/5.
 //
 
 #include "SampleTextRender.h"
 
 #include <string>
-#include <MyDefineUtils.h>
+#include <KitCommonDefine.h>
 #include <DrawHelper.h>
 
 static const std::string text_vertex_shader = "#version 300 es\n"
@@ -45,7 +45,7 @@ int SampleTextRender::Init()
 {
     if (nullptr == m_pShaderHelper)
         m_pShaderHelper = new ShaderHelper(text_vertex_shader.c_str(), text_fragment_shader.c_str());
-    if (m_pShaderHelper->getShaderHelperState() != ERROR_OK)
+    if (m_pShaderHelper->getShaderHelperState() != NONE_ERROR)
     {
         LOGE("ScreenRect::CreateFullRectBuffer m_pFullRectShader shaderState = %d", m_pShaderHelper->getShaderHelperState());
         return ERROR_GL_STATE;
@@ -54,7 +54,7 @@ int SampleTextRender::Init()
     createASCIICharacters();
     initBuffer();
 
-    return ERROR_OK;
+    return NONE_ERROR;
 }
 
 void SampleTextRender::UnInit()
@@ -78,8 +78,8 @@ int SampleTextRender::Draw()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    std::string strText("Hello, this is chauncy, what's your name?");
-    RECT rect = {viewport[0], viewport[1], viewport[2], viewport[3]};
+    std::string strText("Hello, this is bitstream1024, what's your name?");
+    KitRect rect = {viewport[0], viewport[1], viewport[2], viewport[3]};
     int ret = renderText(strText, -0.9f, 0.7f, 1.3f, glm::vec3(1.f, 0.f, 1.f), &rect);
 
     // Set OpenGL options
@@ -100,20 +100,20 @@ int SampleTextRender::createASCIICharacters()
     if (nullptr == m_pASCIICharMap)
         m_pASCIICharMap = new ASCIICharMap();
 
-    int nRet = ERROR_OK;
+    int nRet = NONE_ERROR;
     FT_Library pFreeTypeLib = nullptr;
     FT_Face pFreeTypeFace = nullptr;
     do
     {
         nRet = FT_Init_FreeType(&pFreeTypeLib);
-        if (ERROR_OK != nRet)
+        if (NONE_ERROR != nRet)
         {
             LOGE("SampleTextRender::createASCIICharacters FT_Init_FreeType failed, nRet = %d\n", nRet);
             break;
         }
 
         nRet = FT_New_Face(pFreeTypeLib, "/sdcard/OpenGLESTest/times.ttf", 0, &pFreeTypeFace);
-        if (ERROR_OK != nRet)
+        if (NONE_ERROR != nRet)
         {
             LOGE("SampleTextRender::createASCIICharacters FT_New_Face failed, nRet = %d\n", nRet);
             break;
@@ -160,7 +160,7 @@ int SampleTextRender::createASCIICharacters()
     FT_Done_Face(pFreeTypeFace);
     FT_Done_FreeType(pFreeTypeLib);
 
-    return ERROR_OK;
+    return NONE_ERROR;
 }
 
 int SampleTextRender::initBuffer()
@@ -188,15 +188,15 @@ int SampleTextRender::initBuffer()
         glBindVertexArray(GL_NONE);
     }
 
-    return ERROR_OK;
+    return NONE_ERROR;
 }
 
 int SampleTextRender::renderText(const std::string& strText, const float &posX, const float &posY,
-                                 const float &scale, const glm::vec3 &color, const LPRECT pRenderWindow)
+                                 const float &scale, const glm::vec3 &color, const LPKitRect pRenderWindow)
 {
     DrawHelper::CheckGLError("SampleTextRender::renderText begin");
 
-    if (nullptr == m_pShaderHelper || ERROR_OK != m_pShaderHelper->getShaderHelperState())
+    if (nullptr == m_pShaderHelper || NONE_ERROR != m_pShaderHelper->getShaderHelperState())
         return ERROR_GL_STATE;
 
     m_pShaderHelper->use();
@@ -254,7 +254,7 @@ int SampleTextRender::renderText(const std::string& strText, const float &posX, 
     glBindVertexArray(GL_NONE);
 
 #if 0
-    RECT rect = {viewport[0], viewport[1], viewport[2], viewport[3]};
+    KitRect rect = {viewport[0], viewport[1], viewport[2], viewport[3]};
     char szPath[MAX_PATH] {0};
     snprintf(szPath, MAX_PATH - 1, "/sdcard/OpenGLESTest/dump/test_%04d_%dx%d.png", m_FrameID, viewport[2], viewport[3]);
     std::string strPath(szPath);
@@ -263,6 +263,6 @@ int SampleTextRender::renderText(const std::string& strText, const float &posX, 
 
     DrawHelper::CheckGLError("SampleTextRender::renderText end");
 
-    return ERROR_OK;
+    return NONE_ERROR;
 }
 

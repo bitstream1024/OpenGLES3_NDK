@@ -1,5 +1,5 @@
 //
-// Created by chauncy on 2020/6/4.
+// Created by bitstream1024 on 2020/6/4.
 //
 
 //#pragma once
@@ -44,7 +44,7 @@ private:
 	int loadModel (const std::string modePath)
 	{
 		LOGD ("Model::loadModel");
-		int ret = ERROR_OK;
+		int ret = NONE_ERROR;
 		Assimp::Importer importer;
 		const aiScene *pScene = importer.ReadFile(modePath, aiProcess_Triangulate | aiProcess_FlipUVs);
 		if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
@@ -56,7 +56,7 @@ private:
 
 		processNode(pScene->mRootNode, pScene);
 
-		return ERROR_OK;
+		return NONE_ERROR;
 	}
 	void processNode (const aiNode *pNode, const aiScene *pScene)
 	{
@@ -207,21 +207,21 @@ private:
 		glGenTextures(1, &textureID);
 
 		int width = 0, height = 0;
-		MyImageInfo myImageInfo {0};
+		KitImage myImageInfo {0};
 		int ret = OpenImageHelper::LoadPngFromFile(filename.c_str(), &myImageInfo);
 		LOGD("TextureFromFile LoadPngFromFile ret = %d", ret);
 		OpenImageHelper::PrintMyImageInfo(&myImageInfo, "TextureFromFile myImageInfo");
-		if (ERROR_OK == ret)
+		if (NONE_ERROR == ret)
 		{
 			GLenum format = GL_RGB;
-			if (MY_FORMAT_RGB24 == myImageInfo.format)
+			if (KIT_FMT_RGB24 == myImageInfo.format)
 				format = GL_RGB;
-			else if (MY_FORMAT_RGB32 == myImageInfo.format)
+			else if (KIT_FMT_RGB32 == myImageInfo.format)
 				format = GL_RGBA;
 
 			glBindTexture(GL_TEXTURE_2D, textureID);
 			glTexImage2D(GL_TEXTURE_2D, 0, format, myImageInfo.width, myImageInfo.height,
-                0, format, GL_UNSIGNED_BYTE, myImageInfo.ppBuffer[0]);
+                0, format, GL_UNSIGNED_BYTE, myImageInfo.data[0]);
 			glGenerateMipmap(GL_TEXTURE_2D);
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

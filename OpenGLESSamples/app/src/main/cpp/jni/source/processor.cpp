@@ -1,13 +1,13 @@
 //
-// Created by chauncy on 2020/4/1.
+// Created by bitstream1024 on 2020/4/1.
 //
 
 #include "processor_inner.h"
-#include "LogAndroid.h"
+#include "KitLogUtils.h"
 #include "GLES3/gl3.h"
 #include <string>
 #include <SampleDrawYUV.h>
-#include "MyDefineUtils.h"
+#include "KitCommonDefine.h"
 #include "OpenImageHelper.h"
 #include "SampleRender3D.h"
 #include "shader_content.h"
@@ -21,7 +21,7 @@ int CreateSampleAndShaderByDrawType (const PHandle pProcessorHandle, SampleType 
 	AUTO_COUNT_TIME_COST("CreateSampleAndShaderByDrawType")
 	CHECK_NULL_INPUT(pProcessorHandle)
 	auto MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
-	int ret = ERROR_OK;
+	int ret = NONE_ERROR;
 	switch (drawType)
 	{
 		case eDraw_Triangle:
@@ -104,7 +104,7 @@ int CreateSampleAndShaderByDrawType (const PHandle pProcessorHandle, SampleType 
 			LOGD("CreateSampleAndShaderByDrawType nDrawType = %d is unsupported", drawType);
 			break;
 	}
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
 int DestroySampleAndShaderByDrawType (const PHandle pProcessorHandle, SampleType drawType)
@@ -112,7 +112,7 @@ int DestroySampleAndShaderByDrawType (const PHandle pProcessorHandle, SampleType
 	LOGD("DestroySampleAndShaderByDrawType drawType = %d", drawType);
 	CHECK_NULL_INPUT(pProcessorHandle)
 	auto MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
-	int ret = ERROR_OK;
+	int ret = NONE_ERROR;
 
 	switch (drawType)
 	{
@@ -182,7 +182,7 @@ int DestroySampleAndShaderByDrawType (const PHandle pProcessorHandle, SampleType
 			LOGD("onDrawFrame nDrawType = %d is unsupported", drawType);
 			break;
 	}
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
 int CreateProcessor (PHandle *ppProcessorHandle)
@@ -199,7 +199,7 @@ int CreateProcessor (PHandle *ppProcessorHandle)
 	CHECK_NULL_MALLOC (*ppProcessorHandle);
 	memset(*ppProcessorHandle, 0, sizeof(ProcessorHandle));
 
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
 int SetupResource (PHandle const pProcessorHandle)
@@ -210,7 +210,7 @@ int SetupResource (PHandle const pProcessorHandle)
 
 	CHECK_NULL_INPUT (pProcessorHandle)
 	auto pMyHandle = (LPProcessorHandle)pProcessorHandle;
-	int retCode = ERROR_OK;
+	int retCode = NONE_ERROR;
 
     std::string strPNGImgPath = std::string(ROOT_FOLDER).append(std::string(STR_IMAGE_PNG_DOG));
     std::string strNV21ImgPath = std::string(ROOT_FOLDER).append(std::string(STR_IMAGE_NV12_DOG));
@@ -218,39 +218,39 @@ int SetupResource (PHandle const pProcessorHandle)
     std::string strP010ImgPath = std::string(ROOT_FOLDER).append(std::string(STR_IMAGE_P010_LSB_DOG));
 
 	do {
-        pMyHandle->m_pImageRGBA = (LPMyImageInfo)malloc(sizeof(MyImageInfo));
+        pMyHandle->m_pImageRGBA = (LPKitImage)malloc(sizeof(KitImage));
 		CHECK_NULL_MALLOC(pMyHandle->m_pImageRGBA);
-		memset (pMyHandle->m_pImageRGBA, 0 , sizeof(MyImageInfo));
+		memset (pMyHandle->m_pImageRGBA, 0 , sizeof(KitImage));
 		retCode = OpenImageHelper::LoadPngFromFile(strPNGImgPath.c_str(), pMyHandle->m_pImageRGBA);
         CHECK_OK_BREAK(retCode, "SetupResource LoadYuvImageFromFile strPNGImgPath");
 
 # if 0
-        NativeImageUtils::SaveYuvImageToFile(pMyHandle->m_pImageRGBA, "/sdcard/OpenGLESTest/dog_1_1280x1920.RGBA32");
+        KitImageUtils::SaveYuvImageToFile(pMyHandle->m_pImageRGBA, "/sdcard/OpenGLESTest/dog_1_1280x1920.RGBA32");
 #endif
 
-        pMyHandle->m_pImageYUV = (LPMyImageInfo)malloc(sizeof(MyImageInfo));
+        pMyHandle->m_pImageYUV = (LPKitImage)malloc(sizeof(KitImage));
 		CHECK_NULL_MALLOC(pMyHandle->m_pImageYUV);
-		memset(pMyHandle->m_pImageYUV, 0, sizeof(MyImageInfo));
-		retCode = NativeImageUtils::LoadYuvImageFromFile(strNV21ImgPath.c_str(), pMyHandle->m_pImageYUV);
+		memset(pMyHandle->m_pImageYUV, 0, sizeof(KitImage));
+		retCode = KitImageUtils::LoadYuvImageFromFile(strNV21ImgPath.c_str(), pMyHandle->m_pImageYUV);
         CHECK_OK_BREAK(retCode, "SetupResource LoadYuvImageFromFile strNV21ImgPath");
 
-        pMyHandle->m_pImageGray10 = (LPMyImageInfo)malloc(sizeof(MyImageInfo));
+        pMyHandle->m_pImageGray10 = (LPKitImage)malloc(sizeof(KitImage));
         CHECK_NULL_MALLOC(pMyHandle->m_pImageGray10);
-        memset(pMyHandle->m_pImageGray10, 0, sizeof(MyImageInfo));
-        retCode = NativeImageUtils::LoadYuvImageFromFile(strGray10ImgPath.c_str(), pMyHandle->m_pImageGray10);
+        memset(pMyHandle->m_pImageGray10, 0, sizeof(KitImage));
+        retCode = KitImageUtils::LoadYuvImageFromFile(strGray10ImgPath.c_str(), pMyHandle->m_pImageGray10);
         CHECK_OK_BREAK(retCode, "SetupResource LoadYuvImageFromFile strGray10ImgPath");
 
-        pMyHandle->m_pImageP010 = (LPMyImageInfo)malloc(sizeof(MyImageInfo));
+        pMyHandle->m_pImageP010 = (LPKitImage)malloc(sizeof(KitImage));
         CHECK_NULL_MALLOC(pMyHandle->m_pImageP010);
-        memset(pMyHandle->m_pImageP010, 0, sizeof(MyImageInfo));
-        retCode = NativeImageUtils::LoadYuvImageFromFile(strP010ImgPath.c_str(), pMyHandle->m_pImageP010);
+        memset(pMyHandle->m_pImageP010, 0, sizeof(KitImage));
+        retCode = KitImageUtils::LoadYuvImageFromFile(strP010ImgPath.c_str(), pMyHandle->m_pImageP010);
         CHECK_OK_BREAK(retCode, "SetupResource LoadYuvImageFromFile strP010ImgPath");
 
 #if 0
         char szPath[MAX_PATH] {0};
         snprintf(szPath, sizeof(szPath) - 1, "/sdcard/OpenGLESTest/temp_0_%dx%d.a",
                  pMyHandle->m_pImageGray10->width, pMyHandle->m_pImageGray10->height);
-        NativeImageUtils::SaveYuvImageToFile(pMyHandle->m_pImageGray10, szPath);
+        KitImageUtils::SaveYuvImageToFile(pMyHandle->m_pImageGray10, szPath);
 #endif // for test
 	} while (false);
 
@@ -276,7 +276,7 @@ int DestroyProcessor (PHandle *ppProcessorHandle)
 	SafeFree (*ppProcessorHandle);
 	LOGD("onSurfaceDestroyed *ppProcessorHandle = %p", *ppProcessorHandle);
 
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
 int onSurfaceCreated (PHandle const pProcessorHandle, const int effectType)
@@ -294,7 +294,7 @@ int onSurfaceCreated (PHandle const pProcessorHandle, const int effectType)
 	int ret = CreateSampleAndShaderByDrawType(MyProcessorHandle, MyProcessorHandle->m_eDrawType);
 	LOGD("CreateSampleAndShaderByDrawType ret = %d", ret);
 
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
 int onSurfaceChanged (PHandle const pProcessorHandle, const int width, const int height)
@@ -313,7 +313,7 @@ int onDrawFrame (PHandle const pProcessorHandle)
 	auto MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
 	++MyProcessorHandle->mRenderTime;
 
-	int ret = ERROR_OK;
+	int ret = NONE_ERROR;
 
 	SampleType nDrawType = MyProcessorHandle->m_eDrawType;
     //LOGD("processor onDrawFrame nDrawType=%d", nDrawType);
@@ -414,7 +414,7 @@ int setMotionState (PHandle const pProcessorHandle, MotionState const motionStat
 	if (eMOTION_TRANSLATE == MyProcessorHandle->m_MotionState.eMotionType)
 		MyProcessorHandle->m_MotionState.logMotionState("setMotionState m_MotionState");
 
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
 int onSurfaceDestroyed (PHandle const pProcessorHandle)
@@ -425,7 +425,7 @@ int onSurfaceDestroyed (PHandle const pProcessorHandle)
 	auto MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
 
 	int retCode = DestroySampleAndShaderByDrawType (MyProcessorHandle, MyProcessorHandle->m_eDrawType);
-	if (ERROR_OK != retCode) {
+	if (NONE_ERROR != retCode) {
 		LOGE("processor onSurfaceDestroyed retCode = %d", retCode);
 	}
 

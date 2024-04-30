@@ -1,11 +1,11 @@
 //
-// Created by chauncy on 2020/5/22.
+// Created by bitstream1024 on 2020/5/22.
 //
 
 #include "SampleRender3D.h"
-#include "LogAndroid.h"
-#include "common.h"
-#include "MyDefineUtils.h"
+#include "KitLogUtils.h"
+#include "KitCommon.h"
+#include "KitCommonDefine.h"
 #include "DrawHelper.h"
 
 SampleRender3D::SampleRender3D()
@@ -28,7 +28,7 @@ SampleRender3D::~SampleRender3D()
 RESULT SampleRender3D::InitSample ()
 {
 	LOGD("SampleRender3D::InitSample");
-	RESULT ret = ERROR_OK;
+	RESULT ret = NONE_ERROR;
 	ret = createShader();
 	CHECK_OK_RETURN(ret);
 	createRectBars();
@@ -62,7 +62,7 @@ RESULT SampleRender3D::OnDrawFrame ()
 	DrawHelper::CheckGLError("OnDrawFrame glDrawElements");
 	glBindVertexArray(GL_NONE);
 	DrawHelper::CheckGLError("OnDrawFrame glBindVertexArray");
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
 RESULT SampleRender3D::createShader()
@@ -150,7 +150,7 @@ RESULT SampleRender3D::creteGLBuffer ()
 	glBindVertexArray(GL_NONE);
 	DrawHelper::CheckGLError("createGLBuffer glBindVertexArray");
 
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
 void SampleRender3D::destroyGLBuffer ()
@@ -174,7 +174,7 @@ RESULT SampleRender3D::createRectBars ()
 	generateRecBarsTest(m_SimpleMesh, bar_center, bar_radius, bar_height, bar_width, num_bars);
 	float torus_radius = 1.f, tube_radius = 0.5f;
 	generateTorus(m_SimpleMeshTorus, bar_center, torus_radius, tube_radius);
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
 void SampleRender3D::loadBarMesh ()
@@ -223,7 +223,7 @@ RESULT SampleRender3D::convertVertex ()
 		m_Indices.push_back(m_SimpleMesh.faces[i][2]);
 	}
 
-	return ERROR_OK;
+	return NONE_ERROR;
 }
 
 void SampleRender3D::generateRecBarsTest(

@@ -1,44 +1,43 @@
 //
-// Created by chauncy_wang on 2020/9/23.
+// Created by bitstream1024_wang on 2020/9/23.
 //
 
 #ifndef SENIOROPENGLES_SAMPLEDRAWYUV16Bit_H
 #define SENIOROPENGLES_SAMPLEDRAWYUV16Bit_H
 
-
 #include <ShaderHelper.h>
-#include <common.h>
-#include <MyImageInfo.h>
+#include <KitCommon.h>
+#include <KitImage.h>
 #include "SampleBase.h"
 
 class SampleRender16Bit : public SampleBase {
 
-public:
-    SampleRender16Bit ();
-    ~SampleRender16Bit();
-    RESULT OnDrawFrame ();
-    RESULT InitSample ();
-    void UnInitSample ();
-    RESULT SetImage (MyImageInfo *const pSrcImage);
-
-private:
-    RESULT createShader();
-    void destroyShader();
-    RESULT createGLBuffer ();
-    void destroyGLBuffer ();
-    void initMVPMatrix ();
-    void activeTextureForGray16();
-    void activeTextureForP010();
+ public:
+  SampleRender16Bit();
+  ~SampleRender16Bit();
+  RESULT OnDrawFrame();
+  RESULT InitSample();
+  void UnInitSample();
+  RESULT SetImage(KitImage *const pSrcImage);
 
  private:
-    MyImageInfo   m_YUVImage;
-    GLuint        m_TextureY;
-    GLuint        m_TextureUV;
-    ShaderHelper* m_pShaderHelper;
+  RESULT createShader();
+  void destroyShader();
+  RESULT createGLBuffer();
+  void destroyGLBuffer();
+  void initMVPMatrix();
+  void activeTextureForGray16();
+  void activeTextureForP010();
 
-    const char *yuv_vertex_shader =
-            GLES_VERSION_STRING
-    R"(
+ private:
+  KitImage m_YUVImage;
+  GLuint m_TextureY;
+  GLuint m_TextureUV;
+  ShaderHelper *m_pShaderHelper;
+
+  const char *yuv_vertex_shader =
+      GLES_VERSION_STRING
+      R"(
 layout (location=0) in vec3 aPos;
 layout (location=1) in vec2 aTexCoord;
 out vec2 v_texCoord;
@@ -51,10 +50,10 @@ void main()
 }
 )";
 
-    const char *yuv_fragment_shader_gray16 =
-            GLES_VERSION_STRING
-    GLES_MEDIUM_STRING
-    R"(
+  const char *yuv_fragment_shader_gray16 =
+      GLES_VERSION_STRING
+      GLES_MEDIUM_STRING
+      R"(
 in vec2 v_texCoord;
 out vec4 FragColor;
 uniform sampler2D la_texture;
@@ -67,10 +66,10 @@ void main()
 }
 )";
 
-    const char *yuv_fragment_shader_p010_lsb =
-            GLES_VERSION_STRING
-            GLES_MEDIUM_STRING
-            R"(
+  const char *yuv_fragment_shader_p010_lsb =
+      GLES_VERSION_STRING
+      GLES_MEDIUM_STRING
+      R"(
 in vec2 v_texCoord;
 out vec4 FragColor;
 uniform sampler2D y_texture;
@@ -98,6 +97,5 @@ void main()
 )";
 
 };
-
 
 #endif //SENIOROPENGLES_SAMPLEDRAWYUV16Bit_H

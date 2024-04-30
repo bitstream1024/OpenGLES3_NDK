@@ -1,14 +1,14 @@
 //
-// Created by chauncy on 2020/4/3.
+// Created by bitstream1024 on 2020/4/3.
 //
 
 #pragma once
 
 #include "png.h"
-#include "LogAndroid.h"
-#include "MyDefineUtils.h"
-#include "MyImageInfo.h"
-#include "MyFileHelper.h"
+#include "KitLogUtils.h"
+#include "KitCommonDefine.h"
+#include "KitImage.h"
+#include "KitFileUtils.h"
 
 #define CHECK_PNG_RET_BREAK(_pRet_)	if (0 == (_pRet_)) {LOGE ("CHECK_PNG_RET_BREAK error"); (_pRet_) = ERROR_UNKNOWN; break;}
 
@@ -17,11 +17,11 @@ class OpenImageHelper
 
 private:
 	/**
-	 * Calculate image ppBuffer length
+	 * Calculate image data length
 	 * @param lpMyImageInfo
-	 * @return Size of image ppBuffer
+	 * @return Size of image data
 	 */
-	static long CalMyImageBufferLength (const LPMyImageInfo lpMyImageInfo)
+	static long CalMyImageBufferLength (const LPKitImage lpMyImageInfo)
 	{
 		LOGD("CalMyImageBufferLength");
 		if (NULL == lpMyImageInfo || 0 == lpMyImageInfo->width || 0 == lpMyImageInfo->height)
@@ -32,13 +32,13 @@ private:
 		int lSize = 0;
 		switch (lpMyImageInfo->format)
 		{
-			case MY_FORMAT_RGB24:
-			case MY_FORMAT_RGB32:
-				lSize = lpMyImageInfo->wPitch[0] * lpMyImageInfo->height;
+			case KIT_FMT_RGB24:
+			case KIT_FMT_RGB32:
+				lSize = lpMyImageInfo->wStride[0] * lpMyImageInfo->height;
 				break;
-			case MY_FORMAT_NV12:
-			case MY_FORMAT_NV21:
-				lSize = (long)(lpMyImageInfo->wPitch[0] * lpMyImageInfo->height * 3/2);
+			case KIT_FMT_NV12:
+			case KIT_FMT_NV21:
+				lSize = (long)(lpMyImageInfo->wStride[0] * lpMyImageInfo->height * 3/2);
 			default:
 				break;
 		}
@@ -47,21 +47,21 @@ private:
 
 public:
 	/**
-	 * Alloc MyImageInfo, ppBuffer of image should be null
+	 * Alloc KitImage, data of image should be null
 	 * @param lpMyImageInfo
 	 * @return
 	 */
-	static long AllocMyImageInfo (LPMyImageInfo lpMyImageInfo)
+	static long AllocMyImageInfo (LPKitImage lpMyImageInfo)
 	{
 		LOGD("AllocMyImageInfo");
-		if (NULL == lpMyImageInfo || 0 == lpMyImageInfo->width || 0 == lpMyImageInfo->wPitch[0]
-			|| 0 == lpMyImageInfo->height || NULL != lpMyImageInfo->ppBuffer[0])
+		if (NULL == lpMyImageInfo || 0 == lpMyImageInfo->width || 0 == lpMyImageInfo->wStride[0]
+			|| 0 == lpMyImageInfo->height || NULL != lpMyImageInfo->data[0])
 		{
 			LOGE("AllocMyImageInfo m_pImageRGBA wrong");
 			return ERROR_INPUT;
 		}
 
-		ERROR_CODE ret = ERROR_OK;
+		KitErrorCode ret = NONE_ERROR;
 		long lSize = 0;
 		lSize = CalMyImageBufferLength(lpMyImageInfo);
 		LOGD("AllocMyImageInfo CalMyImageBufferLength lSize = %ld", lSize);
@@ -72,18 +72,18 @@ public:
 		}
 		switch (lpMyImageInfo->format)
 		{
-			case MY_FORMAT_RGB24:
-			case MY_FORMAT_RGB32:
-				lpMyImageInfo->ppBuffer[0] = (unsigned char *) malloc(lSize);
-				CHECK_MALLOC_BREAK(lpMyImageInfo->ppBuffer[0], &ret, "AllocMyImageInfo MY_FORMAT_RGB24 MY_FORMAT_RGB32");
-				memset(lpMyImageInfo->ppBuffer[0], 0, lSize);
+			case KIT_FMT_RGB24:
+			case KIT_FMT_RGB32:
+				lpMyImageInfo->data[0] = (unsigned char *) malloc(lSize);
+				CHECK_MALLOC_BREAK(lpMyImageInfo->data[0], &ret, "AllocMyImageInfo KIT_FMT_RGB24 KIT_FMT_RGB32");
+				memset(lpMyImageInfo->data[0], 0, lSize);
 				break;
-			case MY_FORMAT_NV12:
-			case MY_FORMAT_NV21:
-				lpMyImageInfo->ppBuffer[0] = (unsigned char*) malloc(lSize);
-				CHECK_MALLOC_BREAK(lpMyImageInfo->ppBuffer[0], &ret, "AllocMyImageInfo MY_FORMAT_NV12 MY_FORMAT_NV21");
-				memset(lpMyImageInfo->ppBuffer[0], 0, lSize);
-				lpMyImageInfo->ppBuffer[1] = lpMyImageInfo->ppBuffer[0] + lpMyImageInfo->wPitch[0] * lpMyImageInfo->height;
+			case KIT_FMT_NV12:
+			case KIT_FMT_NV21:
+				lpMyImageInfo->data[0] = (unsigned char*) malloc(lSize);
+				CHECK_MALLOC_BREAK(lpMyImageInfo->data[0], &ret, "AllocMyImageInfo KIT_FMT_NV12 KIT_FMT_NV21");
+				memset(lpMyImageInfo->data[0], 0, lSize);
+				lpMyImageInfo->data[1] = lpMyImageInfo->data[0] + lpMyImageInfo->wStride[0] * lpMyImageInfo->height;
 				break;
 			default:
 				break;
@@ -91,12 +91,12 @@ public:
 		return lSize;
 	}
 
-	static void FreeMyImageInfo (LPMyImageInfo lpMyImageInfo)
+	static void FreeMyImageInfo (LPKitImage lpMyImageInfo)
 	{
 		LOGD("FreeMyImageInfo");
-        if (lpMyImageInfo && lpMyImageInfo->ppBuffer[0]) {
-          SafeFree(lpMyImageInfo->ppBuffer[0]);
-          memset(lpMyImageInfo, 0, sizeof(MyImageInfo));
+        if (lpMyImageInfo && lpMyImageInfo->data[0]) {
+          SafeFree(lpMyImageInfo->data[0]);
+          memset(lpMyImageInfo, 0, sizeof(KitImage));
         }
 	}
 
@@ -106,7 +106,7 @@ public:
 	 * @param lpMyImageInfo
 	 * @return
 	 */
-	static int LoadPngFromFile (const char* sPath, LPMyImageInfo lpMyImageInfo)
+	static int LoadPngFromFile (const char* sPath, LPKitImage lpMyImageInfo)
 	{
 		LOGD("LoadPngFromFile %s", sPath);
 		CHECK_NULL_INPUT(sPath)
@@ -129,7 +129,7 @@ public:
 			LOGD("LoadPngFromFile png_image_finish_read ret = %d", ret);
 			CHECK_PNG_RET_BREAK (ret)
 
-			/*ret = png_image_write_to_file(&image, "/sdcard/testlibpng.png", 0, ppBuffer, 0, NULL);
+			/*ret = png_image_write_to_file(&image, "/sdcard/testlibpng.png", 0, data, 0, NULL);
 			LOGD("LoadPngFromFile png_image_write_to_file ret = %d", ret);
 			CHECK_PNG_RET_BREAK (ret)*/
 
@@ -137,11 +137,11 @@ public:
 			lpMyImageInfo->width = static_cast<int>(image.width);
 			lpMyImageInfo->height = static_cast<int>(image.height);
 			if (PNG_FORMAT_RGBA == image.format) {
-				lpMyImageInfo->format = MY_FORMAT_RGB32;
-                lpMyImageInfo->wPitch[0] = lpMyImageInfo->width * 4;
+				lpMyImageInfo->format = KIT_FMT_RGB32;
+                lpMyImageInfo->wStride[0] = lpMyImageInfo->width * 4;
             } else {
-                lpMyImageInfo->format = MY_FORMAT_RGB24;
-                lpMyImageInfo->wPitch[0] = lpMyImageInfo->width * 3;
+                lpMyImageInfo->format = KIT_FMT_RGB24;
+                lpMyImageInfo->wStride[0] = lpMyImageInfo->width * 3;
             }
 			long lSize = 0;
 			lSize = AllocMyImageInfo(lpMyImageInfo);
@@ -150,7 +150,7 @@ public:
 				LOGE("LoadPngFromFile AllocMyImageInfo error");
 				break;
 			}
-			memcpy(lpMyImageInfo->ppBuffer[0], buffer, PNG_IMAGE_SIZE(image));
+			memcpy(lpMyImageInfo->data[0], buffer, PNG_IMAGE_SIZE(image));
 
 		} while(false);
 
@@ -158,46 +158,46 @@ public:
 		SafeFree(buffer);
 
 		if (1 == ret)
-			ret = ERROR_OK;
+			ret = NONE_ERROR;
 
 		return ret;
 	}
 
-	static void PrintMyImageInfo (const LPMyImageInfo lpMyImageInfo, const char *logInfo = nullptr)
+	static void PrintMyImageInfo (const LPKitImage lpMyImageInfo, const char *logInfo = nullptr)
 	{
 		if (!lpMyImageInfo)
 			return;
 		if (logInfo)
-			LOGD("%s OpenImageHelper::PrintMyImageInfo width = %d, height = %d, format = %d, wPitch = (%d, %d, %d, %d), ppBuffer[0] = %p",
-                 logInfo, lpMyImageInfo->width, lpMyImageInfo->height, lpMyImageInfo->format, lpMyImageInfo->wPitch[0],
-                 lpMyImageInfo->wPitch[1], lpMyImageInfo->wPitch[2], lpMyImageInfo->wPitch[3], lpMyImageInfo->ppBuffer[0]);
+			LOGD("%s OpenImageHelper::PrintMyImageInfo width = %d, height = %d, format = %d, wStride = (%d, %d, %d, %d), data[0] = %p",
+                 logInfo, lpMyImageInfo->width, lpMyImageInfo->height, lpMyImageInfo->format, lpMyImageInfo->wStride[0],
+                 lpMyImageInfo->wStride[1], lpMyImageInfo->wStride[2], lpMyImageInfo->wStride[3], lpMyImageInfo->data[0]);
 		else
-			LOGD("OpenImageHelper::PrintMyImageInfo width = %d, height = %d, format = %d, wPitch = (%d, %d, %d, %d), ppBuffer[0] = %p",
-                 lpMyImageInfo->width, lpMyImageInfo->height, lpMyImageInfo->format, lpMyImageInfo->wPitch[0],
-                 lpMyImageInfo->wPitch[1], lpMyImageInfo->wPitch[2], lpMyImageInfo->wPitch[3], lpMyImageInfo->ppBuffer[0]);
+			LOGD("OpenImageHelper::PrintMyImageInfo width = %d, height = %d, format = %d, wStride = (%d, %d, %d, %d), data[0] = %p",
+                 lpMyImageInfo->width, lpMyImageInfo->height, lpMyImageInfo->format, lpMyImageInfo->wStride[0],
+                 lpMyImageInfo->wStride[1], lpMyImageInfo->wStride[2], lpMyImageInfo->wStride[3], lpMyImageInfo->data[0]);
 	}
 
-	static ERROR_CODE SaveImageToPng (const LPMyImageInfo lpMyImageInfo, const char* sPath)
+	static KitErrorCode SaveImageToPng (const LPKitImage lpMyImageInfo, const char* sPath)
 	{
 		AUTO_COUNT_TIME_COST("SaveImageToPng");
 		CHECK_NULL_INPUT(lpMyImageInfo)
-		CHECK_NULL_INPUT(lpMyImageInfo->ppBuffer[0])
+		CHECK_NULL_INPUT(lpMyImageInfo->data[0])
 		CHECK_NULL_INPUT(sPath)
 		LOGD("SaveImageToPng sPath = %s", sPath);
 
-		ERROR_CODE ret = ERROR_OK;
+		KitErrorCode ret = NONE_ERROR;
 
 		png_image image {0};
 		image.version = PNG_IMAGE_VERSION;
 		image.width = static_cast<png_uint_32 >(lpMyImageInfo->width);
 		image.height = static_cast<png_uint_32 >(lpMyImageInfo->height);
-		if (MY_FORMAT_RGB32 == lpMyImageInfo->format) {
+		if (KIT_FMT_RGB32 == lpMyImageInfo->format) {
 			image.format = PNG_FORMAT_RGBA;
 		} else{
 			image.format = PNG_FORMAT_RGB;
 		}
 		image.colormap_entries = 256;
-		png_bytep buffer = lpMyImageInfo->ppBuffer[0];
+		png_bytep buffer = lpMyImageInfo->data[0];
 		int png_ret = png_image_write_to_file(&image, sPath, 0, buffer, 0, NULL);
 		LOGD("SaveImageToPng png_image_write_to_file ret = %d", png_ret);
 		if (0 == png_ret)
@@ -209,10 +209,10 @@ public:
 		return ret;
 	}
 
-	static void ExchangeImageCoordinateY (LPMyImageInfo lpMyImageInfo)
+	static void ExchangeImageCoordinateY (LPKitImage lpMyImageInfo)
 	{
 		AUTO_COUNT_TIME_COST("ExchangeImageCoordinateY");
-		if (NULL == lpMyImageInfo || NULL == lpMyImageInfo->ppBuffer[0])
+		if (NULL == lpMyImageInfo || NULL == lpMyImageInfo->data[0])
 		{
 			LOGE("ExchangeImageCoordinateY ERROR_INPUT");
 			return;
@@ -221,21 +221,21 @@ public:
 		int channelNum = 0;
 		switch (lpMyImageInfo->format)
 		{
-			case MY_FORMAT_NV12:
-			case MY_FORMAT_NV21:
+			case KIT_FMT_NV12:
+			case KIT_FMT_NV21:
                 channelNum = 2;
                 break;
-            case MY_FORMAT_RGB32:
+            case KIT_FMT_RGB32:
 				channelNum = 4;
 				break;
-			case MY_FORMAT_RGB24:
+			case KIT_FMT_RGB24:
 				channelNum = 3;
 				break;
 			default:
 				break;
 		}
 
-		int pitch = lpMyImageInfo->wPitch[0];
+		int pitch = lpMyImageInfo->wStride[0];
 		int height = lpMyImageInfo->height;
 		int lineSize = pitch;
 		unsigned char *lineBuffer = NULL;
@@ -245,9 +245,9 @@ public:
 		int num = height / 2;
 		for (int i = 0; i < num; ++i)
 		{
-			memcpy(lineBuffer, lpMyImageInfo->ppBuffer[0] + i * lineSize, lineSize);
-			memcpy(lpMyImageInfo->ppBuffer[0] + i * lineSize, (lpMyImageInfo->ppBuffer[0] + (height - i - 1) * lineSize), lineSize);
-			memcpy((lpMyImageInfo->ppBuffer[0] + (height - i - 1) * lineSize), lineBuffer, lineSize);
+			memcpy(lineBuffer, lpMyImageInfo->data[0] + i * lineSize, lineSize);
+			memcpy(lpMyImageInfo->data[0] + i * lineSize, (lpMyImageInfo->data[0] + (height - i - 1) * lineSize), lineSize);
+			memcpy((lpMyImageInfo->data[0] + (height - i - 1) * lineSize), lineBuffer, lineSize);
 			memset(lineBuffer, 0, sizeof(lineSize));
 		}
 

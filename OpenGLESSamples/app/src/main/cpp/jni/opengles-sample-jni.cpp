@@ -11,7 +11,7 @@ JNIEXPORT jlong JNICALL JNI_METHOD_NAME(CreateProcessorJNI)(JNIEnv *env, jobject
 	// TODO: implement CreateProcessor()
 	PHandle pProcessorHandle = nullptr;
 	int retCode = CreateProcessor(&pProcessorHandle);
-	if (retCode != ERROR_OK || nullptr == pProcessorHandle) {
+	if (retCode != NONE_ERROR || nullptr == pProcessorHandle) {
 		LOGE("jni CreateProcessor error");
 	}
 	return (jlong)pProcessorHandle;

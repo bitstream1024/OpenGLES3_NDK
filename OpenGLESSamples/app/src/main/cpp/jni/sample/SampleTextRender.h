@@ -1,5 +1,5 @@
 //
-// Created by chauncy on 2022/7/5.
+// Created by bitstream1024 on 2022/7/5.
 //
 
 #pragma once
@@ -33,7 +33,7 @@ private:
     int createASCIICharacters ();
     int initBuffer();
     int renderText(const std::string& strText, const float &posX, const float &posY, const float &scale,
-                   const glm::vec3 &color, const LPRECT pRenderWindow);
+                   const glm::vec3 &color, const LPKitRect pRenderWindow);
 
 private:
     ASCIICharMap *m_pASCIICharMap;

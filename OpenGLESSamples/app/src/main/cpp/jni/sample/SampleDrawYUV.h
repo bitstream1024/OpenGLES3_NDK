@@ -1,5 +1,5 @@
 //
-// Created by chauncy_wang on 2020/9/23.
+// Created by bitstream1024_wang on 2020/9/23.
 //
 
 #ifndef SENIOROPENGLES_SAMPLEDRAWYUV_H
@@ -7,8 +7,8 @@
 
 
 #include <ShaderHelper.h>
-#include <common.h>
-#include <MyImageInfo.h>
+#include <KitCommon.h>
+#include <KitImage.h>
 #include "SampleBase.h"
 
 class SampleDrawYUV : public SampleBase {
@@ -19,7 +19,7 @@ public:
     RESULT OnDrawFrame ();
     RESULT InitSample ();
     void UnInitSample ();
-    RESULT SetImageYuvResource (MyImageInfo *const pSrcImage);
+    RESULT SetImageYuvResource (KitImage *const pSrcImage);
 
 private:
     RESULT createShader();
@@ -28,7 +28,7 @@ private:
     void destroyGLBuffer ();
     void initMVPMatrix ();
 
-    MyImageInfo m_YUVImage;
+    KitImage m_YUVImage;
     GLuint mTextureLumin;
     GLuint mTextureAlpha;
     ShaderHelper *m_pShaderHelper;
