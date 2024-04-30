@@ -66,12 +66,17 @@ link_directories(
         ${CLANG_STL_PATH}
 )
 
-set(LIST_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/../opengles-sample-jni.cpp)
 
+file(GLOB LIST_SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 list(APPEND LIST_SRC_FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/../opengles-sample-jni.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../shader_helper/ShaderHelper.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../source/processor.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../glutil/ScreenRect.cpp
+        )
+
+#[[list(APPEND LIST_SRC_FILES
+
         SampleBase.cpp
         SampleTexture.cpp
         draw_utils.cpp
@@ -82,7 +87,7 @@ list(APPEND LIST_SRC_FILES
         SampleRender3DMesh.cpp
         SampleDrawYUV.cpp
         SampleTextRender.cpp
-        )
+        )]]
 
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffunction-sections")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffunction-sections")

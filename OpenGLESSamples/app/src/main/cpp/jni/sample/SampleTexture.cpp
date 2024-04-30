@@ -20,7 +20,7 @@ static void UpdateTextureFuncAsync(SampleTexture* pSample)
     memcpy(testImageInfo.hPitch, lpMyImageInfo->hPitch, 4 * sizeof(int));
     unsigned int size = NativeImageUtils::AllocNativeImage(&testImageInfo);
     LOGV("UpdateTextureFuncAsync AllocNativeImage nRet = %u", size);
-    //NativeImageUtils::CopyNativeImageToDst(lpMyImageInfo, &testImageInfo);
+    //NativeImageUtils::CopyNativeImageToDst(m_pImageRGBA, &testImageInfo);
 
     while(true) {
 

@@ -40,8 +40,10 @@ typedef struct __tag_processor_handle
 	ShaderSet mShaderSetTexture;
 	ShaderSet mShaderSetFBO;
 	ShaderSet mShaderSetFBONormal;
-	LPMyImageInfo lpMyImageInfo;
-	LPMyImageInfo lpMyImageInfo_YUV;
+	LPMyImageInfo m_pImageRGBA;
+	LPMyImageInfo m_pImageYUV;
+	LPMyImageInfo m_pImageGray10;
+	LPMyImageInfo m_pImageP010;
 	AHardwareBufferHelper *pHardwareBufferHelper;
 	SampleTransform *m_pSampleTransform;
 	SampleRender3D *m_pSampleRender3D;
@@ -49,6 +51,7 @@ typedef struct __tag_processor_handle
 	SampleRender3DMesh *m_pSampleRender3DMesh;
 	SampleTexture *m_pSampleTexture;
 	SampleDrawYUV *m_pSampleRenderYUV;
+	SampleRender16Bit *m_pSampleRenderYUV16Bit;
 	SampleTextRender *m_pSampleRenderText;
 } ProcessorHandle, *LPProcessorHandle;
 

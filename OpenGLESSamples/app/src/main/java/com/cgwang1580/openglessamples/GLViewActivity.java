@@ -114,7 +114,8 @@ public class GLViewActivity extends AppCompatActivity {
                 "Render3DMesh",
                 "DrawTexture",
                 "RenderYUV",
-                "renderText"
+                "RenderYUV16Bit",
+                "RenderText"
         ));
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {

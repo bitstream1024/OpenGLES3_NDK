@@ -194,7 +194,7 @@ int AHardwareBufferHelper::getGPUBufferData(LPMyImageInfo lpMyImageInfo)
 	long lSize = 0;
 	if (NULL == lpMyImageInfo->ppBuffer[0])
 	{
-		//lSize = OpenImageHelper::AllocMyImageInfo(lpMyImageInfo);
+		//lSize = OpenImageHelper::AllocMyImageInfo(m_pImageRGBA);
 		lSize = NativeImageUtils::AllocNativeImage(lpMyImageInfo);
 		LOGD("getGPUBufferDate AllocMyImageInfo lSize = %ld", lSize);
 		if (0 == lSize)

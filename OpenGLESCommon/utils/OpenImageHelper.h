@@ -26,7 +26,7 @@ private:
 		LOGD("CalMyImageBufferLength");
 		if (NULL == lpMyImageInfo || 0 == lpMyImageInfo->width || 0 == lpMyImageInfo->height)
 		{
-			LOGE("AllocMyImageInfo lpMyImageInfo wrong");
+			LOGE("AllocMyImageInfo m_pImageRGBA wrong");
 			return 0;
 		}
 		int lSize = 0;
@@ -57,7 +57,7 @@ public:
 		if (NULL == lpMyImageInfo || 0 == lpMyImageInfo->width || 0 == lpMyImageInfo->wPitch[0]
 			|| 0 == lpMyImageInfo->height || NULL != lpMyImageInfo->ppBuffer[0])
 		{
-			LOGE("AllocMyImageInfo lpMyImageInfo wrong");
+			LOGE("AllocMyImageInfo m_pImageRGBA wrong");
 			return ERROR_INPUT;
 		}
 
@@ -91,13 +91,13 @@ public:
 		return lSize;
 	}
 
-	static ERROR_CODE FreeMyImageInfo (LPMyImageInfo lpMyImageInfo)
+	static void FreeMyImageInfo (LPMyImageInfo lpMyImageInfo)
 	{
 		LOGD("FreeMyImageInfo");
-		CHECK_NULL_INPUT(lpMyImageInfo)
-		SafeFree(lpMyImageInfo->ppBuffer[0]);
-		memset(lpMyImageInfo, 0, sizeof(MyImageInfo));
-		return ERROR_OK;
+        if (lpMyImageInfo && lpMyImageInfo->ppBuffer[0]) {
+          SafeFree(lpMyImageInfo->ppBuffer[0]);
+          memset(lpMyImageInfo, 0, sizeof(MyImageInfo));
+        }
 	}
 
 	/**

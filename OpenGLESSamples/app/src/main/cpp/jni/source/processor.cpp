@@ -73,15 +73,24 @@ int CreateSampleAndShaderByDrawType (const PHandle pProcessorHandle, SampleType 
 			break;
 		case eDraw_Texture:
 			MyProcessorHandle->m_pSampleTexture = (SampleTexture*)SampleFactory::CreateSample(drawType);
-			MyProcessorHandle->m_pSampleTexture->SetImageInfo(MyProcessorHandle->lpMyImageInfo);
+			MyProcessorHandle->m_pSampleTexture->SetImageInfo(MyProcessorHandle->m_pImageRGBA);
 			MyProcessorHandle->m_pSampleTexture->Create();
             break;
 		case eDraw_YUV:
 			if (!MyProcessorHandle->m_pSampleRenderYUV)
             {
 				MyProcessorHandle->m_pSampleRenderYUV = (SampleDrawYUV*)SampleFactory::CreateSample(drawType);
-				MyProcessorHandle->m_pSampleRenderYUV->SetImageYuvResource(MyProcessorHandle->lpMyImageInfo_YUV);
+				MyProcessorHandle->m_pSampleRenderYUV->SetImageYuvResource(MyProcessorHandle->m_pImageYUV);
 				MyProcessorHandle->m_pSampleRenderYUV->InitSample();
+			}
+			break;
+        case eDraw_YUV16Bit:
+			if (!MyProcessorHandle->m_pSampleRenderYUV16Bit)
+            {
+				MyProcessorHandle->m_pSampleRenderYUV16Bit = (SampleRender16Bit*)SampleFactory::CreateSample(drawType);
+                MyProcessorHandle->m_pSampleRenderYUV16Bit->SetImage(
+                        MyProcessorHandle->m_pImageP010);
+				MyProcessorHandle->m_pSampleRenderYUV16Bit->InitSample();
 			}
 			break;
         case eDraw_Text:
@@ -158,6 +167,12 @@ int DestroySampleAndShaderByDrawType (const PHandle pProcessorHandle, SampleType
 				MyProcessorHandle->m_pSampleRenderYUV->UnInitSample();
 			SafeDelete(MyProcessorHandle->m_pSampleRenderYUV)
 			break;
+        case eDraw_YUV16Bit:
+            if (MyProcessorHandle->m_pSampleRenderYUV16Bit) {
+                MyProcessorHandle->m_pSampleRenderYUV16Bit->UnInitSample();
+                SafeDelete(MyProcessorHandle->m_pSampleRenderYUV16Bit)
+            }
+            break;
         case eDraw_Text:
 			if (MyProcessorHandle->m_pSampleRenderText)
 				MyProcessorHandle->m_pSampleRenderText->UnInit();
@@ -194,27 +209,49 @@ int SetupResource (PHandle const pProcessorHandle)
 	LOGD("SetupResource pProcessorHandle = %p", pProcessorHandle);
 
 	CHECK_NULL_INPUT (pProcessorHandle)
-	auto MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
+	auto pMyHandle = (LPProcessorHandle)pProcessorHandle;
 	int retCode = ERROR_OK;
 
-	do{
-		MyProcessorHandle->lpMyImageInfo = (LPMyImageInfo)malloc(sizeof(MyImageInfo));
-		CHECK_NULL_MALLOC(MyProcessorHandle->lpMyImageInfo);
-		memset (MyProcessorHandle->lpMyImageInfo, 0 , sizeof(MyImageInfo));
-		retCode = OpenImageHelper::LoadPngFromFile(TEST_IMAGE_PATH_2, MyProcessorHandle->lpMyImageInfo);
-		if (ERROR_OK != retCode) {
-			LOGE("SetupResource d retCode = %d", retCode);
-			break;
-		}
+    std::string strPNGImgPath = std::string(ROOT_FOLDER).append(std::string(STR_IMAGE_PNG_DOG));
+    std::string strNV21ImgPath = std::string(ROOT_FOLDER).append(std::string(STR_IMAGE_NV12_DOG));
+    std::string strGray10ImgPath = std::string(ROOT_FOLDER).append(std::string(STR_IMAGE_GRAY_10BIT_DOG));
+    std::string strP010ImgPath = std::string(ROOT_FOLDER).append(std::string(STR_IMAGE_P010_LSB_DOG));
 
-		MyProcessorHandle->lpMyImageInfo_YUV = (LPMyImageInfo)malloc(sizeof(MyImageInfo));
-		CHECK_NULL_MALLOC(MyProcessorHandle->lpMyImageInfo_YUV);
-		memset(MyProcessorHandle->lpMyImageInfo_YUV, 0, sizeof(MyImageInfo));
-		retCode = NativeImageUtils::LoadYuvImageFromFile(TEST_IMAGE_PATH_YUV_0, MyProcessorHandle->lpMyImageInfo_YUV);
-		if (ERROR_OK != retCode) {
-			LOGE("SetupResource LoadYuvFromFile retCode = %d", retCode);
-			break;
-		}
+	do {
+        pMyHandle->m_pImageRGBA = (LPMyImageInfo)malloc(sizeof(MyImageInfo));
+		CHECK_NULL_MALLOC(pMyHandle->m_pImageRGBA);
+		memset (pMyHandle->m_pImageRGBA, 0 , sizeof(MyImageInfo));
+		retCode = OpenImageHelper::LoadPngFromFile(strPNGImgPath.c_str(), pMyHandle->m_pImageRGBA);
+        CHECK_OK_BREAK(retCode, "SetupResource LoadYuvImageFromFile strPNGImgPath");
+
+# if 0
+        NativeImageUtils::SaveYuvImageToFile(pMyHandle->m_pImageRGBA, "/sdcard/OpenGLESTest/dog_1_1280x1920.RGBA32");
+#endif
+
+        pMyHandle->m_pImageYUV = (LPMyImageInfo)malloc(sizeof(MyImageInfo));
+		CHECK_NULL_MALLOC(pMyHandle->m_pImageYUV);
+		memset(pMyHandle->m_pImageYUV, 0, sizeof(MyImageInfo));
+		retCode = NativeImageUtils::LoadYuvImageFromFile(strNV21ImgPath.c_str(), pMyHandle->m_pImageYUV);
+        CHECK_OK_BREAK(retCode, "SetupResource LoadYuvImageFromFile strNV21ImgPath");
+
+        pMyHandle->m_pImageGray10 = (LPMyImageInfo)malloc(sizeof(MyImageInfo));
+        CHECK_NULL_MALLOC(pMyHandle->m_pImageGray10);
+        memset(pMyHandle->m_pImageGray10, 0, sizeof(MyImageInfo));
+        retCode = NativeImageUtils::LoadYuvImageFromFile(strGray10ImgPath.c_str(), pMyHandle->m_pImageGray10);
+        CHECK_OK_BREAK(retCode, "SetupResource LoadYuvImageFromFile strGray10ImgPath");
+
+        pMyHandle->m_pImageP010 = (LPMyImageInfo)malloc(sizeof(MyImageInfo));
+        CHECK_NULL_MALLOC(pMyHandle->m_pImageP010);
+        memset(pMyHandle->m_pImageP010, 0, sizeof(MyImageInfo));
+        retCode = NativeImageUtils::LoadYuvImageFromFile(strP010ImgPath.c_str(), pMyHandle->m_pImageP010);
+        CHECK_OK_BREAK(retCode, "SetupResource LoadYuvImageFromFile strP010ImgPath");
+
+#if 0
+        char szPath[MAX_PATH] {0};
+        snprintf(szPath, sizeof(szPath) - 1, "/sdcard/OpenGLESTest/temp_0_%dx%d.a",
+                 pMyHandle->m_pImageGray10->width, pMyHandle->m_pImageGray10->height);
+        NativeImageUtils::SaveYuvImageToFile(pMyHandle->m_pImageGray10, szPath);
+#endif // for test
 	} while (false);
 
 	return retCode;
@@ -226,16 +263,16 @@ int DestroyProcessor (PHandle *ppProcessorHandle)
 
 	CHECK_NULL_INPUT (*ppProcessorHandle)
 	auto MyProcessorHandle = (LPProcessorHandle)(*ppProcessorHandle);
-	if (nullptr != MyProcessorHandle->lpMyImageInfo)
-	{
-		OpenImageHelper::FreeMyImageInfo(MyProcessorHandle->lpMyImageInfo);
-		SafeFree(MyProcessorHandle->lpMyImageInfo);
-	}
-	if (nullptr != MyProcessorHandle->lpMyImageInfo_YUV)
-	{
-		OpenImageHelper::FreeMyImageInfo(MyProcessorHandle->lpMyImageInfo_YUV);
-		SafeFree(MyProcessorHandle->lpMyImageInfo_YUV);
-	}
+
+    OpenImageHelper::FreeMyImageInfo(MyProcessorHandle->m_pImageRGBA);
+    SafeFree(MyProcessorHandle->m_pImageRGBA);
+    OpenImageHelper::FreeMyImageInfo(MyProcessorHandle->m_pImageYUV);
+    SafeFree(MyProcessorHandle->m_pImageYUV);
+    OpenImageHelper::FreeMyImageInfo(MyProcessorHandle->m_pImageGray10);
+    SafeFree(MyProcessorHandle->m_pImageGray10);
+    OpenImageHelper::FreeMyImageInfo(MyProcessorHandle->m_pImageP010);
+    SafeFree(MyProcessorHandle->m_pImageP010);
+
 	SafeFree (*ppProcessorHandle);
 	LOGD("onSurfaceDestroyed *ppProcessorHandle = %p", *ppProcessorHandle);
 
@@ -269,8 +306,7 @@ int onSurfaceChanged (PHandle const pProcessorHandle, const int width, const int
 
 int onDrawFrame (PHandle const pProcessorHandle)
 {
-	LOGD("processor onDrawFrame begin");
-
+	//LOGD("processor onDrawFrame begin");
 	//LOGD("onDrawFrame pProcessorHandle = %p", pProcessorHandle);
 
 	CHECK_NULL_INPUT (pProcessorHandle)
@@ -280,6 +316,7 @@ int onDrawFrame (PHandle const pProcessorHandle)
 	int ret = ERROR_OK;
 
 	SampleType nDrawType = MyProcessorHandle->m_eDrawType;
+    //LOGD("processor onDrawFrame nDrawType=%d", nDrawType);
 	switch (nDrawType)
 	{
 		case eDraw_Triangle:
@@ -287,16 +324,16 @@ int onDrawFrame (PHandle const pProcessorHandle)
 			LOGD("onDrawFrame drawTriangle ret = %d", ret);
 			break;
 		case eDraw_SimpleTexture:
-			ret = drawTexture(MyProcessorHandle->mShaderSetTexture.pShaderHelper, MyProcessorHandle->lpMyImageInfo);
+			ret = drawTexture(MyProcessorHandle->mShaderSetTexture.pShaderHelper, MyProcessorHandle->m_pImageRGBA);
 			LOGD("onDrawFrame drawTexture ret = %d", ret);
 			break;
 		case eDraw_TextureFBO:
 			ret = drawFBO(MyProcessorHandle->mShaderSetFBO.pShaderHelper, MyProcessorHandle->mShaderSetFBONormal.pShaderHelper,
-						  MyProcessorHandle->lpMyImageInfo);
+						  MyProcessorHandle->m_pImageRGBA);
 			LOGD("onDrawFrame drawFBO ret = %d", ret);
 			break;
 		case eDraw_HardwareBuffer:
-			ret = drawByHardwareBuffer(MyProcessorHandle->pHardwareBufferHelper, MyProcessorHandle->lpMyImageInfo);
+			ret = drawByHardwareBuffer(MyProcessorHandle->pHardwareBufferHelper, MyProcessorHandle->m_pImageRGBA);
 			LOGD("onDrawFrame drawByHardwareBuffer ret = %d", ret);
 			//usleep(33000);  // fps 33ms
 			break;
@@ -327,11 +364,17 @@ int onDrawFrame (PHandle const pProcessorHandle)
                 MyProcessorHandle->m_pSampleTexture->DrawFrame();
                 //MyProcessorHandle->m_pSampleTexture->DrawFrameAsync();
             }
+            break;
 		case eDraw_YUV:
 			if (MyProcessorHandle->m_pSampleRenderYUV) {
 				MyProcessorHandle->m_pSampleRenderYUV->OnDrawFrame();
 			}
 			break;
+        case eDraw_YUV16Bit:
+            if (MyProcessorHandle->m_pSampleRenderYUV16Bit) {
+                MyProcessorHandle->m_pSampleRenderYUV16Bit->OnDrawFrame();
+            }
+            break;
         case eDraw_Text:
             if (MyProcessorHandle->m_pSampleRenderText) {
                 MyProcessorHandle->m_pSampleRenderText->Draw();
@@ -342,7 +385,7 @@ int onDrawFrame (PHandle const pProcessorHandle)
 			break;
 	}
 
-	LOGD("processor onDrawFrame end");
+	//LOGD("processor onDrawFrame end");
 
 	return ret;
 }
@@ -359,7 +402,7 @@ int getTextureFromFrameBuffer (PHandle const pProcessorHandle)
 
 int setMotionState (PHandle const pProcessorHandle, MotionState const motionState)
 {
-	LOGD("setMotionState");
+	//LOGD("setMotionState");
 	CHECK_NULL_INPUT (pProcessorHandle)
 	auto MyProcessorHandle = (LPProcessorHandle)pProcessorHandle;
 

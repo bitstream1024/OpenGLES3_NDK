@@ -6,6 +6,7 @@
 
 #include "SampleBase.h"
 #include "SampleTextRender.h"
+#include "SampleRender16Bit.h"
 
 typedef enum
 {
@@ -19,7 +20,9 @@ typedef enum
 	eDraw_Render3DMesh,
 	eDraw_Texture,
 	eDraw_YUV,
-    eDraw_Text
+	eDraw_YUV16Bit,
+    eDraw_Text,
+    lDraw_TypeNum
 }SampleType;
 
 class SampleFactory {
@@ -50,6 +53,9 @@ public:
                 break;
 			case eDraw_YUV:
                 pBase = new SampleDrawYUV();
+                break;
+            case eDraw_YUV16Bit:
+                pBase = new SampleRender16Bit();
                 break;
             case eDraw_Text:
                 pBase = new SampleTextRender();

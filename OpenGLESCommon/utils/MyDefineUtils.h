@@ -18,13 +18,14 @@
 
 #define CHECK_NULL_INPUT_BREAK(_pVal_, _pRet_, _sInfoTitle_)		if (NULL == (_pVal_)) { \
 																		*(_pRet_) = ERROR_INPUT; \
-																		LOGE ("%s memory alloc failed", (_sInfoTitle_)); \
+																		LOGE("%s memory alloc failed", (_sInfoTitle_)); \
 																		break; }
 
 #define CHECK_MALLOC_BREAK(_p_, _pRet_, _sInfoTitle_)				if (NULL == _p_) { \
 																		*(_pRet_) = ERROR_MEMORY; \
-																		LOGE ("%s malloc failed", _sInfoTitle_); \
+																		LOGE("%s malloc failed", _sInfoTitle_); \
 																		break;}
 
 #define CHECK_OK_RETURN(_ret_)	if (ERROR_OK != (_ret_)) return _ret_;
+#define CHECK_OK_BREAK(_ret_, _info_)	if (ERROR_OK != (_ret_)) {LOGE("%s failed, ret: %d", (_info_), (_ret_)); break;}
 

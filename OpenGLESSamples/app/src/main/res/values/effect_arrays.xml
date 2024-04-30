@@ -11,6 +11,7 @@
         <item>Render3DMesh</item>
         <item>DrawTexture</item>
         <item>RenderYUV</item>
+        <item>RenderYUV16Bit</item>
         <item>RenderText</item>
     </string-array>
 </resources>
